@@ -1,0 +1,41 @@
+[workspace]
+resolver = "2"
+members = []
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+authors = ["tsondru", "Claude <noreply@anthropic.com>"]
+
+[workspace.dependencies]
+catgraph = { git = "https://github.com/tsondru/catgraph" }
+catgraph-surreal = { git = "https://github.com/tsondru/catgraph" }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+surrealdb = { version = "3.0.4", default-features = false, features = ["kv-mem"] }
+tokio = { version = "1", features = ["full"] }
+
+[package]
+name = "irreducible"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+description = "Computational irreducibility library based on Gorard's functorial perspective"
+repository = "https://github.com/tsondru/irreducible"
+homepage = "https://github.com/tsondru/irreducible"
+keywords = ["irreducibility", "functor", "computation", "cobordism", "multiway"]
+categories = ["mathematics", "science", "algorithms"]
+
+[features]
+default = []
+persist = ["dep:catgraph-surreal", "dep:surrealdb", "dep:tokio"]
+
+[dependencies]
+catgraph.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+catgraph-surreal = { workspace = true, optional = true }
+surrealdb = { workspace = true, optional = true }
+tokio = { workspace = true, optional = true }

@@ -1,0 +1,336 @@
+//! Integration tests for core computation types.
+//!
+//! Tests ComputationDomain, ComputationContext, CausaloidType, CausalEffect,
+//! DiscreteInterval composition and contiguity, ComputationState-to-interval
+//! mapping, Complexity from step count, and ParallelIntervals construction.
+
+use irreducible::{
+    CausalEffect, CausaloidType, Complexity, ComputationContext, ComputationDomain,
+    ComputationState, DiscreteInterval, ParallelIntervals, StepCount,
+};
+
+use irreducible::types::ContextKind;
+
+// ---------------------------------------------------------------------------
+// ComputationDomain
+// ---------------------------------------------------------------------------
+
+#[test]
+fn computation_domain_variants_and_names() {
+    let tm = ComputationDomain::TuringMachine {
+        state: 2,
+        head_pos: -5,
+    };
+    assert_eq!(tm.name(), "TuringMachine");
+    assert!(!tm.is_multiway());
+
+    let ca = ComputationDomain::CellularAutomaton {
+        rule: 30,
+        population: 15,
+    };
+    assert_eq!(ca.name(), "CellularAutomaton");
+    assert!(!ca.is_multiway());
+
+    let multiway = ComputationDomain::Multiway {
+        branch_id: 42,
+        depth: 5,
+        state_hash: 0xDEAD_BEEF,
+    };
+    assert_eq!(multiway.name(), "Multiway");
+    assert!(multiway.is_multiway());
+
+    let ntm = ComputationDomain::NondeterministicTM {
+        state: 1,
+        head_pos: 3,
+        branch_id: 7,
+        choices: 3,
+    };
+    assert_eq!(ntm.name(), "NondeterministicTM");
+    assert!(ntm.is_multiway());
+
+    let srs = ComputationDomain::StringRewrite {
+        string_length: 10,
+        applicable_rules: 2,
+        branch_id: 5,
+    };
+    assert_eq!(srs.name(), "StringRewrite");
+    assert!(srs.is_multiway());
+}
+
+#[test]
+fn computation_domain_default_is_generic_unknown() {
+    let domain = ComputationDomain::default();
+    assert_eq!(domain.name(), "unknown");
+    assert!(!domain.is_multiway());
+}
+
+// ---------------------------------------------------------------------------
+// ComputationContext
+// ---------------------------------------------------------------------------
+
+#[test]
+fn computation_context_creation_and_fields() {
+    let ctx = ComputationContext::new(
+        ComputationDomain::TuringMachine {
+            state: 1,
+            head_pos: 3,
+        },
+        5,
+    );
+
+    assert_eq!(ctx.step, 5);
+    assert_eq!(ctx.domain.name(), "TuringMachine");
+    assert!(ctx.complexity_estimated.is_none());
+    assert!(ctx.metadata.is_empty());
+}
+
+#[test]
+fn computation_context_with_complexity_and_metadata() {
+    let ctx = ComputationContext::with_complexity(
+        ComputationDomain::CellularAutomaton {
+            rule: 110,
+            population: 20,
+        },
+        10,
+        42.5,
+    )
+    .with_metadata("note", "test");
+
+    assert_eq!(ctx.step, 10);
+    assert_eq!(ctx.complexity_estimated, Some(42.5));
+    assert_eq!(ctx.get_metadata("note"), Some("test"));
+    assert_eq!(ctx.get_metadata("missing"), None);
+}
+
+#[test]
+fn computation_context_serialization_roundtrip() {
+    let ctx = ComputationContext::with_complexity(
+        ComputationDomain::TuringMachine {
+            state: 2,
+            head_pos: 5,
+        },
+        10,
+        25.0,
+    )
+    .with_metadata("key", "value");
+
+    let json = serde_json::to_string(&ctx).unwrap();
+    let recovered: ComputationContext = serde_json::from_str(&json).unwrap();
+    assert_eq!(ctx, recovered);
+}
+
+// ---------------------------------------------------------------------------
+// CausaloidType and ContextKind
+// ---------------------------------------------------------------------------
+
+#[test]
+fn causaloid_type_construction() {
+    assert_eq!(CausaloidType::default(), CausaloidType::Singleton);
+    let _collection = CausaloidType::Collection;
+    let _graph = CausaloidType::Graph;
+}
+
+#[test]
+fn context_kind_variants() {
+    assert_eq!(ContextKind::default(), ContextKind::Datoid);
+
+    let kinds = [
+        ContextKind::Datoid,
+        ContextKind::Tempoid,
+        ContextKind::Root,
+        ContextKind::Spaceoid,
+        ContextKind::SpaceTempoid,
+        ContextKind::Symboid,
+    ];
+    // All variants are distinct
+    for i in 0..kinds.len() {
+        for j in (i + 1)..kinds.len() {
+            assert_ne!(kinds[i], kinds[j]);
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// DiscreteInterval composition and contiguity
+// ---------------------------------------------------------------------------
+
+#[test]
+fn discrete_interval_composition_contiguous() {
+    let a = DiscreteInterval::new(0, 3);
+    let b = DiscreteInterval::new(3, 7);
+
+    assert!(a.is_composable_with(&b));
+    let composed = a.then(b).unwrap();
+    assert_eq!(composed.start, 0);
+    assert_eq!(composed.end, 7);
+}
+
+#[test]
+fn discrete_interval_composition_non_contiguous_returns_none() {
+    let a = DiscreteInterval::new(0, 3);
+    let b = DiscreteInterval::new(5, 7);
+
+    assert!(!a.is_composable_with(&b));
+    assert!(a.then(b).is_none());
+}
+
+#[test]
+fn discrete_interval_edge_cases() {
+    // Singleton (identity morphism)
+    let id = DiscreteInterval::singleton(5);
+    assert!(id.is_identity());
+    assert_eq!(id.cardinality(), 1);
+    assert_eq!(id.steps(), 0);
+
+    // Zero-length interval [n, n] contains exactly n
+    assert!(id.contains(5));
+    assert!(!id.contains(4));
+    assert!(!id.contains(6));
+}
+
+#[test]
+fn discrete_interval_intersection() {
+    let a = DiscreteInterval::new(0, 5);
+    let b = DiscreteInterval::new(3, 8);
+
+    let intersection = a.intersect(&b).unwrap();
+    assert_eq!(intersection.start, 3);
+    assert_eq!(intersection.end, 5);
+}
+
+#[test]
+fn discrete_interval_no_intersection() {
+    let a = DiscreteInterval::new(0, 3);
+    let b = DiscreteInterval::new(5, 8);
+
+    assert!(a.intersect(&b).is_none());
+}
+
+#[test]
+fn discrete_interval_contains_interval() {
+    let outer = DiscreteInterval::new(0, 10);
+    let inner = DiscreteInterval::new(2, 5);
+
+    assert!(outer.contains_interval(&inner));
+    assert!(!inner.contains_interval(&outer));
+}
+
+// ---------------------------------------------------------------------------
+// ComputationState to interval mapping
+// ---------------------------------------------------------------------------
+
+#[test]
+fn computation_state_to_interval_mapping() {
+    let state = ComputationState::new(3, 5);
+    let interval = state.to_interval();
+
+    assert_eq!(interval.start, 3);
+    assert_eq!(interval.end, 8); // 3 + 5
+}
+
+#[test]
+fn computation_state_initial() {
+    let initial = ComputationState::initial();
+    assert_eq!(initial.step, 0);
+    assert_eq!(initial.complexity, 0);
+
+    // to_interval uses max(1, complexity) so initial maps to [0, 1]
+    let interval = initial.to_interval();
+    assert_eq!(interval.start, 0);
+    assert_eq!(interval.end, 1);
+}
+
+#[test]
+fn computation_state_next_advances() {
+    let state = ComputationState::new(3, 5);
+    let next = state.next();
+
+    assert_eq!(next.step, 4);
+    assert_eq!(next.complexity, 6);
+}
+
+// ---------------------------------------------------------------------------
+// Complexity from step count
+// ---------------------------------------------------------------------------
+
+#[test]
+fn step_count_complexity() {
+    let a = StepCount(3);
+    let b = StepCount(5);
+
+    assert_eq!(a.as_steps(), 3);
+    assert_eq!(b.as_steps(), 5);
+
+    let seq = a.sequential(&b);
+    assert_eq!(seq.as_steps(), 8);
+}
+
+// ---------------------------------------------------------------------------
+// ParallelIntervals
+// ---------------------------------------------------------------------------
+
+#[test]
+fn parallel_intervals_creation_and_properties() {
+    let mut pi = ParallelIntervals::new();
+    assert!(pi.is_singleway()); // 0 branches = singleway
+    assert_eq!(pi.branch_count(), 0);
+
+    pi.add_branch(DiscreteInterval::new(0, 5));
+    assert!(pi.is_singleway()); // 1 branch = still singleway
+    assert_eq!(pi.branch_count(), 1);
+    assert_eq!(pi.total_complexity(), 6); // cardinality of [0,5] = 6
+
+    pi.add_branch(DiscreteInterval::new(0, 3));
+    assert!(!pi.is_singleway()); // 2 branches = multiway
+    assert_eq!(pi.branch_count(), 2);
+    assert_eq!(pi.max_complexity(), 6); // max(6, 4) = 6
+}
+
+#[test]
+fn parallel_intervals_tensor_product() {
+    let a = ParallelIntervals::from_branch(DiscreteInterval::new(0, 5));
+    let b = ParallelIntervals::from_branch(DiscreteInterval::new(10, 15));
+    let combined = a.tensor(b);
+
+    assert_eq!(combined.branch_count(), 2);
+    assert_eq!(combined.branches[0], DiscreteInterval::new(0, 5));
+    assert_eq!(combined.branches[1], DiscreteInterval::new(10, 15));
+}
+
+// ---------------------------------------------------------------------------
+// CausalEffect
+// ---------------------------------------------------------------------------
+
+#[test]
+fn causal_effect_success_and_map() {
+    let effect = CausalEffect::success(42);
+    assert!(effect.is_success());
+    assert_eq!(effect.value, Some(42));
+
+    let doubled = effect.map(|x| x * 2);
+    assert!(doubled.is_success());
+    assert_eq!(doubled.value, Some(84));
+}
+
+#[test]
+fn causal_effect_error_and_log() {
+    let effect: CausalEffect<i32> = CausalEffect::error("failed")
+        .with_log("step 1")
+        .with_log("step 2");
+
+    assert!(!effect.is_success());
+    assert!(effect.has_error);
+    assert_eq!(effect.error_message, Some("failed".to_string()));
+    assert_eq!(effect.log_entries.len(), 2);
+}
+
+#[test]
+fn causal_effect_json_roundtrip() {
+    let effect = CausalEffect::success(42).with_log("computed");
+    let json = effect.to_json().unwrap();
+    let recovered = CausalEffect::<i32>::from_json(&json).unwrap();
+
+    assert_eq!(recovered.value, Some(42));
+    assert!(recovered.is_success());
+    assert_eq!(recovered.log_entries, vec!["computed"]);
+}
