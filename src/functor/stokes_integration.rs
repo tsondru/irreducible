@@ -381,9 +381,9 @@ impl TemporalComplex {
         let chain = self.to_cospan_chain();
         chain.into_iter()
             .reduce(|acc, c| acc.compose(&c).expect("stokes cospans must be composable"))
-            .ok_or_else(|| catgraph::errors::CatgraphError::Composition(
-                "empty cospan chain".to_string()
-            ))
+            .ok_or_else(|| catgraph::errors::CatgraphError::Composition {
+                message: "empty cospan chain".to_string()
+            })
     }
 }
 
