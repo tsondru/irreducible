@@ -309,7 +309,7 @@ fn demo_adjunction() {
         ComputationState::new(8, 7),
     ];
 
-    let verification = AdjunctionVerification::verify_sequence(&states);
+    let verification = AdjunctionVerification::verify_sequence::<ZPrimeAdjunction>(&states);
 
     println!("    Triangle 1 (ε ∘ Z'η = id): {} tests, all passed: {}",
              verification.triangle_1_results.len(),

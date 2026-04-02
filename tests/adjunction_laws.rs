@@ -105,7 +105,7 @@ fn adjunction_preserves_irreducibility_status() {
         .map(|i| ComputationState::new(i, 1))
         .collect();
 
-    let verification = AdjunctionVerification::verify_sequence(&states);
+    let verification = AdjunctionVerification::verify_sequence::<ZPrimeAdjunction>(&states);
     assert!(verification.triangle_identities_hold);
     assert!(verification.is_adjoint_pair);
     assert_eq!(verification.triangle_1_failures(), 0);
@@ -177,7 +177,7 @@ fn single_step_adjunction() {
     let interval = DiscreteInterval::new(0, 1);
     assert!(ZPrimeAdjunction::verify_triangle_2(&interval));
 
-    let verification = AdjunctionVerification::verify_sequence(&[state]);
+    let verification = AdjunctionVerification::verify_sequence::<ZPrimeAdjunction>(&[state]);
     assert!(verification.is_adjoint_pair);
 }
 
@@ -190,7 +190,7 @@ fn multi_step_contiguous_adjunction_sequence() {
         ComputationState::new(7, 2),
     ];
 
-    let verification = AdjunctionVerification::verify_sequence(&states);
+    let verification = AdjunctionVerification::verify_sequence::<ZPrimeAdjunction>(&states);
     assert!(verification.triangle_identities_hold);
     assert!(verification.is_adjoint_pair);
 

@@ -1,42 +1,13 @@
 //! The Z' ⊣ Z Adjunction between Computation and Cobordism Categories.
 //!
-//! This module implements the adjunction between the computation category 𝒯
-//! and the cobordism category ℬ, as described in Gorard's paper (Section 4.2).
+//! This module provides the concrete `ZPrimeAdjunction` implementation of the
+//! abstract adjunction framework from [`catgraph::adjunction`].
 //!
-//! ## Mathematical Foundation
-//!
-//! The adjunction Z' ⊣ Z provides a formal relationship:
-//!
-//! ```text
-//! Hom_ℬ(Z'(c), i) ≅ Hom_𝒯(c, Z(i))
-//! ```
-//!
-//! where:
-//! - Z': 𝒯 → ℬ maps computation states to intervals
-//! - Z: ℬ → 𝒯 maps intervals back to computation states
-//!
-//! The **unit** η: `Id_𝒯` → Z∘Z' embeds computations into the adjunction.
-//! The **counit** ε: Z'∘Z → `Id_ℬ` extracts intervals from the adjunction.
-//!
-//! ## Triangle Identities
-//!
-//! The adjunction satisfies two triangle identities:
-//! 1. `ε_{Z'(c)}` ∘ Z'(`η_c`) = id_{Z'(c)}
-//! 2. Z(`ε_i`) ∘ η_{Z(i)} = id_{Z(i)}
-//!
-//! These ensure the adjunction is coherent.
-//!
-//! ## Physical Interpretation
-//!
-//! From Gorard's paper, the Z' ⊣ Z adjunction has a "quantum duality"
-//! interpretation:
-//! - **Unit** η: Represents "state preparation" (lifting a computation into
-//!   the cobordism representation)
-//! - **Counit** ε: Represents "measurement" (collapsing the cobordism back
-//!   to a computation witness)
-//!
-//! Irreducibility corresponds to the non-triviality of this adjunction.
+//! See Gorard's paper (Section 4.2) for the mathematical foundation.
 
+pub use catgraph::adjunction::{
+    AdjunctionIrreducibility, AdjunctionVerification, ZPrimeOps,
+};
 use crate::categories::{ComputationState, DiscreteInterval};
 
 /// The Z' ⊣ Z adjunction between computation and cobordism categories.
@@ -60,30 +31,6 @@ use crate::categories::{ComputationState, DiscreteInterval};
 /// assert_eq!(state.complexity, 5);
 /// ```
 pub struct ZPrimeAdjunction;
-
-/// Concrete operations for the Z' and Z functors.
-///
-/// Provides the actual computational transformations between states
-/// and intervals that form the Z' ⊣ Z adjunction.
-pub trait ZPrimeOps {
-    /// Apply Z': 𝒯 → ℬ (computation state to interval).
-    fn zprime(state: &ComputationState) -> DiscreteInterval;
-
-    /// Apply Z: ℬ → 𝒯 (interval to computation state).
-    fn z(interval: &DiscreteInterval) -> ComputationState;
-
-    /// Apply the unit at a specific state: `η_c`: c → Z(Z'(c)).
-    fn unit_at(state: &ComputationState) -> ComputationState;
-
-    /// Apply the counit at a specific interval: `ε_i`: Z'(Z(i)) → i.
-    fn counit_at(interval: &DiscreteInterval) -> DiscreteInterval;
-
-    /// Verify the first triangle identity: `ε_{Z'(c)}` ∘ Z'(`η_c`) = id_{Z'(c)}.
-    fn verify_triangle_1(state: &ComputationState) -> bool;
-
-    /// Verify the second triangle identity: Z(`ε_i`) ∘ `η_{Z(i)}` = id_{Z(i)}.
-    fn verify_triangle_2(interval: &DiscreteInterval) -> bool;
-}
 
 impl ZPrimeOps for ZPrimeAdjunction {
     fn zprime(state: &ComputationState) -> DiscreteInterval {
@@ -122,119 +69,7 @@ impl ZPrimeOps for ZPrimeAdjunction {
     }
 }
 
-/// Result of adjunction verification for a sequence of computations.
-#[derive(Clone, Debug)]
-pub struct AdjunctionVerification {
-    /// Whether all triangle identities hold.
-    pub triangle_identities_hold: bool,
-    /// Results for triangle identity 1 at each state.
-    pub triangle_1_results: Vec<bool>,
-    /// Results for triangle identity 2 at each interval.
-    pub triangle_2_results: Vec<bool>,
-    /// Whether Z and Z' form an adjoint pair.
-    pub is_adjoint_pair: bool,
-}
-
-impl AdjunctionVerification {
-    /// Verify the adjunction for a sequence of computation states.
-    pub fn verify_sequence(states: &[ComputationState]) -> Self {
-        let intervals: Vec<DiscreteInterval> =
-            states.iter().map(ZPrimeAdjunction::zprime).collect();
-
-        let triangle_1_results: Vec<bool> = states
-            .iter()
-            .map(ZPrimeAdjunction::verify_triangle_1)
-            .collect();
-
-        let triangle_2_results: Vec<bool> = intervals
-            .iter()
-            .map(ZPrimeAdjunction::verify_triangle_2)
-            .collect();
-
-        let all_triangle_1 = triangle_1_results.iter().all(|&b| b);
-        let all_triangle_2 = triangle_2_results.iter().all(|&b| b);
-        let triangle_identities_hold = all_triangle_1 && all_triangle_2;
-
-        Self {
-            triangle_identities_hold,
-            triangle_1_results,
-            triangle_2_results,
-            is_adjoint_pair: triangle_identities_hold,
-        }
-    }
-
-    /// Count failures in triangle identity 1.
-    #[must_use]
-    pub fn triangle_1_failures(&self) -> usize {
-        self.triangle_1_results.iter().filter(|&&b| !b).count()
-    }
-
-    /// Count failures in triangle identity 2.
-    #[must_use]
-    pub fn triangle_2_failures(&self) -> usize {
-        self.triangle_2_results.iter().filter(|&&b| !b).count()
-    }
-}
-
-impl std::fmt::Display for AdjunctionVerification {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "Adjunction Verification:")?;
-        writeln!(
-            f,
-            "  Triangle identities hold: {}",
-            self.triangle_identities_hold
-        )?;
-        writeln!(
-            f,
-            "  Triangle 1 (ε ∘ Z'η = id): {}/{} passed",
-            self.triangle_1_results.iter().filter(|&&b| b).count(),
-            self.triangle_1_results.len()
-        )?;
-        writeln!(
-            f,
-            "  Triangle 2 (Zε ∘ η = id): {}/{} passed",
-            self.triangle_2_results.iter().filter(|&&b| b).count(),
-            self.triangle_2_results.len()
-        )?;
-        writeln!(f, "  Is adjoint pair: {}", self.is_adjoint_pair)
-    }
-}
-
-/// Extension trait connecting the adjunction to irreducibility analysis.
-pub trait AdjunctionIrreducibility {
-    /// Check if the adjunction structure reveals irreducibility.
-    ///
-    /// The adjunction Z' ⊣ Z is "non-trivial" when the unit and counit
-    /// are not identity transformations, which corresponds to the
-    /// computation being irreducible.
-    fn adjunction_irreducibility_indicator(states: &[ComputationState]) -> f64;
-
-    /// Compute the "adjunction gap" - deviation from perfect adjoint pair.
-    ///
-    /// A gap of 0 indicates perfect adjunction (possibly reducible).
-    /// A non-zero gap indicates the adjunction structure has "resistance"
-    /// to composition, correlating with irreducibility.
-    fn adjunction_gap(state: &ComputationState) -> f64;
-}
-
-impl AdjunctionIrreducibility for ZPrimeAdjunction {
-    #[allow(clippy::cast_possible_truncation, clippy::cast_precision_loss)]
-    fn adjunction_irreducibility_indicator(states: &[ComputationState]) -> f64 {
-        if states.is_empty() {
-            return 0.0;
-        }
-        let total_gap: f64 = states.iter().map(Self::adjunction_gap).sum();
-        total_gap / states.len() as f64
-    }
-
-    #[allow(clippy::cast_possible_truncation, clippy::cast_precision_loss)]
-    fn adjunction_gap(state: &ComputationState) -> f64 {
-        let unit_result = Self::unit_at(state);
-        let step_diff = (unit_result.step as f64 - state.step as f64).abs();
-        let complexity_diff = (unit_result.complexity as f64 - state.complexity as f64).abs();
-        step_diff + complexity_diff
-    }
-}
+impl AdjunctionIrreducibility for ZPrimeAdjunction {}
 
 #[cfg(test)]
 mod tests {
@@ -325,7 +160,7 @@ mod tests {
             ComputationState::new(5, 3),
             ComputationState::new(8, 7),
         ];
-        let verification = AdjunctionVerification::verify_sequence(&states);
+        let verification = AdjunctionVerification::verify_sequence::<ZPrimeAdjunction>(&states);
         assert!(verification.triangle_identities_hold);
         assert!(verification.is_adjoint_pair);
         assert_eq!(verification.triangle_1_failures(), 0);
