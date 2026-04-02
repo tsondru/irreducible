@@ -478,7 +478,6 @@ dependencies = [
 [[package]]
 name = "catgraph"
 version = "0.3.0"
-source = "git+https://github.com/tsondru/catgraph?tag=v0.3.0#740036ec1382e4f66615490d0a0f2e94f2ebee87"
 dependencies = [
  "either",
  "itertools 0.14.0",
@@ -495,7 +494,6 @@ dependencies = [
 [[package]]
 name = "catgraph-surreal"
 version = "0.3.0"
-source = "git+https://github.com/tsondru/catgraph?tag=v0.3.0#740036ec1382e4f66615490d0a0f2e94f2ebee87"
 dependencies = [
  "catgraph",
  "serde",

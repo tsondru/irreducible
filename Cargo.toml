@@ -9,8 +9,8 @@ license = "MIT"
 authors = ["tsondru", "Claude <noreply@anthropic.com>"]
 
 [workspace.dependencies]
-catgraph = { git = "https://github.com/tsondru/catgraph", tag = "v0.3.0" }
-catgraph-surreal = { git = "https://github.com/tsondru/catgraph", tag = "v0.3.0" }
+catgraph = { path = "/home/oryx/Documents/tsondru/catgraph" }
+catgraph-surreal = { path = "/home/oryx/Documents/tsondru/catgraph/catgraph-surreal" }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 surrealdb = { version = "3.0.4", default-features = false, features = ["kv-mem"] }

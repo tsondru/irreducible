@@ -269,43 +269,8 @@ impl IrreducibilityFunctor {
     }
 }
 
-/// Extension methods for P`arallelIntervals` for monoidal verification.
-impl ParallelIntervals {
-    /// Direct sum ⊕: parallel composition in cobordism category.
-    ///
-    /// This is the target operation for Z'(f ⊗ g).
-    /// Equivalent to `tensor()` but named for mathematical clarity.
-    #[must_use]
-    pub fn direct_sum(self, other: Self) -> Self {
-        self.tensor(other)
-    }
-
-    /// Check structural equivalence for functor verification.
-    ///
-    /// Two `ParallelIntervals` are structurally equivalent if they have
-    /// the same multiset of interval cardinalities.
-    #[must_use]
-    pub fn structurally_equivalent(&self, other: &Self) -> bool {
-        if self.branch_count() != other.branch_count() {
-            return false;
-        }
-
-        // Compare cardinalities as multisets
-        let mut self_cards: Vec<_> = self.branches.iter().map(DiscreteInterval::cardinality).collect();
-        let mut other_cards: Vec<_> = other.branches.iter().map(DiscreteInterval::cardinality).collect();
-
-        self_cards.sort_unstable();
-        other_cards.sort_unstable();
-
-        self_cards == other_cards
-    }
-
-    /// Check exact equality (same intervals in same order).
-    #[must_use]
-    pub fn exactly_equal(&self, other: &Self) -> bool {
-        self.branches == other.branches
-    }
-}
+// Extension methods (direct_sum, structurally_equivalent, exactly_equal)
+// moved to catgraph::interval::ParallelIntervals — available via re-export.
 
 // ============================================================================
 // Coherence Verification Functions
