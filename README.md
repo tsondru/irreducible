@@ -2,9 +2,9 @@
 
 A Rust implementation of Jonathan Gorard's "A Functorial Perspective on (Multi)computational Irreducibility" ([arXiv:2301.04690](https://arxiv.org/pdf/2301.04690)), demonstrating that **computational irreducibility is equivalent to functoriality** of a map from a category of computations to a cobordism category.
 
-Uses [catgraph](https://github.com/tsondru/catgraph) for categorical infrastructure (spans, cospans, symmetric monoidal categories).
+Uses [catgraph](https://github.com/tsondru/catgraph) v0.4.0 for categorical infrastructure (spans, cospans, adjunctions, bifunctors, coherence verification, symmetric monoidal categories). Category theory types (intervals, complexity, adjunction framework, bifunctor operations, coherence verifiers, temporal complexes) are defined in catgraph and re-exported transparently.
 
-448 tests, zero clippy warnings. Rust 2024 edition.
+~393 tests, zero clippy warnings. Rust 2024 edition.
 
 ## Quick Start
 

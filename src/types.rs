@@ -22,46 +22,6 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-/// Type classification for causaloids.
-///
-/// A causaloid is the fundamental unit of causal reasoning, representing
-/// a causal function f: E₁ → E₂ that maps cause to effect.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
-#[derive(Default)]
-pub enum CausaloidType {
-    /// A single causal unit with one causal function
-    #[default]
-    Singleton,
-    /// A collection of causaloids with aggregate logic
-    Collection,
-    /// A graph of interconnected causaloids
-    Graph,
-}
-
-
-/// Context node classification for contextoid graphs.
-///
-/// Contextoids represent nodes in a context hypergraph, supporting
-/// D`eepCausality'`s 4D context model: data-like, time-like, space-like, spacetime-like.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
-#[derive(Default)]
-pub enum ContextKind {
-    /// Data-like context node (pure data)
-    #[default]
-    Datoid,
-    /// Time-like context node (temporal information)
-    Tempoid,
-    /// Root context node
-    Root,
-    /// Space-like context node (spatial information)
-    Spaceoid,
-    /// Spacetime-like context node (combined spatial-temporal)
-    SpaceTempoid,
-    /// Symbolic context node
-    Symboid,
-}
-
-
 // ============================================================================
 // Rich Domain Metadata (Phase 4)
 // ============================================================================
@@ -411,16 +371,6 @@ impl<T: for<'de> Deserialize<'de>> CausalEffect<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_causaloid_type_default() {
-        assert_eq!(CausaloidType::default(), CausaloidType::Singleton);
-    }
-
-    #[test]
-    fn test_context_kind_default() {
-        assert_eq!(ContextKind::default(), ContextKind::Datoid);
-    }
 
     #[test]
     fn test_causal_effect_success() {

@@ -477,7 +477,8 @@ dependencies = [
 
 [[package]]
 name = "catgraph"
-version = "0.3.0"
+version = "0.4.0"
+source = "git+https://github.com/tsondru/catgraph?tag=v0.4.0#040b9871023388796f2ddc38407a4944e0c4e13c"
 dependencies = [
  "either",
  "itertools 0.14.0",
@@ -494,6 +495,7 @@ dependencies = [
 [[package]]
 name = "catgraph-surreal"
 version = "0.3.0"
+source = "git+https://github.com/tsondru/catgraph?tag=v0.4.0#040b9871023388796f2ddc38407a4944e0c4e13c"
 dependencies = [
  "catgraph",
  "serde",
@@ -1907,7 +1909,7 @@ checksum = "d98f6fed1fde3f8c21bc40a1abb88dd75e67924f9cffc3ef95607bad8017f8e2"
 
 [[package]]
 name = "irreducible"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "catgraph",
  "catgraph-surreal",

@@ -13,18 +13,18 @@ irreducible/                            # Workspace root
 ├── Cargo.toml                          # Workspace root + library package
 ├── src/
 │   ├── lib.rs                          # Library exports (all modules pub)
-│   ├── types.rs                        # CausaloidType, ContextKind, ComputationDomain, ComputationContext
+│   ├── types.rs                        # ComputationDomain, ComputationContext, CausalEffect
 │   ├── test_utils.rs                   # Shared test helpers (cfg(test) only)
 │   ├── categories/
-│   │   ├── cobordism.rs                # DiscreteInterval, ParallelIntervals (category B)
-│   │   ├── complexity.rs               # Complexity trait, StepCount
-│   │   └── computation_state.rs        # ComputationState (category T)
+│   │   ├── cobordism.rs                # Re-exports catgraph::interval (DiscreteInterval, ParallelIntervals)
+│   │   ├── complexity.rs               # Re-exports catgraph::complexity (Complexity, StepCount)
+│   │   └── computation_state.rs        # Re-exports catgraph::computation_state (ComputationState)
 │   ├── functor/
 │   │   ├── mod.rs                      # IrreducibilityFunctor, MultiwayIrreducibilityResult
-│   │   ├── adjunction.rs              # ZPrimeAdjunction, ZPrimeOps, triangle identities
-│   │   ├── monoidal.rs                # MonoidalFunctorResult, CoherenceVerification, DifferentialCoherence
-│   │   ├── bifunctor.rs               # TensorProduct trait, tensor_bimap, verify_associativity
-│   │   └── stokes_integration.rs      # TemporalComplex, ConservationResult, Stokes-cospan bridge
+│   │   ├── adjunction.rs              # ZPrimeAdjunction + re-exports catgraph::adjunction
+│   │   ├── monoidal.rs                # MonoidalFunctorResult + re-exports catgraph::coherence
+│   │   ├── bifunctor.rs               # Re-exports catgraph::bifunctor (TensorProduct, etc.)
+│   │   └── stokes_integration.rs      # StokesIrreducibility + re-exports catgraph::stokes
 │   └── machines/
 │       ├── mod.rs                      # Machine re-exports, State type alias
 │       ├── turing.rs                   # TuringMachine, ExecutionHistory, TuringMachineBuilder
@@ -65,13 +65,15 @@ irreducible/                            # Workspace root
 
 ```toml
 [workspace.dependencies]
-catgraph = { git = "https://github.com/tsondru/catgraph" }       # Category theory (spans, cospans)
-catgraph-surreal = { git = "https://github.com/tsondru/catgraph" } # optional (persist feature)
+catgraph = { git = "https://github.com/tsondru/catgraph", tag = "v0.4.0" }  # Category theory (spans, cospans, adjunctions, coherence)
+catgraph-surreal = { git = "https://github.com/tsondru/catgraph", tag = "v0.4.0" }  # optional (persist feature)
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 surrealdb = { version = "3.0.4", default-features = false, features = ["kv-mem"] }  # optional
 tokio = { version = "1", features = ["full"] }                    # optional
 ```
+
+**Note:** During active development, the catgraph dep uses `path = "/home/oryx/Documents/tsondru/catgraph"`. Switch to git tag for releases.
 
 ## Feature Flags
 
@@ -318,10 +320,10 @@ assert!(analysis.is_irreducible());
 ### Running Tests
 
 ```bash
-cargo test --workspace                    # 441 tests (310 unit + 109 integration + 29 doc), 0 ignored
-cargo test -p irreducible                 # Core library unit tests (310)
+cargo test --workspace                    # ~393 tests (264 unit + 107 integration + 22 doc), 0 ignored
+cargo test -p irreducible                 # Core library unit tests (264)
 cargo test --test functoriality           # Single integration test file
-cargo test --workspace --features persist # 448 tests (+7 persistence)
+cargo test --workspace --features persist # ~404 tests (+7 persistence)
 cargo run --example gorard_demo           # Run the 9-part demo
 cargo clippy --workspace -- -W clippy::pedantic  # Lint (zero warnings)
 ```
@@ -330,9 +332,9 @@ cargo clippy --workspace -- -W clippy::pedantic  # Lint (zero warnings)
 
 | Category | Count | What it covers |
 |----------|-------|----------------|
-| Unit tests | 310 | All modules: functor, machines, categories, types, trace |
-| Integration tests | 109 | 8 files: adjunction, catgraph bridge, computation types, functoriality, hypergraph, monoidal, multiway, Stokes |
-| Doc tests | 29 | Module-level and type-level examples (all enabled, zero ignored) |
+| Unit tests | 264 | All modules: functor, machines, categories, types, trace |
+| Integration tests | 107 | 8 files: adjunction, catgraph bridge, computation types, functoriality, hypergraph, monoidal, multiway, Stokes |
+| Doc tests | 22 | Module-level and type-level examples (all enabled, zero ignored) |
 
 ### Test Patterns
 

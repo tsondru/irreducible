@@ -3,14 +3,14 @@ resolver = "2"
 members = []
 
 [workspace.package]
-version = "0.1.0"
+version = "0.2.0"
 edition = "2024"
 license = "MIT"
 authors = ["tsondru", "Claude <noreply@anthropic.com>"]
 
 [workspace.dependencies]
-catgraph = { path = "/home/oryx/Documents/tsondru/catgraph" }
-catgraph-surreal = { path = "/home/oryx/Documents/tsondru/catgraph/catgraph-surreal" }
+catgraph = { git = "https://github.com/tsondru/catgraph", tag = "v0.4.0" }
+catgraph-surreal = { git = "https://github.com/tsondru/catgraph", tag = "v0.4.0" }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 surrealdb = { version = "3.0.4", default-features = false, features = ["kv-mem"] }

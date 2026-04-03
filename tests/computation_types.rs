@@ -1,15 +1,13 @@
 //! Integration tests for core computation types.
 //!
-//! Tests ComputationDomain, ComputationContext, CausaloidType, CausalEffect,
+//! Tests ComputationDomain, ComputationContext, CausalEffect,
 //! DiscreteInterval composition and contiguity, ComputationState-to-interval
 //! mapping, Complexity from step count, and ParallelIntervals construction.
 
 use irreducible::{
-    CausalEffect, CausaloidType, Complexity, ComputationContext, ComputationDomain,
-    ComputationState, DiscreteInterval, ParallelIntervals, StepCount,
+    CausalEffect, Complexity, ComputationContext, ComputationDomain, ComputationState,
+    DiscreteInterval, ParallelIntervals, StepCount,
 };
-
-use irreducible::types::ContextKind;
 
 // ---------------------------------------------------------------------------
 // ComputationDomain
@@ -117,37 +115,6 @@ fn computation_context_serialization_roundtrip() {
     let json = serde_json::to_string(&ctx).unwrap();
     let recovered: ComputationContext = serde_json::from_str(&json).unwrap();
     assert_eq!(ctx, recovered);
-}
-
-// ---------------------------------------------------------------------------
-// CausaloidType and ContextKind
-// ---------------------------------------------------------------------------
-
-#[test]
-fn causaloid_type_construction() {
-    assert_eq!(CausaloidType::default(), CausaloidType::Singleton);
-    let _collection = CausaloidType::Collection;
-    let _graph = CausaloidType::Graph;
-}
-
-#[test]
-fn context_kind_variants() {
-    assert_eq!(ContextKind::default(), ContextKind::Datoid);
-
-    let kinds = [
-        ContextKind::Datoid,
-        ContextKind::Tempoid,
-        ContextKind::Root,
-        ContextKind::Spaceoid,
-        ContextKind::SpaceTempoid,
-        ContextKind::Symboid,
-    ];
-    // All variants are distinct
-    for i in 0..kinds.len() {
-        for j in (i + 1)..kinds.len() {
-            assert_ne!(kinds[i], kinds[j]);
-        }
-    }
 }
 
 // ---------------------------------------------------------------------------

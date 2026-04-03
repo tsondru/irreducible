@@ -8,7 +8,7 @@
 //!
 //! ## Modules
 //!
-//! - [`types`] - Core type definitions (`CausaloidType`, `ContextKind`, etc.)
+//! - [`types`] - Core type definitions (`ComputationDomain`, `ComputationContext`, `CausalEffect`)
 //! - [`categories`] - Category theory abstractions (`DiscreteInterval`, `Complexity`, `ComputationState`)
 //! - [`functor`] - The irreducibility functor Z': 𝒯 → ℬ, adjunction, monoidal structure, Stokes
 //! - [`machines`] - Computational machines (Turing machines, cellular automata, hypergraph rewriting)
@@ -74,9 +74,7 @@ pub use functor::{
 pub use functor::{ConservationResult, StokesError, StokesIrreducibility, TemporalComplex};
 
 // Type exports
-pub use types::{
-    CausalEffect, CausaloidType, ComputationContext, ComputationDomain, ContextKind,
-};
+pub use types::{CausalEffect, ComputationContext, ComputationDomain};
 
 // Turing machine exports
 pub use machines::{ExecutionHistory, IrreducibilityAnalysis, TuringMachine};
