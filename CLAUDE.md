@@ -55,10 +55,16 @@ irreducible/                            # Workspace root
 │   ├── hypergraph_rewriting.rs       # DPO rewriting, multiway evolution, gauge theory
 │   ├── monoidal_coherence.rs         # Tensor checks, associator/braiding coherence
 │   ├── multiway_evolution.rs         # SRS, NTM, branchial analysis, curvature
+│   ├── persistence.rs                # SurrealDB persist roundtrips (feature-gated)
+│   ├── property_coherence.rs         # Coherence verification, differential coherence
 │   └── stokes_integration.rs         # Conservation laws, Stokes-cospan bridge
 └── examples/
     ├── gorard_demo.rs                 # 9-part presentation demo
-    └── gorard_demo.md                 # Companion documentation
+    ├── gorard_demo.md                 # Companion documentation
+    ├── builders.rs                    # TuringMachineBuilder + NTMBuilder patterns
+    ├── bifunctor_tensor.rs            # Tensor products, monoidal law verification
+    ├── lattice_gauge.rs               # Wilson loops, plaquette action, gauge theory
+    └── persist_evolution.rs           # EvolutionPersistence lifecycle (feature-gated)
 ```
 
 ## Dependencies
@@ -320,11 +326,15 @@ assert!(analysis.is_irreducible());
 ### Running Tests
 
 ```bash
-cargo test --workspace                    # ~393 tests (264 unit + 107 integration + 22 doc), 0 ignored
+cargo test --workspace                    # 410 tests (264 unit + 124 integration + 22 doc), 0 ignored
 cargo test -p irreducible                 # Core library unit tests (264)
 cargo test --test functoriality           # Single integration test file
-cargo test --workspace --features persist # ~404 tests (+7 persistence)
+cargo test --workspace --features persist # 425 tests (+15 persistence)
 cargo run --example gorard_demo           # Run the 9-part demo
+cargo run --example builders              # Builder patterns
+cargo run --example bifunctor_tensor      # Tensor products, monoidal laws
+cargo run --example lattice_gauge         # Wilson loops, gauge theory
+cargo run --example persist_evolution --features persist  # SurrealDB persistence
 cargo clippy --workspace -- -W clippy::pedantic  # Lint (zero warnings)
 ```
 
@@ -333,7 +343,7 @@ cargo clippy --workspace -- -W clippy::pedantic  # Lint (zero warnings)
 | Category | Count | What it covers |
 |----------|-------|----------------|
 | Unit tests | 264 | All modules: functor, machines, categories, types, trace |
-| Integration tests | 107 | 8 files: adjunction, catgraph bridge, computation types, functoriality, hypergraph, monoidal, multiway, Stokes |
+| Integration tests | 124 | 10 files: adjunction, catgraph bridge, computation types, functoriality, hypergraph, monoidal, multiway, persistence, property coherence, Stokes |
 | Doc tests | 22 | Module-level and type-level examples (all enabled, zero ignored) |
 
 ### Test Patterns
@@ -365,8 +375,8 @@ Enables `EvolutionPersistence` for storing evolution traces in SurrealDB via cat
 use irreducible::machines::hypergraph::persistence::EvolutionPersistence;
 
 let persist = EvolutionPersistence::new(&db);
-let hub_ids = persist.save_cospan_chain(&evolution).await?;
-let span_id = persist.save_span(&rule.to_span()).await?;
+let hub_ids = persist.persist_cospan_chain(&evolution, "chain_name").await?;
+let span_id = persist.persist_span(&rule, "rule_name").await?;
 ```
 
 ### tokio-rayon for CPU-bound Work
@@ -393,7 +403,6 @@ let result = EXEC.run(move || {
 | Lambda calculus | Additional computation model with beta-reduction as morphisms |
 | Rule classification | Systematic irreducibility analysis of all 256 elementary CA rules |
 | nalgebra bridge | Matrix representations for large tensor product verification |
-| catgraph V2 enrichment | RELATE-based edges for cospan persistence, WiringDiagram composition |
 
 ## API Scope
 

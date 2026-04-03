@@ -4,7 +4,7 @@ A Rust implementation of Jonathan Gorard's "A Functorial Perspective on (Multi)c
 
 Uses [catgraph](https://github.com/tsondru/catgraph) v0.4.0 for categorical infrastructure (spans, cospans, adjunctions, bifunctors, coherence verification, symmetric monoidal categories). Category theory types (intervals, complexity, adjunction framework, bifunctor operations, coherence verifiers, temporal complexes) are defined in catgraph and re-exported transparently.
 
-~393 tests, zero clippy warnings. Rust 2024 edition.
+425 tests, zero clippy warnings. Rust 2024 edition.
 
 ## Quick Start
 
@@ -30,9 +30,15 @@ cargo run --example gorard_demo
 # 8. Hypergraph rewriting (Wolfram Physics via catgraph)
 # 9. Multiway branching (branchial foliation, curvature)
 
+# Run focused examples
+cargo run --example builders              # TuringMachineBuilder + NTMBuilder
+cargo run --example bifunctor_tensor      # Tensor products, monoidal laws
+cargo run --example lattice_gauge         # Wilson loops, plaquette action
+cargo run --example persist_evolution --features persist  # SurrealDB persistence
+
 # Run all tests
-cargo test --workspace                    # 441 tests (310 unit + 109 integration + 29 doc)
-cargo test --workspace --features persist # 448 tests (+7 persistence)
+cargo test --workspace                    # 410 tests (264 unit + 124 integration + 22 doc)
+cargo test --workspace --features persist # 425 tests (+15 persistence)
 
 # Run just the library
 cargo test -p irreducible                 # Core library tests
@@ -251,8 +257,9 @@ irreducible/
 │           ├── rewrite_rule.rs      # RewriteRule, RewriteSpan, DPO matching
 │           ├── evolution.rs         # HypergraphEvolution, Wilson loops
 │           ├── gauge.rs             # HypergraphRewriteGroup, HypergraphLattice
-│           └── catgraph_bridge.rs   # Span/Cospan bridge to catgraph
-├── tests/                            # Integration tests (109 tests)
+│           ├── catgraph_bridge.rs   # Span/Cospan bridge to catgraph
+│           └── persistence.rs      # EvolutionPersistence (feature = "persist")
+├── tests/                            # Integration tests (132 tests with persist)
 │   ├── adjunction_laws.rs           # Z' ⊣ Z triangle identities
 │   ├── catgraph_bridge.rs           # Span/cospan bridge correctness
 │   ├── computation_types.rs         # TM, CA, multiway systems
@@ -260,8 +267,15 @@ irreducible/
 │   ├── hypergraph_rewriting.rs     # DPO rewriting, evolution
 │   ├── monoidal_coherence.rs       # α, λ, ρ, σ coherence conditions
 │   ├── multiway_evolution.rs       # Non-deterministic evolution
+│   ├── persistence.rs              # SurrealDB persist roundtrips (feature-gated)
+│   ├── property_coherence.rs       # Coherence verification, differential coherence
 │   └── stokes_integration.rs       # Stokes → cospan composability
-└── examples/                         # gorard_demo: 9-part presentation demo
+└── examples/
+    ├── gorard_demo.rs               # 9-part presentation demo
+    ├── builders.rs                  # TuringMachineBuilder + NTMBuilder
+    ├── bifunctor_tensor.rs          # Tensor products, monoidal laws
+    ├── lattice_gauge.rs             # Wilson loops, plaquette action, gauge theory
+    └── persist_evolution.rs         # EvolutionPersistence lifecycle (feature-gated)
 ```
 
 ---
@@ -269,25 +283,27 @@ irreducible/
 ## Testing
 
 ```bash
-cargo test --workspace                    # 441 tests, zero ignored
-cargo test --workspace --features persist # 448 tests (+7 persistence)
+cargo test --workspace                    # 410 tests, zero ignored
+cargo test --workspace --features persist # 425 tests (+15 persistence)
 cargo clippy -- -W clippy::pedantic       # zero warnings
 ```
 
 | Suite | Tests | What it covers |
 |-------|-------|---------------|
-| Unit tests (src/) | 310 | All modules: categories, functor, machines, multiway, hypergraph |
-| `adjunction_laws` | 10 | Z' ⊣ Z triangle identities, unit/counit naturality |
-| `catgraph_bridge` | 11 | Span/cospan conversion, composability, roundtrip |
+| Unit tests (src/) | 264 | All modules: categories, functor, machines, multiway, hypergraph |
+| `adjunction_laws` | 11 | Z' ⊣ Z triangle identities, unit/counit naturality |
+| `catgraph_bridge` | 10 | Span/cospan conversion, composability, roundtrip |
 | `computation_types` | 22 | TM, CA, string rewrite, NTM classification |
-| `functoriality` | 12 | Functor laws, irreducibility detection |
-| `hypergraph_rewriting` | 17 | DPO matching, evolution, Wilson loops, gauge |
+| `functoriality` | 13 | Functor laws, irreducibility detection |
+| `hypergraph_rewriting` | 20 | DPO matching, evolution, Wilson loops, gauge |
 | `monoidal_coherence` | 11 | Associator, unitors, braiding, pentagon/hexagon |
-| `multiway_evolution` | 13 | Branchial graphs, curvature foliation, NTM |
+| `multiway_evolution` | 14 | Branchial graphs, curvature foliation, NTM |
+| `persistence` | 8 | SurrealDB cospan/span roundtrip, multiway, isolation |
+| `property_coherence` | 10 | Coherence verification, differential coherence |
 | `stokes_integration` | 13 | Temporal complex, Stokes conservation, cospan bridge |
-| Doc tests | 29 | All public API examples |
-| Persistence (feature-gated) | 7 | SurrealDB roundtrip for hypergraph evolution |
-| **Total** | **448** | |
+| Doc tests | 22 | All public API examples |
+| Persistence unit (feature-gated) | 7 | Unit tests in persistence.rs |
+| **Total** | **425** | |
 
 ---
 
@@ -311,7 +327,7 @@ cargo clippy -- -W clippy::pedantic       # zero warnings
 - **Visualization** -- multiway graphs, branchial graphs, curvature heatmaps
 - **Lambda calculus** -- computational model for lambda-term reduction
 - **Rule classification** -- systematic analysis of all 256 elementary CA rules
-- **Property-based testing** -- proptest/quickcheck for functor law verification
+- **Proptest functor laws** -- property-based verification of Z'(g∘f) = Z'(g) ∘ Z'(f) over random inputs (coherence/adjunction proptests exist in `property_coherence.rs`)
 
 ---
 
