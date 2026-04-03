@@ -5,7 +5,8 @@
 //! and agreement between domain-specific and generic trace analysis.
 
 use irreducible::{
-    analyze_trace, ElementaryCA, IrreducibilityFunctor, IrreducibilityTrace, TuringMachine,
+    analyze_trace, DiscreteInterval, ElementaryCA, IrreducibilityFunctor, IrreducibilityTrace,
+    TuringMachine,
 };
 
 // ---------------------------------------------------------------------------
@@ -188,6 +189,27 @@ fn tm_and_ca_both_implement_irreducibility_trace() {
     let ca = ElementaryCA::rule_30(11);
     let ca_history = ca.run(ca.single_cell_initial(), 5);
     assert_eq!(assert_trace(&ca_history), 5);
+}
+
+// ---------------------------------------------------------------------------
+// Error / negative path tests
+// ---------------------------------------------------------------------------
+
+#[test]
+fn functor_non_contiguous_intervals_not_irreducible() {
+    // Manually construct a sequence with a gap: [0,2], [5,7]
+    // These are non-contiguous (2 != 5), so composition should fail
+    // and the sequence should NOT be irreducible.
+    let intervals = vec![
+        DiscreteInterval::new(0, 2),
+        DiscreteInterval::new(5, 7),
+    ];
+
+    assert!(!IrreducibilityFunctor::is_sequence_irreducible(&intervals));
+
+    // compose_sequence should return None for non-contiguous intervals
+    let composed = IrreducibilityFunctor::compose_sequence(&intervals);
+    assert!(composed.is_none());
 }
 
 #[test]

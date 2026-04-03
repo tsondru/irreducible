@@ -315,7 +315,7 @@ impl HypergraphEvolution {
             .collect();
 
         (0..self.nodes.len())
-            .filter(|id| !parents.contains(id) || *id == self.nodes.len() - 1)
+            .filter(|id| !parents.contains(id))
             .collect()
     }
 

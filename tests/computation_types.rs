@@ -301,3 +301,34 @@ fn causal_effect_json_roundtrip() {
     assert!(recovered.is_success());
     assert_eq!(recovered.log_entries, vec!["computed"]);
 }
+
+// ---------------------------------------------------------------------------
+// Error / negative path tests
+// ---------------------------------------------------------------------------
+
+#[test]
+fn discrete_interval_try_new_invalid() {
+    // start > end should return Err
+    let result = DiscreteInterval::try_new(10, 5);
+    assert!(result.is_err());
+
+    let err = result.unwrap_err();
+    let msg = err.to_string();
+    assert!(
+        msg.contains("start") && msg.contains("end"),
+        "Error message should mention start and end, got: {msg}"
+    );
+}
+
+#[test]
+fn computation_state_zero_complexity_interval() {
+    // A state with zero complexity should still map to a valid interval.
+    // Per the source: `complexity.max(1)` ensures at least [step, step+1].
+    let state = ComputationState::new(7, 0);
+    let interval = state.to_interval();
+
+    assert_eq!(interval.start, 7);
+    assert_eq!(interval.end, 8); // 7 + max(0,1) = 8
+    assert_eq!(interval.steps(), 1);
+    assert!(!interval.is_identity()); // Not a singleton because end != start
+}

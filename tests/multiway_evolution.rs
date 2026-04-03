@@ -246,3 +246,20 @@ fn single_step_evolution() {
     assert!(evolution.node_count() >= 2);
     assert_eq!(evolution.max_step(), 1);
 }
+
+// ---------------------------------------------------------------------------
+// Error / negative path tests
+// ---------------------------------------------------------------------------
+
+#[test]
+fn srs_empty_rules_no_evolution() {
+    // A StringRewriteSystem with no rules should produce no evolution:
+    // only the root node remains, nothing can be rewritten.
+    let srs = StringRewriteSystem::new(Vec::<(&str, &str)>::new());
+    let evolution = srs.run_multiway("ABCDEF", 10, 100);
+
+    assert_eq!(evolution.node_count(), 1); // only the root
+    assert_eq!(evolution.max_step(), 0); // no steps possible
+    assert!(evolution.find_fork_points().is_empty());
+    assert!(evolution.find_merge_points().is_empty());
+}

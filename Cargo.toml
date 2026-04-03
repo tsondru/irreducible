@@ -39,3 +39,6 @@ serde_json.workspace = true
 catgraph-surreal = { workspace = true, optional = true }
 surrealdb = { workspace = true, optional = true }
 tokio = { workspace = true, optional = true }
+
+[dev-dependencies]
+proptest = "1"

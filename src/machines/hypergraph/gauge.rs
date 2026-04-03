@@ -164,6 +164,11 @@ impl GaugeGroup for HypergraphRewriteGroup {
     ///
     /// In gauge theory, this determines the number of gauge bosons.
     /// For hypergraph rewriting, each rule is a "generator" of the group.
+    /// Compile-time constant required by the trait, defaulting to 3.
+    ///
+    /// The actual Lie algebra dimension is runtime-dynamic and equals
+    /// `self.num_rules()`. This constant serves as an upper bound /
+    /// placeholder; prefer [`HypergraphRewriteGroup::num_rules`] at runtime.
     const LIE_ALGEBRA_DIM: usize = 3; // Default; actual dimension is dynamic
 
     /// Hypergraph rewriting is generally non-abelian.
@@ -359,6 +364,17 @@ impl<const D: usize> HypergraphLattice<D> {
     }
 
     /// Applies a rewrite rule at a specific lattice site.
+    ///
+    /// **Scaffold placeholder** -- does NOT perform actual hypergraph rewriting.
+    ///
+    /// Current behaviour: validates that `site` is within bounds and
+    /// `rule_index` is less than the group's rule count, creates an empty
+    /// hypergraph state at the site if one does not already exist, and
+    /// increments the internal step counter.
+    ///
+    /// # TODO
+    ///
+    /// Implement actual rule application with holonomy tracking.
     ///
     /// # Arguments
     ///

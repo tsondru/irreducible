@@ -251,3 +251,95 @@ fn evolution_statistics() {
     assert!(stats.branch_count >= 1);
     assert!(!stats.rule_applications.is_empty());
 }
+
+// ---------------------------------------------------------------------------
+// Regression: leaves() must not include the last node when it has children
+// ---------------------------------------------------------------------------
+
+#[test]
+fn leaves_excludes_last_node_that_is_a_parent() {
+    // Use multiway evolution with two rules so the tree branches.
+    // This guarantees intermediate nodes (including the last one added in
+    // earlier steps) become parents of later nodes.
+    //
+    // The buggy code had `|| *id == self.nodes.len() - 1`, which
+    // unconditionally included the last node even when it had children.
+    let rule1 = RewriteRule::wolfram_a_to_bb();
+    let rule2 = RewriteRule::edge_split();
+    let graph = Hypergraph::from_edges(vec![vec![0, 1, 2]]);
+
+    let evolution = HypergraphEvolution::run_multiway(&graph, &[rule1, rule2], 3, 50);
+    assert!(
+        evolution.node_count() >= 3,
+        "Need at least 3 nodes for this regression test, got {}",
+        evolution.node_count()
+    );
+
+    let leaves = evolution.leaves();
+
+    // Collect the set of all node IDs that are parents of at least one other node.
+    let parent_ids: std::collections::HashSet<usize> = (0..evolution.node_count())
+        .filter_map(|id| {
+            let node = evolution.get_node(id).unwrap();
+            node.parent
+        })
+        .collect();
+
+    // Core invariant: no leaf should also be a parent.
+    for &leaf in &leaves {
+        assert!(
+            !parent_ids.contains(&leaf),
+            "Node {leaf} is a parent but was returned by leaves()"
+        );
+    }
+
+    // Every non-parent should appear in leaves.
+    for id in 0..evolution.node_count() {
+        if !parent_ids.contains(&id) {
+            assert!(
+                leaves.contains(&id),
+                "Node {id} has no children but is missing from leaves()"
+            );
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Error / negative path tests
+// ---------------------------------------------------------------------------
+
+#[test]
+fn rewrite_empty_graph_produces_no_change() {
+    let rule = RewriteRule::wolfram_a_to_bb();
+    let empty_graph = Hypergraph::new();
+
+    // No edges in the graph, so the rule should find no matches
+    let matches = rule.find_matches(&empty_graph);
+    assert!(matches.is_empty());
+
+    // Deterministic evolution on an empty graph should produce only the root node
+    let evolution = HypergraphEvolution::run(&empty_graph, &[rule.clone()], 5);
+    assert_eq!(evolution.node_count(), 1); // only the root
+    assert_eq!(evolution.max_step(), 0); // no steps taken
+
+    // The root's state should still be an empty graph
+    let root = evolution.root();
+    assert_eq!(root.state.edge_count(), 0);
+    assert_eq!(root.state.vertex_count(), 0);
+}
+
+#[test]
+fn evolution_zero_steps_is_trivial() {
+    let rule = RewriteRule::wolfram_a_to_bb();
+    let graph = Hypergraph::from_edges(vec![vec![0, 1, 2]]);
+
+    // run_multiway with 0 max_steps should produce only the root
+    let evolution = HypergraphEvolution::run_multiway(&graph, &[rule], 0, 100);
+
+    assert_eq!(evolution.node_count(), 1);
+    assert_eq!(evolution.max_step(), 0);
+
+    let root = evolution.root();
+    assert_eq!(root.step, 0);
+    assert_eq!(root.state.edge_count(), 1);
+}
