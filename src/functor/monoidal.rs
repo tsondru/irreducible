@@ -29,6 +29,7 @@ pub use catgraph::coherence::{
 ///
 /// Determines whether Z': 𝒯 → ℬ is a symmetric monoidal functor,
 /// which is the criterion for multicomputational irreducibility.
+#[allow(clippy::struct_excessive_bools)]
 #[derive(Clone, Debug)]
 pub struct MonoidalFunctorResult {
     /// Whether Z' preserves tensor products: Z'(f ⊗ g) = Z'(f) ⊕ Z'(g)
@@ -46,19 +47,19 @@ pub struct MonoidalFunctorResult {
     /// Overall multicomputational irreducibility.
     pub is_multicomputationally_irreducible: bool,
 
-    // === Coherence Placeholders ===
+    // === Coherence Conditions ===
 
     /// Associator coherence: α_{X,Y,Z}: (X ⊗ Y) ⊗ Z ≅ X ⊗ (Y ⊗ Z)
-    pub associator_coherent: Option<bool>,
+    pub associator_coherent: bool,
 
     /// Left unitor coherence: `λ_X`: I ⊗ X ≅ X
-    pub left_unitor_coherent: Option<bool>,
+    pub left_unitor_coherent: bool,
 
     /// Right unitor coherence: `ρ_X`: X ⊗ I ≅ X
-    pub right_unitor_coherent: Option<bool>,
+    pub right_unitor_coherent: bool,
 
     /// Braiding coherence: σ_{X,Y}: X ⊗ Y ≅ Y ⊗ X
-    pub braiding_coherent: Option<bool>,
+    pub braiding_coherent: bool,
 }
 
 impl MonoidalFunctorResult {
@@ -71,10 +72,10 @@ impl MonoidalFunctorResult {
             branch_results: Vec::new(),
             tensor_checks: Vec::new(),
             is_multicomputationally_irreducible: false,
-            associator_coherent: None,
-            left_unitor_coherent: None,
-            right_unitor_coherent: None,
-            braiding_coherent: None,
+            associator_coherent: false,
+            left_unitor_coherent: false,
+            right_unitor_coherent: false,
+            braiding_coherent: false,
         }
     }
 
@@ -84,13 +85,13 @@ impl MonoidalFunctorResult {
         self.tensor_checks.iter().filter(|c| !c.preserves).count()
     }
 
-    /// Check if any coherence conditions are verified.
+    /// Check if all coherence conditions are satisfied.
     #[must_use]
     pub fn has_full_coherence(&self) -> bool {
-        self.associator_coherent.unwrap_or(false)
-            && self.left_unitor_coherent.unwrap_or(false)
-            && self.right_unitor_coherent.unwrap_or(false)
-            && self.braiding_coherent.unwrap_or(false)
+        self.associator_coherent
+            && self.left_unitor_coherent
+            && self.right_unitor_coherent
+            && self.braiding_coherent
     }
 }
 
@@ -113,12 +114,10 @@ impl std::fmt::Display for MonoidalFunctorResult {
         }
 
         // Show coherence status
-        if let Some(assoc) = self.associator_coherent {
-            writeln!(f, "  Associator coherent: {assoc}")?;
-        }
-        if let Some(braiding) = self.braiding_coherent {
-            writeln!(f, "  Braiding coherent: {braiding}")?;
-        }
+        writeln!(f, "  Associator coherent: {}", self.associator_coherent)?;
+        writeln!(f, "  Left unitor coherent: {}", self.left_unitor_coherent)?;
+        writeln!(f, "  Right unitor coherent: {}", self.right_unitor_coherent)?;
+        writeln!(f, "  Braiding coherent: {}", self.braiding_coherent)?;
 
         Ok(())
     }
@@ -183,9 +182,22 @@ impl IrreducibilityFunctor {
         let tensor_checks = Self::verify_tensor_preservation(graph);
         let preserves_tensor = tensor_checks.iter().all(|c| c.preserves);
 
-        // Overall result
+        // Step 3: Verify coherence conditions via catgraph
+        let parallel_intervals: Vec<ParallelIntervals> = branch_intervals
+            .iter()
+            .map(|branch| {
+                let mut pi = ParallelIntervals::new();
+                for interval in branch {
+                    pi.add_branch(*interval);
+                }
+                pi
+            })
+            .collect();
+        let coherence = CoherenceVerification::verify_all(&parallel_intervals);
+
+        // Overall result: symmetric monoidal functor requires all three
         let is_multicomputationally_irreducible =
-            multiway_result.is_fully_irreducible && preserves_tensor;
+            multiway_result.is_fully_irreducible && preserves_tensor && coherence.fully_coherent;
 
         MonoidalFunctorResult {
             preserves_tensor,
@@ -193,11 +205,10 @@ impl IrreducibilityFunctor {
             branch_results: multiway_result.branch_results,
             tensor_checks,
             is_multicomputationally_irreducible,
-            // Coherence placeholders (not yet implemented)
-            associator_coherent: None,
-            left_unitor_coherent: None,
-            right_unitor_coherent: None,
-            braiding_coherent: None,
+            associator_coherent: coherence.associator_coherent,
+            left_unitor_coherent: coherence.left_unitor_coherent,
+            right_unitor_coherent: coherence.right_unitor_coherent,
+            braiding_coherent: coherence.braiding_coherent,
         }
     }
 
@@ -322,14 +333,18 @@ mod tests {
             branch_results: vec![],
             tensor_checks: vec![],
             is_multicomputationally_irreducible: true,
-            associator_coherent: None,
-            left_unitor_coherent: None,
-            right_unitor_coherent: None,
-            braiding_coherent: None,
+            associator_coherent: true,
+            left_unitor_coherent: true,
+            right_unitor_coherent: true,
+            braiding_coherent: true,
         };
 
         let display = format!("{result}");
         assert!(display.contains("Multicomputationally irreducible: true"));
+        assert!(display.contains("Associator coherent: true"));
+        assert!(display.contains("Left unitor coherent: true"));
+        assert!(display.contains("Right unitor coherent: true"));
+        assert!(display.contains("Braiding coherent: true"));
     }
 
     #[test]
