@@ -9,6 +9,7 @@ license = "MIT"
 authors = ["tsondru", "Claude <noreply@anthropic.com>"]
 
 [workspace.dependencies]
+amari-calculus = { path = "/home/oryx/Documents/industrial-algebra/Amari/amari-calculus" }
 catgraph = { git = "https://github.com/tsondru/catgraph", tag = "v0.4.0" }
 catgraph-surreal = { git = "https://github.com/tsondru/catgraph", tag = "v0.4.0" }
 serde = { version = "1.0", features = ["derive"] }
@@ -30,9 +31,11 @@ categories = ["mathematics", "science", "algorithms"]
 
 [features]
 default = []
+manifold-curvature = ["dep:amari-calculus"]
 persist = ["dep:catgraph-surreal", "dep:surrealdb", "dep:tokio"]
 
 [dependencies]
+amari-calculus = { workspace = true, optional = true }
 catgraph.workspace = true
 serde.workspace = true
 serde_json.workspace = true

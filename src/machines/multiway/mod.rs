@@ -44,6 +44,8 @@
 mod branchial;
 pub mod curvature;
 mod evolution_graph;
+#[cfg(feature = "manifold-curvature")]
+pub mod manifold_bridge;
 mod ntm;
 pub mod ollivier_ricci;
 mod string_rewrite;
@@ -69,4 +71,6 @@ pub use ntm::{NTMBuilder, NTMTransitionData, NondeterministicTM};
 
 // Discrete curvature trait and backends
 pub use curvature::{CurvatureFoliation, DiscreteCurvature};
+#[cfg(feature = "manifold-curvature")]
+pub use manifold_bridge::{BranchialEmbedding, ManifoldCurvature, ManifoldFoliation};
 pub use ollivier_ricci::{OllivierFoliation, OllivierRicciCurvature};
