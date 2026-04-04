@@ -30,7 +30,7 @@ use irreducible::{
     // Multiway analysis
     machines::multiway::{
         extract_branchial_foliation, BranchialSummary,
-        curvature::CurvatureFoliation,
+        ollivier_ricci::OllivierFoliation,
     },
     // Adjunction
     functor::{
@@ -771,7 +771,7 @@ fn demo_multiway_branching() {
     println!("  ─────────────────────────────────────────────");
     println!();
 
-    let curvature_foliation = CurvatureFoliation::from_evolution(&evolution2);
+    let curvature_foliation = OllivierFoliation::from_evolution(&evolution2);
     let profile = curvature_foliation.irreducibility_profile();
 
     println!("    Curvature measures how \"geometrically complex\" branching is.");

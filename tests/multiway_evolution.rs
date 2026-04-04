@@ -4,7 +4,7 @@
 //! branchial foliation, merge detection, curvature computation,
 //! and max-limits enforcement.
 
-use irreducible::{BranchialCurvature, NondeterministicTM, StringRewriteSystem};
+use irreducible::{DiscreteCurvature, NondeterministicTM, OllivierRicciCurvature, StringRewriteSystem};
 
 use irreducible::machines::multiway::{
     branchial_to_parallel_intervals, extract_branchial_foliation, find_all_merge_points,
@@ -165,31 +165,31 @@ fn curvature_computation_on_multiway_graph() {
 
     // Compute curvature at each step
     for branchial in &foliation {
-        let curvature = BranchialCurvature::from_branchial(branchial);
-        assert_eq!(curvature.step, branchial.step);
-        assert_eq!(curvature.dimension, branchial.node_count());
+        let curvature = OllivierRicciCurvature::from_branchial(branchial);
+        assert_eq!(curvature.step(), branchial.step);
+        assert_eq!(curvature.dimension(), branchial.node_count());
 
         // Single-node branchial graphs should be flat
         if branchial.node_count() <= 1 {
-            assert!(curvature.is_flat);
-            assert!((curvature.scalar_curvature - 0.0).abs() < 1e-10);
+            assert!(curvature.is_flat());
+            assert!((curvature.scalar_curvature() - 0.0).abs() < 1e-10);
         }
     }
 }
 
 #[test]
 fn curvature_foliation_across_steps() {
-    use irreducible::CurvatureFoliation;
+    use irreducible::OllivierFoliation;
 
     let srs = StringRewriteSystem::new(vec![("AB", "BA"), ("A", "AA")]);
     let evolution = srs.run_multiway("AB", 3, 100);
 
-    let curvature_foliation = CurvatureFoliation::from_evolution(&evolution);
+    let curvature_foliation = OllivierFoliation::from_evolution(&evolution);
     assert!(!curvature_foliation.curvatures.is_empty());
 
     // The step at index 0 should be flat (only root)
     if !curvature_foliation.curvatures.is_empty() {
-        assert!(curvature_foliation.curvatures[0].is_flat);
+        assert!(curvature_foliation.curvatures[0].is_flat());
     }
 }
 
