@@ -492,6 +492,32 @@ mod tests {
         );
     }
 
+    /// Stress test: 100 nodes with disjoint support distributions.
+    /// First 50 nodes hold all μ mass, last 50 hold all ν mass.
+    #[test]
+    #[allow(clippy::cast_precision_loss)]
+    fn stress_test_100_nodes() {
+        let n = 100;
+        let dist: Vec<Vec<f64>> = (0..n)
+            .map(|i| {
+                (0..n)
+                    .map(|j| (i as f64 - j as f64).abs())
+                    .collect()
+            })
+            .collect();
+
+        let mu: Vec<f64> = (0..n)
+            .map(|i| if i < 50 { 1.0 / 50.0 } else { 0.0 })
+            .collect();
+        let nu: Vec<f64> = (0..n)
+            .map(|i| if i >= 50 { 1.0 / 50.0 } else { 0.0 })
+            .collect();
+
+        let result = wasserstein_1(&mu, &nu, &dist);
+        assert!(result > 0.0, "W1 should be positive for disjoint supports");
+        assert!(result.is_finite(), "W1 should be finite");
+    }
+
     /// Uniform [0.5, 0.5] vs [1.0, 0.0] at distance 1 -> W₁ = 0.5.
     /// Must move 0.5 units from point 1 to point 0, costing 0.5 * 1 = 0.5.
     #[test]

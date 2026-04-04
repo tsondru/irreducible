@@ -502,6 +502,28 @@ mod tests {
         assert_eq!(curv.step(), 7);
     }
 
+    /// Generic trait conformance: flat (single isolated node).
+    #[test]
+    fn trait_conformance_flat() {
+        use super::super::curvature::test_helpers::assert_trait_conformance;
+        let bg = make_branchial(3, vec![0], vec![]);
+        let curv = OllivierRicciCurvature::from_branchial(&bg);
+        assert_trait_conformance(&curv, 1, 3);
+    }
+
+    /// Generic trait conformance: nontrivial K_4 complete graph.
+    #[test]
+    fn trait_conformance_nontrivial() {
+        use super::super::curvature::test_helpers::assert_trait_conformance;
+        let bg = make_branchial(
+            0,
+            vec![0, 1, 2, 3],
+            vec![(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)],
+        );
+        let curv = OllivierRicciCurvature::from_branchial(&bg);
+        assert_trait_conformance(&curv, 4, 0);
+    }
+
     /// The irreducibility indicator is always non-negative.
     #[test]
     fn irreducibility_indicator_is_non_negative() {
