@@ -46,6 +46,7 @@ pub mod curvature;
 mod evolution_graph;
 mod ntm;
 mod string_rewrite;
+mod wasserstein;
 
 // Core graph structures
 pub use evolution_graph::{
