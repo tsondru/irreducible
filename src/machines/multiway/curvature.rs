@@ -11,24 +11,31 @@ use std::fmt::{self, Debug, Display};
 /// (feature = "manifold-curvature").
 pub trait DiscreteCurvature: Clone + Debug {
     /// Scalar curvature R (trace of Ricci). 0 = flat, >0 = sphere-like, <0 = saddle-like.
+    #[must_use]
     fn scalar_curvature(&self) -> f64;
 
     /// Whether the branchial space is flat (within tolerance).
+    #[must_use]
     fn is_flat(&self) -> bool;
 
     /// Ricci curvature at vertex i.
+    #[must_use]
     fn ricci_curvature(&self, vertex: usize) -> f64;
 
     /// Sectional curvature for the 2-plane spanned by vertices i, j.
+    #[must_use]
     fn sectional_curvature(&self, i: usize, j: usize) -> f64;
 
     /// Irreducibility indicator. Higher = more irreducible.
+    #[must_use]
     fn irreducibility_indicator(&self) -> f64;
 
     /// Dimension (number of branches).
+    #[must_use]
     fn dimension(&self) -> usize;
 
     /// Time step this curvature was computed for.
+    #[must_use]
     fn step(&self) -> usize;
 }
 
