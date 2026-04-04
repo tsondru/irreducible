@@ -4,7 +4,7 @@ A Rust implementation of Jonathan Gorard's "A Functorial Perspective on (Multi)c
 
 Uses [catgraph](https://github.com/tsondru/catgraph) v0.4.0 for categorical infrastructure (spans, cospans, adjunctions, bifunctors, coherence verification, symmetric monoidal categories). Category theory types (intervals, complexity, adjunction framework, bifunctor operations, coherence verifiers, temporal complexes) are defined in catgraph and re-exported transparently.
 
-425 tests, zero clippy warnings. Rust 2024 edition.
+416 tests (431 with all features), zero clippy warnings. Rust 2024 edition.
 
 ## Quick Start
 
@@ -37,8 +37,8 @@ cargo run --example lattice_gauge         # Wilson loops, plaquette action
 cargo run --example persist_evolution --features persist  # SurrealDB persistence
 
 # Run all tests
-cargo test --workspace                    # 410 tests (264 unit + 124 integration + 22 doc)
-cargo test --workspace --features persist # 425 tests (+15 persistence)
+cargo test --workspace                    # 416 tests (270 unit + 124 integration + 22 doc)
+cargo test --workspace --features persist # 431 tests (+15 persistence)
 
 # Run just the library
 cargo test -p irreducible                 # Core library tests
@@ -80,7 +80,7 @@ The framework extends naturally to **multicomputational irreducibility** for non
 | **Evolution as cospan chain** | `HypergraphEvolution::to_cospan_chain()` | `machines/hypergraph/catgraph_bridge.rs` |
 | **Causal invariance** | Wilson loops, holonomy analysis | `machines/hypergraph/evolution.rs` |
 | **Gauge group** | `HypergraphRewriteGroup`, lattice gauge | `machines/hypergraph/gauge.rs` |
-| **Branchial curvature** | `BranchialCurvature`, `CurvatureFoliation` | `machines/multiway/curvature.rs` |
+| **Branchial curvature** | `DiscreteCurvature` trait, `OllivierRicciCurvature`, `ManifoldCurvature` | `machines/multiway/curvature.rs`, `ollivier_ricci.rs`, `manifold_bridge.rs` |
 | **Complexity algebra** | `Complexity` trait, `StepCount` | `categories/complexity.rs` |
 | **Turing machines** | `TuringMachine`, `ExecutionHistory` | `machines/turing.rs` |
 | **Cellular automata (1D)** | `ElementaryCA`, `Generation` | `machines/cellular_automaton.rs` |
@@ -248,7 +248,10 @@ irreducible/
 │       ├── multiway/                 # Non-deterministic systems
 │       │   ├── evolution_graph.rs    # MultiwayEvolutionGraph, BranchialGraph
 │       │   ├── branchial.rs         # Branchial foliation at Σ_t
-│       │   ├── curvature.rs         # BranchialCurvature, CurvatureFoliation
+│       │   ├── curvature.rs         # DiscreteCurvature trait, CurvatureFoliation<C>
+│       │   ├── ollivier_ricci.rs   # OllivierRicciCurvature (default backend)
+│       │   ├── wasserstein.rs      # Wasserstein-1 solver (min-cost flow)
+│       │   ├── manifold_bridge.rs  # ManifoldCurvature (feature = "manifold-curvature")
 │       │   ├── string_rewrite.rs    # StringRewriteSystem, SRSState
 │       │   └── ntm.rs              # NondeterministicTM, NTMBuilder
 │       └── hypergraph/              # Wolfram Physics (catgraph bridge)
@@ -283,14 +286,14 @@ irreducible/
 ## Testing
 
 ```bash
-cargo test --workspace                    # 410 tests, zero ignored
-cargo test --workspace --features persist # 425 tests (+15 persistence)
+cargo test --workspace                    # 416 tests, zero ignored
+cargo test --workspace --features persist # 431 tests (+15 persistence)
 cargo clippy -- -W clippy::pedantic       # zero warnings
 ```
 
 | Suite | Tests | What it covers |
 |-------|-------|---------------|
-| Unit tests (src/) | 264 | All modules: categories, functor, machines, multiway, hypergraph |
+| Unit tests (src/) | 270 | All modules: categories, functor, machines, multiway, hypergraph, curvature |
 | `adjunction_laws` | 11 | Z' ⊣ Z triangle identities, unit/counit naturality |
 | `catgraph_bridge` | 10 | Span/cospan conversion, composability, roundtrip |
 | `computation_types` | 22 | TM, CA, string rewrite, NTM classification |
@@ -303,7 +306,7 @@ cargo clippy -- -W clippy::pedantic       # zero warnings
 | `stokes_integration` | 13 | Temporal complex, Stokes conservation, cospan bridge |
 | Doc tests | 22 | All public API examples |
 | Persistence unit (feature-gated) | 7 | Unit tests in persistence.rs |
-| **Total** | **425** | |
+| **Total** | **431** | |
 
 ---
 
@@ -319,6 +322,10 @@ cargo clippy -- -W clippy::pedantic       # zero warnings
 - [catgraph-surreal](https://github.com/tsondru/catgraph) -- SurrealDB persistence for catgraph types
 - `surrealdb` 3.0.4 (kv-mem) -- embedded SurrealDB
 - `tokio` -- async runtime for persistence layer
+
+### Optional (`manifold-curvature` feature)
+
+- `amari-calculus` -- Riemannian manifold curvature via branchial graph embedding
 
 ---
 

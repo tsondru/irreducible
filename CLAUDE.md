@@ -36,7 +36,10 @@ irreducible/                            # Workspace root
 │       ├── multiway/
 │       │   ├── evolution_graph.rs     # MultiwayEvolutionGraph, run_multiway_bfs (generic)
 │       │   ├── branchial.rs           # BranchialGraph, extract_branchial_foliation
-│       │   ├── curvature.rs           # BranchialCurvature, CurvatureFoliation
+│       │   ├── curvature.rs           # DiscreteCurvature trait, CurvatureFoliation<C>
+│       │   ├── ollivier_ricci.rs      # OllivierRicciCurvature, OllivierFoliation
+│       │   ├── wasserstein.rs         # Wasserstein-1 solver (min-cost flow)
+│       │   ├── manifold_bridge.rs     # ManifoldCurvature, BranchialEmbedding (feature-gated)
 │       │   ├── string_rewrite.rs      # StringRewriteSystem, SRSState
 │       │   └── ntm.rs                 # NondeterministicTM, NTMBuilder
 │       └── hypergraph/
@@ -77,6 +80,7 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 surrealdb = { version = "3.0.4", default-features = false, features = ["kv-mem"] }  # optional
 tokio = { version = "1", features = ["full"] }                    # optional
+amari-calculus = { path = "..." }                                  # optional (manifold-curvature feature)
 ```
 
 **Note:** During active development, the catgraph dep uses `path = "/home/oryx/Documents/tsondru/catgraph"`. Switch to git tag for releases.
@@ -86,6 +90,7 @@ tokio = { version = "1", features = ["full"] }                    # optional
 | Feature | Gates | Dependencies |
 |---------|-------|--------------|
 | `persist` | SurrealDB persistence for evolution traces | `catgraph-surreal`, `surrealdb`, `tokio` |
+| `manifold-curvature` | Riemannian manifold curvature via amari-calculus | `amari-calculus` |
 
 Default features: none. Core library is purely computational (no I/O, no async).
 
@@ -147,8 +152,10 @@ Default features: none. Core library is purely computational (no I/O, no async).
 | `MultiwayEvolutionGraph<S,T>` | Generic multiway state graph | `machines/multiway/evolution_graph.rs` |
 | `run_multiway_bfs()` | Generic BFS multiway explorer | `machines/multiway/evolution_graph.rs` |
 | `BranchialGraph` | Tensor product at each time step | `machines/multiway/branchial.rs` |
-| `BranchialCurvature` | Geometric irreducibility | `machines/multiway/curvature.rs` |
-| `CurvatureFoliation` | Curvature across time slices | `machines/multiway/curvature.rs` |
+| `DiscreteCurvature` | Trait for curvature backends | `machines/multiway/curvature.rs` |
+| `CurvatureFoliation<C>` | Generic curvature across time slices | `machines/multiway/curvature.rs` |
+| `OllivierRicciCurvature` | Ollivier-Ricci discrete curvature (default) | `machines/multiway/ollivier_ricci.rs` |
+| `ManifoldCurvature` | Riemannian curvature via embedding (feature-gated) | `machines/multiway/manifold_bridge.rs` |
 | `MultiwayStatistics` | Branch/merge/cycle counts | `machines/multiway/evolution_graph.rs` |
 
 ### Hypergraph Rewriting (catgraph bridge)
@@ -326,7 +333,7 @@ assert!(analysis.is_irreducible());
 ### Running Tests
 
 ```bash
-cargo test --workspace                    # 410 tests (264 unit + 124 integration + 22 doc), 0 ignored
+cargo test --workspace                    # 416 tests (270 unit + 124 integration + 22 doc), 0 ignored
 cargo test -p irreducible                 # Core library unit tests (264)
 cargo test --test functoriality           # Single integration test file
 cargo test --workspace --features persist # 425 tests (+15 persistence)
@@ -342,7 +349,7 @@ cargo clippy --workspace -- -W clippy::pedantic  # Lint (zero warnings)
 
 | Category | Count | What it covers |
 |----------|-------|----------------|
-| Unit tests | 264 | All modules: functor, machines, categories, types, trace |
+| Unit tests | 270 | All modules: functor, machines, categories, types, trace, curvature |
 | Integration tests | 124 | 10 files: adjunction, catgraph bridge, computation types, functoriality, hypergraph, monoidal, multiway, persistence, property coherence, Stokes |
 | Doc tests | 22 | Module-level and type-level examples (all enabled, zero ignored) |
 
