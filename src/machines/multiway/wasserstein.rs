@@ -14,7 +14,7 @@
 //! 2. Iteratively improve by finding entering variables with negative reduced cost
 //! 3. Pivot along cycles in the basis graph until optimal
 //!
-//! Scales to ~1000 nodes without performance cliffs (O(n^3) worst case).
+//! Scales to ~1000 nodes without performance cliffs (O(n^3) typical case).
 
 // This module is intentionally private (no re-exports yet); the public API
 // will be exposed when the Ollivier-Ricci backend consumes it.
