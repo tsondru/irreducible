@@ -89,6 +89,34 @@ impl<C: DiscreteCurvature> CurvatureFoliation<C> {
     }
 }
 
+#[cfg(test)]
+pub(crate) mod test_helpers {
+    use super::DiscreteCurvature;
+
+    /// Verify trait conformance for any `DiscreteCurvature` implementation.
+    pub fn assert_trait_conformance<C: DiscreteCurvature>(
+        curv: &C,
+        expected_dim: usize,
+        expected_step: usize,
+    ) {
+        assert_eq!(curv.dimension(), expected_dim, "dimension mismatch");
+        assert_eq!(curv.step(), expected_step, "step mismatch");
+        assert!(
+            curv.irreducibility_indicator() >= 0.0,
+            "indicator must be non-negative"
+        );
+
+        // If flat, scalar curvature should be near zero
+        if curv.is_flat() {
+            assert!(
+                curv.scalar_curvature().abs() < 1e-6,
+                "flat curvature should have scalar ≈ 0, got {}",
+                curv.scalar_curvature()
+            );
+        }
+    }
+}
+
 impl<C: DiscreteCurvature> Display for CurvatureFoliation<C> {
     #[allow(clippy::cast_precision_loss)]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
