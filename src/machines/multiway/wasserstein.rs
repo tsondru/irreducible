@@ -16,10 +16,6 @@
 //!
 //! Scales to ~1000 nodes without performance cliffs (O(n^3) typical case).
 
-// This module is intentionally private (no re-exports yet); the public API
-// will be exposed when the Ollivier-Ricci backend consumes it.
-#![allow(dead_code)]
-
 /// Numerical tolerance for floating-point comparisons.
 const EPS: f64 = 1e-12;
 
