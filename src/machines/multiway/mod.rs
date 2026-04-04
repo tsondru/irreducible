@@ -45,6 +45,7 @@ mod branchial;
 pub mod curvature;
 mod evolution_graph;
 mod ntm;
+pub mod ollivier_ricci;
 mod string_rewrite;
 mod wasserstein;
 
@@ -66,5 +67,6 @@ pub use string_rewrite::{RewriteApplication, RewriteRule, SRSState, StringRewrit
 // Non-deterministic Turing Machine
 pub use ntm::{NTMBuilder, NTMTransitionData, NondeterministicTM};
 
-// Branchial curvature (geometry of branching)
-pub use curvature::{BranchialCurvature, CurvatureFoliation};
+// Discrete curvature trait and backends
+pub use curvature::{CurvatureFoliation, DiscreteCurvature};
+pub use ollivier_ricci::{OllivierFoliation, OllivierRicciCurvature};

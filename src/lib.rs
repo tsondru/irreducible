@@ -93,7 +93,8 @@ pub use machines::multiway::{
     MultiwayNode, MultiwayNodeId, MultiwayStatistics,
     branchial_to_parallel_intervals, extract_branchial_foliation, find_all_merge_points,
     BranchialGraph, BranchialStepStats, BranchialSummary,
-    BranchialCurvature, CurvatureFoliation,
+    CurvatureFoliation, DiscreteCurvature,
+    OllivierFoliation, OllivierRicciCurvature,
     RewriteApplication, RewriteRule, SRSState, StringRewriteSystem,
     NTMBuilder, NTMTransitionData, NondeterministicTM,
 };
