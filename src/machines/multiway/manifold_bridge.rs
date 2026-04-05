@@ -13,8 +13,7 @@ use std::fmt;
 
 use amari_calculus::manifold::{MetricTensor, RiemannianManifold};
 
-use super::branchial::BranchialGraph;
-use super::curvature::{CurvatureFoliation, DiscreteCurvature};
+use catgraph::multiway::{BranchialGraph, CurvatureFoliation, DiscreteCurvature};
 
 /// Strategy for embedding a branchial graph into a smooth manifold.
 ///

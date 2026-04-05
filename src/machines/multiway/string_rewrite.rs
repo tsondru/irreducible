@@ -26,7 +26,7 @@
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 
-use super::evolution_graph::{run_multiway_bfs, MultiwayEvolutionGraph};
+use catgraph::multiway::{run_multiway_bfs, MultiwayEvolutionGraph};
 
 /// A single rewrite rule: pattern → replacement.
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]

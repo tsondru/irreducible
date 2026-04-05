@@ -30,7 +30,7 @@ use irreducible::{
     // Multiway analysis
     machines::multiway::{
         extract_branchial_foliation, BranchialSummary,
-        ollivier_ricci::OllivierFoliation,
+        OllivierFoliation,
     },
     // Adjunction
     functor::{
