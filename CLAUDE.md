@@ -399,10 +399,11 @@ let result = EXEC.run(move || {
 
 | Area | Notes |
 |------|-------|
+| Non-Euclidean embedding | `BranchialEmbedding` with non-flat metric (spherical, hyperbolic) for non-trivial `ManifoldCurvature` (#9) |
+| Petri net machine | `PetriNetMachine` wrapper implementing `IrreducibilityTrace` using catgraph's `PetriNet<Lambda>` |
 | Visualization | Multiway graphs, branchial structure, curvature heatmaps |
 | Lambda calculus | Additional computation model with beta-reduction as morphisms |
 | Rule classification | Systematic irreducibility analysis of all 256 elementary CA rules |
-| nalgebra bridge | Matrix representations for large tensor product verification |
 
 ## API Scope
 
