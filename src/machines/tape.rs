@@ -1,4 +1,9 @@
-//! Infinite tape representation for Turing machines.
+//! Bi-infinite tape for Turing machines.
+//!
+//! The [`Tape`] uses a sparse `HashMap<isize, Symbol>` representation: only
+//! non-blank cells are stored, so an unbounded tape costs O(k) where k is the
+//! number of written cells. Reading an uninitialized position returns the blank
+//! symbol; writing the blank symbol removes the position from storage.
 
 use std::collections::HashMap;
 use std::fmt;

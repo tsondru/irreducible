@@ -1,4 +1,9 @@
 //! Turing machine configuration (instantaneous description).
+//!
+//! A [`Configuration`] captures the complete state of a TM at a moment:
+//! tape contents, current state, and head position. Configurations are
+//! the *objects* in category 𝒯. Their fingerprints drive cycle detection
+//! for irreducibility analysis — a repeated fingerprint implies a shortcut.
 
 use super::{State, Symbol, Tape};
 use std::fmt;

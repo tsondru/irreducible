@@ -400,7 +400,11 @@ impl RewriteRule {
     }
 }
 
-/// A match of a rewrite rule's left-hand side in a hypergraph.
+/// A match of a rewrite rule's left-hand side in a host hypergraph.
+///
+/// Contains the mapping from pattern variables to actual vertex IDs
+/// and the indices of matched hyperedges. Produced by
+/// [`RewriteRule::find_matches`] and consumed by [`RewriteRule::apply`].
 #[derive(Debug, Clone)]
 pub struct RewriteMatch {
     /// Mapping from pattern variables to actual vertex IDs.

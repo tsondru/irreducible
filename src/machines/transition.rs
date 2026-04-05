@@ -1,4 +1,10 @@
 //! Turing machine transitions (morphisms in category 𝒯).
+//!
+//! A [`Transition`] records one step of computation: the source and target
+//! [`Configuration`], plus the step number. The functor Z' maps each
+//! transition to a unit interval [step, step + 1] in the cobordism category ℬ.
+//!
+//! [`Direction`] encodes the three possible head movements (Left, Right, Stay).
 
 use super::Configuration;
 use crate::categories::{DiscreteInterval, StepCount};

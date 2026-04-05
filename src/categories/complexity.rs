@@ -1,5 +1,8 @@
-//! Complexity algebra for computational processes.
+//! Complexity algebra for measuring computational cost.
 //!
-//! Types re-exported from catgraph. See [`catgraph::complexity`] for details.
+//! The [`Complexity`] trait abstracts step counts, and [`StepCount`] provides
+//! a concrete wrapper supporting sequential and parallel composition.
+//!
+//! Types re-exported from [`catgraph::complexity`].
 
 pub use catgraph::complexity::{Complexity, StepCount};

@@ -1,4 +1,10 @@
 //! Hyperedge type for hypergraph structures.
+//!
+//! A [`Hyperedge`] is an ordered sequence of vertex IDs, generalizing a graph
+//! edge to connect any number of vertices. Ordered semantics match Wolfram
+//! Physics conventions: `{0, 1, 2} ≠ {2, 1, 0}`. Provides constructors for
+//! common arities (unary, binary, ternary) and set-theoretic operations
+//! (overlap, intersection, subset).
 
 use std::collections::BTreeSet;
 use std::hash::{Hash, Hasher};

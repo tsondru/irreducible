@@ -196,7 +196,12 @@ impl IrreducibilityFunctor {
     }
 }
 
-/// Result of checking multiway irreducibility.
+/// Result of checking multiway irreducibility across parallel branches.
+///
+/// Each branch is checked independently for interval contiguity;
+/// the system is fully irreducible only when every branch passes.
+/// [`total_parallel_complexity`](Self::total_parallel_complexity) aggregates
+/// the composed intervals into a [`ParallelIntervals`] tensor product.
 #[derive(Clone, Debug)]
 pub struct MultiwayIrreducibilityResult {
     /// Whether all branches are irreducible
@@ -225,7 +230,10 @@ impl MultiwayIrreducibilityResult {
     }
 }
 
-/// Result for a single branch in multiway computation.
+/// Irreducibility verdict for a single branch in a multiway computation.
+///
+/// If `is_irreducible` is true, the branch's interval sequence under Z'
+/// is contiguous and composable into `total_interval`.
 #[derive(Clone, Debug)]
 pub struct BranchResult {
     /// Index of this branch

@@ -306,7 +306,11 @@ impl ElementaryCA {
     }
 }
 
-/// Complete execution history of a CA run.
+/// Complete execution history of a cellular automaton run.
+///
+/// Stores the rule number, grid width, initial and final generations,
+/// and all intermediate transitions. Implements [`IrreducibilityTrace`]
+/// for generic irreducibility analysis via [`analyze_trace`](super::trace::analyze_trace).
 #[derive(Clone, Debug)]
 pub struct CAExecutionHistory {
     /// The rule number
@@ -449,7 +453,11 @@ impl CAExecutionHistory {
     }
 }
 
-/// A cycle in the CA evolution.
+/// A cycle detected in the CA evolution (repeated global state).
+///
+/// When the same generation fingerprint appears at `start_step` and
+/// `end_step`, the evolution has entered a periodic orbit with the
+/// given `cycle_length`. Any cycle implies reducibility.
 #[derive(Clone, Debug)]
 pub struct CACycle {
     /// Step where the cycle starts
@@ -470,7 +478,11 @@ impl fmt::Display for CACycle {
     }
 }
 
-/// Result of CA irreducibility analysis.
+/// Result of irreducibility analysis for a cellular automaton evolution.
+///
+/// Extends the generic [`TraceAnalysis`](super::trace::TraceAnalysis) with
+/// CA-specific metrics: rule number, grid width, and population statistics
+/// (initial, final, average live cell counts).
 #[derive(Clone, Debug)]
 pub struct CAIrreducibilityAnalysis {
     /// Rule number

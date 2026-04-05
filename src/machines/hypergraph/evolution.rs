@@ -6,7 +6,11 @@
 use super::{Hypergraph, RewriteMatch, RewriteRule};
 use std::collections::{HashMap, HashSet};
 
-/// A step in the evolution of a hypergraph.
+/// A single step in the multiway evolution of a hypergraph.
+///
+/// Records which rule was applied, the match site, the resulting
+/// hypergraph state (with fingerprint), and the parent step for
+/// tree traversal.
 #[derive(Debug, Clone)]
 pub struct HypergraphStep {
     /// The rule that was applied.
@@ -31,7 +35,10 @@ pub struct HypergraphStep {
     pub branch_id: usize,
 }
 
-/// A node in the evolution graph (for multiway systems).
+/// A node in the hypergraph evolution graph (multiway systems).
+///
+/// Stores the full hypergraph state at a given depth, with a fingerprint
+/// for fast equality checks and optional parent/transition provenance.
 #[derive(Debug, Clone)]
 pub struct HypergraphNode {
     /// Unique ID for this node.
@@ -53,11 +60,12 @@ pub struct HypergraphNode {
     pub transition: Option<(usize, RewriteMatch)>,
 }
 
-/// A Wilson loop in the evolution history.
+/// A Wilson loop in the hypergraph evolution history.
 ///
-/// A Wilson loop is a closed path in the rewrite history graph.
-/// The holonomy (product of transformations around the loop) measures
-/// how much the final state differs from the initial state.
+/// A closed path in the rewrite history graph, analogous to a Wilson loop
+/// in lattice gauge theory. The holonomy (product of transformations
+/// around the loop) measures deviation from path-independence:
+/// holonomy = 1.0 means the system is causally invariant along this loop.
 #[derive(Debug, Clone)]
 pub struct WilsonLoop {
     /// Sequence of node IDs forming the loop.

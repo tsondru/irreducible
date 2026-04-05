@@ -302,7 +302,10 @@ impl std::fmt::Display for SRSState {
     }
 }
 
-/// Data about a rewrite application.
+/// Transition data for a single SRS rewrite step.
+///
+/// Records which rule was applied and at which position in the source
+/// string, serving as edge metadata in the multiway evolution graph.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct RewriteApplication {
     /// Index of the rule that was applied.

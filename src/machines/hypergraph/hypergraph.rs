@@ -1,4 +1,10 @@
-//! Hypergraph data structure.
+//! Hypergraph data structure for Wolfram Physics model.
+//!
+//! A [`Hypergraph`] stores a set of vertices (identified by `usize`) and a
+//! collection of [`Hyperedge`]s. Vertices are tracked in a `BTreeSet` and
+//! auto-registered when hyperedges are added. Supports pattern matching
+//! via [`Hypergraph::find_matches`] for DPO rewrite rule application,
+//! isomorphism heuristics, and compaction (vertex ID renumbering).
 
 use super::Hyperedge;
 use std::collections::{BTreeSet, HashMap};
