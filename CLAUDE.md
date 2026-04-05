@@ -34,14 +34,10 @@ irreducible/                            # Workspace root
 │       ├── tape.rs                     # Tape, Symbol
 │       ├── transition.rs              # Direction, Transition
 │       ├── multiway/
-│       │   ├── evolution_graph.rs     # MultiwayEvolutionGraph, run_multiway_bfs (generic)
-│       │   ├── branchial.rs           # BranchialGraph, extract_branchial_foliation
-│       │   ├── curvature.rs           # DiscreteCurvature trait, CurvatureFoliation<C>
-│       │   ├── ollivier_ricci.rs      # OllivierRicciCurvature, OllivierFoliation
-│       │   ├── wasserstein.rs         # Wasserstein-1 solver (min-cost flow)
-│       │   ├── manifold_bridge.rs     # ManifoldCurvature, BranchialEmbedding (feature-gated)
-│       │   ├── string_rewrite.rs      # StringRewriteSystem, SRSState
-│       │   └── ntm.rs                 # NondeterministicTM, NTMBuilder
+│       │   ├── mod.rs                 # Re-exports from catgraph::multiway + local models
+│       │   ├── string_rewrite.rs      # StringRewriteSystem, SRSState (local)
+│       │   ├── ntm.rs                 # NondeterministicTM, NTMBuilder (local)
+│       │   └── manifold_bridge.rs     # ManifoldCurvature, BranchialEmbedding (feature-gated, local)
 │       └── hypergraph/
 │           ├── mod.rs                 # Re-exports from catgraph::hypergraph + local types
 │           ├── catgraph_bridge.rs     # MultiwayCospanExt trait, MultiwayCospan/Graph types
@@ -70,8 +66,8 @@ irreducible/                            # Workspace root
 
 ```toml
 [workspace.dependencies]
-catgraph = { git = "https://github.com/tsondru/catgraph", tag = "v0.6.0" }  # Category theory (spans, cospans, adjunctions, coherence, hypergraph rewriting)
-catgraph-surreal = { git = "https://github.com/tsondru/catgraph", tag = "v0.6.0" }  # optional (persist feature, HypergraphEvolutionStore)
+catgraph = { git = "https://github.com/tsondru/catgraph", tag = "v0.7.0" }  # Category theory (spans, cospans, adjunctions, coherence, hypergraph, multiway)
+catgraph-surreal = { git = "https://github.com/tsondru/catgraph", tag = "v0.7.0" }  # optional (persist feature, HypergraphEvolutionStore)
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 surrealdb = { version = "3.0.4", default-features = false, features = ["kv-mem"] }  # optional
@@ -141,18 +137,18 @@ Default features: none. Core library is purely computational (no I/O, no async).
 | `analyze_trace()` | Generic analysis function for any `IrreducibilityTrace` | `machines/trace.rs` |
 | `detect_repeats()` | Fingerprint-based cycle detection | `machines/trace.rs` |
 
-### Multiway Systems
+### Multiway Systems (re-exported from catgraph::multiway)
 
-| Type | Role | Location |
-|------|------|----------|
-| `MultiwayEvolutionGraph<S,T>` | Generic multiway state graph | `machines/multiway/evolution_graph.rs` |
-| `run_multiway_bfs()` | Generic BFS multiway explorer | `machines/multiway/evolution_graph.rs` |
-| `BranchialGraph` | Tensor product at each time step | `machines/multiway/branchial.rs` |
-| `DiscreteCurvature` | Trait for curvature backends | `machines/multiway/curvature.rs` |
-| `CurvatureFoliation<C>` | Generic curvature across time slices | `machines/multiway/curvature.rs` |
-| `OllivierRicciCurvature` | Ollivier-Ricci discrete curvature (default) | `machines/multiway/ollivier_ricci.rs` |
-| `ManifoldCurvature` | Riemannian curvature via embedding (feature-gated) | `machines/multiway/manifold_bridge.rs` |
-| `MultiwayStatistics` | Branch/merge/cycle counts | `machines/multiway/evolution_graph.rs` |
+| Type | Role | Source |
+|------|------|--------|
+| `MultiwayEvolutionGraph<S,T>` | Generic multiway state graph | `catgraph::multiway` |
+| `run_multiway_bfs()` | Generic BFS multiway explorer | `catgraph::multiway` |
+| `BranchialGraph` | Tensor product at each time step | `catgraph::multiway` |
+| `DiscreteCurvature` | Trait for curvature backends | `catgraph::multiway` |
+| `CurvatureFoliation<C>` | Generic curvature across time slices | `catgraph::multiway` |
+| `OllivierRicciCurvature` | Ollivier-Ricci discrete curvature (default) | `catgraph::multiway` |
+| `ManifoldCurvature` | Riemannian curvature via embedding (feature-gated) | `machines/multiway/manifold_bridge.rs` (local) |
+| `MultiwayStatistics` | Branch/merge/cycle counts | `catgraph::multiway` |
 
 ### Hypergraph Rewriting (re-exported from catgraph::hypergraph)
 
@@ -330,10 +326,10 @@ assert!(analysis.is_irreducible());
 ### Running Tests
 
 ```bash
-cargo test --workspace                    # 332 tests (198 unit + 124 integration + 10 doc), 0 ignored
+cargo test --workspace                    # 302 tests (169 unit + 124 integration + 9 doc), 0 ignored
 cargo test -p irreducible                 # Core library unit tests (264)
 cargo test --test functoriality           # Single integration test file
-cargo test --workspace --features persist # 347 tests (+15 persistence)
+cargo test --workspace --features persist # 317 tests (+15 persistence)
 cargo run --example gorard_demo           # Run the 9-part demo
 cargo run --example builders              # Builder patterns
 cargo run --example bifunctor_tensor      # Tensor products, monoidal laws
@@ -346,9 +342,9 @@ cargo clippy --workspace -- -W clippy::pedantic  # Lint (zero warnings)
 
 | Category | Count | What it covers |
 |----------|-------|----------------|
-| Unit tests | 198 | All modules: functor, machines, categories, types, trace, curvature (hypergraph unit tests moved to catgraph) |
+| Unit tests | 169 | functor, machines (TM, CA, SRS, NTM, trace), categories, types (hypergraph + multiway infra moved to catgraph) |
 | Integration tests | 124 | 10 files: adjunction, catgraph bridge, computation types, functoriality, hypergraph, monoidal, multiway, persistence, property coherence, Stokes |
-| Doc tests | 10 | Module-level and type-level examples (hypergraph doc tests moved to catgraph) |
+| Doc tests | 9 | Module-level and type-level examples (hypergraph + multiway doc tests moved to catgraph) |
 
 ### Test Patterns
 
