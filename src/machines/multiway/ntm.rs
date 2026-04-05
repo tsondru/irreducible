@@ -339,7 +339,11 @@ impl NondeterministicTM {
     }
 }
 
-/// Builder for constructing NTMs.
+/// Builder for constructing non-deterministic Turing machines step-by-step.
+///
+/// Collects states, non-deterministic transitions, and symbols incrementally.
+/// Required fields: `initial_state` and `blank` symbol (panics on `build()`
+/// if missing). Supports both non-deterministic and deterministic transitions.
 #[derive(Clone, Debug, Default)]
 pub struct NTMBuilder {
     states: Vec<State>,
@@ -441,7 +445,10 @@ impl NTMBuilder {
     }
 }
 
-/// Transition data for NTM edges.
+/// Transition data for NTM edges in the multiway evolution graph.
+///
+/// Records the full delta: source state/symbol, target state/symbol,
+/// head direction, and which non-deterministic choice was taken (`rule_index`).
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct NTMTransitionData {
     /// State before transition.

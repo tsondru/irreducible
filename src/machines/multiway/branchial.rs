@@ -230,7 +230,10 @@ pub fn branchial_to_parallel_intervals<S: Clone + Hash, T: Clone>(
         .collect()
 }
 
-/// Summary of branchial evolution.
+/// Aggregate summary of branchial structure across all time steps.
+///
+/// Computed from a branchial foliation via [`BranchialSummary::from_foliation`].
+/// Reports peak branching, total connectivity, and per-step statistics.
 #[derive(Clone, Debug)]
 pub struct BranchialSummary {
     /// Maximum branch count at any step.
@@ -250,10 +253,15 @@ pub struct BranchialSummary {
 /// Statistics for a single step's branchial graph.
 #[derive(Clone, Debug)]
 pub struct BranchialStepStats {
+    /// Time step this snapshot represents.
     pub step: usize,
+    /// Number of parallel branches (nodes in `Σ_t`).
     pub node_count: usize,
+    /// Number of common-ancestor edges between branches.
     pub edge_count: usize,
+    /// Number of connected components (independent "universes").
     pub components: usize,
+    /// Whether all branches share a common ancestor.
     pub is_fully_connected: bool,
 }
 

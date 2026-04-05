@@ -8,10 +8,14 @@ pub use catgraph::stokes::{ConservationResult, StokesError, TemporalComplex};
 
 use crate::categories::DiscreteInterval;
 
-/// Uses Stokes integration to analyze irreducibility.
+/// Stokes-theorem perspective on computational irreducibility.
 ///
-/// This complements the functorial approach by providing a differential
-/// geometric perspective on computational irreducibility.
+/// Wraps a [`TemporalComplex`] (simplicial complex from interval chain)
+/// and its [`ConservationResult`] to provide a differential-geometric
+/// irreducibility check: a computation is Stokes-irreducible when the
+/// integrated complexity equals the expected total (no leakage or inflation).
+///
+/// This complements the functorial and trace-based approaches.
 #[derive(Debug, Clone)]
 pub struct StokesIrreducibility {
     /// The temporal complex for the computation.

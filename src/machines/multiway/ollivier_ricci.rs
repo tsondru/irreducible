@@ -42,7 +42,10 @@ pub struct OllivierRicciCurvature {
     time_step: usize,
 }
 
-/// Type alias for a foliation parameterized by the Ollivier-Ricci backend.
+/// Curvature foliation parameterized by the Ollivier-Ricci backend.
+///
+/// Convenience alias: each time step carries an [`OllivierRicciCurvature`]
+/// computed from the branchial graph at that step.
 pub type OllivierFoliation = CurvatureFoliation<OllivierRicciCurvature>;
 
 impl OllivierRicciCurvature {

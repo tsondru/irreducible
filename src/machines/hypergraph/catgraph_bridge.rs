@@ -42,7 +42,10 @@ use super::{Hypergraph, RewriteRule, RewriteSpan, HypergraphEvolution};
 // Multiway cospan graph types
 // ============================================================================
 
-/// A single edge in a multiway cospan graph: one parent-child rewrite step.
+/// A single edge in the multiway cospan graph: one parent → child rewrite step.
+///
+/// The cospan apex is the vertex union of the parent and child hypergraphs;
+/// the left and right legs map parent and child vertices into the apex.
 #[derive(Debug, Clone)]
 pub struct MultiwayCospan {
     /// Parent node ID in the evolution.

@@ -41,7 +41,10 @@ pub trait DiscreteCurvature: Clone + Debug {
 
 /// Curvature analysis across all time steps of a multiway evolution.
 ///
-/// Generic over any [`DiscreteCurvature`] backend.
+/// Generic over any [`DiscreteCurvature`] backend (Ollivier-Ricci, manifold
+/// embedding, etc.). Stores one curvature value per branchial graph in the
+/// foliation and provides aggregate metrics: global flatness, irreducibility
+/// profile, and average irreducibility indicator.
 #[derive(Debug, Clone)]
 pub struct CurvatureFoliation<C: DiscreteCurvature> {
     /// Curvature at each time step.

@@ -123,7 +123,12 @@ impl std::fmt::Display for MonoidalFunctorResult {
     }
 }
 
-/// Result of tensor preservation check at a single step.
+/// Result of tensor preservation check at a single time step.
+///
+/// Compares the expected parallel intervals (one per active branch) against
+/// the actual intervals extracted from the multiway graph. Preservation
+/// holds when the two are structurally equivalent (same branch count and
+/// interval cardinalities, regardless of absolute positions).
 #[derive(Clone, Debug)]
 pub struct TensorCheck {
     /// The time step.

@@ -1,4 +1,12 @@
-//! Turing machine definition and execution.
+//! Deterministic Turing machine definition and execution.
+//!
+//! A [`TuringMachine`] is specified by a finite state set, a transition function
+//! δ: Q × Σ → Q × Σ × {L, R, S}, and distinguished initial/accept/reject states.
+//! Execution produces an [`ExecutionHistory`] whose interval sequence under Z'
+//! determines computational irreducibility.
+//!
+//! Well-known instances: [`TuringMachine::busy_beaver_2_2`] (irreducible, 6 steps),
+//! [`TuringMachine::binary_incrementer`], [`TuringMachine::infinite_left_mover`] (reducible).
 
 use super::trace::{self, IrreducibilityTrace};
 use super::{Configuration, Direction, State, Symbol, Transition};
@@ -262,7 +270,11 @@ impl TuringMachine {
     }
 }
 
-/// Builder for constructing Turing machines.
+/// Builder for constructing Turing machines step-by-step.
+///
+/// Collects states, transition rules, and symbols incrementally before
+/// producing a validated [`TuringMachine`]. Required fields: `initial_state`
+/// and `blank` symbol (panics on `build()` if missing).
 #[derive(Clone, Debug, Default)]
 pub struct TuringMachineBuilder {
     states: Vec<State>,
@@ -478,7 +490,11 @@ impl ExecutionHistory {
     }
 }
 
-/// Result of irreducibility analysis.
+/// Result of irreducibility analysis for a Turing machine execution.
+///
+/// Combines interval contiguity, cycle detection, and complexity ratio
+/// into a single verdict. Shortcuts indicate repeated configurations
+/// that could be "jumped over", breaking functoriality of Z'.
 #[derive(Clone, Debug)]
 pub struct IrreducibilityAnalysis {
     /// Whether the computation is fully irreducible
@@ -514,6 +530,10 @@ impl std::fmt::Display for IrreducibilityAnalysis {
 }
 
 /// A shortcut in the computation (repeated configuration).
+///
+/// When the same configuration appears at steps `from` and `to`, the
+/// intermediate computation is a cycle of length `to - from`. The
+/// existence of any shortcut means the computation is reducible.
 #[derive(Clone, Debug)]
 pub struct Shortcut {
     /// Step number of the first occurrence

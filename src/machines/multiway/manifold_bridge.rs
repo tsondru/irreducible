@@ -55,7 +55,10 @@ pub struct ManifoldCurvature {
     time_step: usize,
 }
 
-/// Type alias for a foliation parameterized by the manifold curvature backend.
+/// Curvature foliation parameterized by the Riemannian manifold backend.
+///
+/// Convenience alias: each time step carries a [`ManifoldCurvature`]
+/// computed from the branchial graph embedding at that step.
 pub type ManifoldFoliation = CurvatureFoliation<ManifoldCurvature>;
 
 impl ManifoldCurvature {

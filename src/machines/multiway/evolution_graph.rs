@@ -72,6 +72,10 @@ pub enum MultiwayEdgeKind {
 }
 
 /// An edge in the multiway evolution graph.
+///
+/// Connects a source node to a target node with a typed kind (sequential,
+/// fork, or merge) and application-specific transition data `T` (e.g.,
+/// which rewrite rule was applied and where).
 #[derive(Clone, Debug)]
 pub struct MultiwayEdge<T> {
     /// Source node ID.
@@ -85,6 +89,9 @@ pub struct MultiwayEdge<T> {
 }
 
 /// A node in the multiway evolution graph.
+///
+/// Stores the state `S` at a specific (branch, step) position, plus a
+/// hash fingerprint for O(1) merge detection and cycle identification.
 #[derive(Clone, Debug)]
 pub struct MultiwayNode<S> {
     /// Unique identifier for this node.
@@ -562,7 +569,11 @@ impl MultiwayCycle {
     }
 }
 
-/// Statistics about multiway structure.
+/// Aggregate statistics about a multiway evolution graph.
+///
+/// Summarizes the graph topology: total nodes/edges, branching depth,
+/// and counts of fork points (non-deterministic splits) and merge points
+/// (confluences where distinct branches reach the same state).
 #[derive(Clone, Debug, Default)]
 pub struct MultiwayStatistics {
     /// Total number of nodes.
@@ -598,7 +609,10 @@ impl fmt::Display for MultiwayStatistics {
     }
 }
 
-/// A merge point where branches converge.
+/// A merge point where distinct branches converge to the same state.
+///
+/// Represents confluence in the multiway graph: the `merged_node` has
+/// multiple incoming edges from different `parent_nodes` on separate branches.
 #[derive(Clone, Debug)]
 pub struct MergePoint {
     /// The node where branches merge.

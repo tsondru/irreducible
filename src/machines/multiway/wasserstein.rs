@@ -16,7 +16,7 @@
 //!
 //! Scales to ~1000 nodes without performance cliffs (O(n^3) typical case).
 
-/// Numerical tolerance for floating-point comparisons.
+/// Numerical tolerance for floating-point comparisons in the simplex method.
 const EPS: f64 = 1e-12;
 
 /// Maximum number of simplex pivots before declaring non-convergence.
