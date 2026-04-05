@@ -43,12 +43,8 @@ irreducible/                            # Workspace root
 │       │   ├── string_rewrite.rs      # StringRewriteSystem, SRSState
 │       │   └── ntm.rs                 # NondeterministicTM, NTMBuilder
 │       └── hypergraph/
-│           ├── hyperedge.rs           # Hyperedge (n-ary edge)
-│           ├── hypergraph.rs          # Hypergraph (vertices + hyperedges)
-│           ├── rewrite_rule.rs        # RewriteRule, RewriteMatch, RewriteSpan (DPO)
-│           ├── evolution.rs           # HypergraphEvolution, WilsonLoop, causal invariance
-│           ├── gauge.rs               # GaugeGroup, HypergraphRewriteGroup, HypergraphLattice
-│           ├── catgraph_bridge.rs     # MultiwayCospan, MultiwayCospanGraph, Span/Cospan bridge
+│           ├── mod.rs                 # Re-exports from catgraph::hypergraph + local types
+│           ├── catgraph_bridge.rs     # MultiwayCospanExt trait, MultiwayCospan/Graph types
 │           └── persistence.rs         # EvolutionPersistence (feature = "persist")
 ├── tests/                              # Integration tests (public API only)
 │   ├── adjunction_laws.rs              # Z' ⊣ Z triangle identities, unit/counit
@@ -74,8 +70,8 @@ irreducible/                            # Workspace root
 
 ```toml
 [workspace.dependencies]
-catgraph = { git = "https://github.com/tsondru/catgraph", tag = "v0.4.0" }  # Category theory (spans, cospans, adjunctions, coherence)
-catgraph-surreal = { git = "https://github.com/tsondru/catgraph", tag = "v0.4.0" }  # optional (persist feature)
+catgraph = { git = "https://github.com/tsondru/catgraph", tag = "v0.6.0" }  # Category theory (spans, cospans, adjunctions, coherence, hypergraph rewriting)
+catgraph-surreal = { git = "https://github.com/tsondru/catgraph", tag = "v0.6.0" }  # optional (persist feature, HypergraphEvolutionStore)
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 surrealdb = { version = "3.0.4", default-features = false, features = ["kv-mem"] }  # optional
@@ -158,21 +154,22 @@ Default features: none. Core library is purely computational (no I/O, no async).
 | `ManifoldCurvature` | Riemannian curvature via embedding (feature-gated) | `machines/multiway/manifold_bridge.rs` |
 | `MultiwayStatistics` | Branch/merge/cycle counts | `machines/multiway/evolution_graph.rs` |
 
-### Hypergraph Rewriting (catgraph bridge)
+### Hypergraph Rewriting (re-exported from catgraph::hypergraph)
 
-| Type | Role | Location |
-|------|------|----------|
-| `Hypergraph` | Vertices + hyperedges | `machines/hypergraph/hypergraph.rs` |
-| `Hyperedge` | N-ary edge | `machines/hypergraph/hyperedge.rs` |
-| `RewriteRule` | DPO rewrite L -> R | `machines/hypergraph/rewrite_rule.rs` |
-| `RewriteSpan` | Explicit span L <- K -> R | `machines/hypergraph/rewrite_rule.rs` |
-| `HypergraphEvolution` | Multiway evolution graph | `machines/hypergraph/evolution.rs` |
-| `WilsonLoop` | Causal invariance detector | `machines/hypergraph/evolution.rs` |
-| `GaugeGroup` | Gauge group trait | `machines/hypergraph/gauge.rs` |
-| `HypergraphRewriteGroup` | Lattice gauge theory | `machines/hypergraph/gauge.rs` |
-| `HypergraphLattice` | D-dimensional lattice for gauge fields | `machines/hypergraph/gauge.rs` |
-| `MultiwayCospan` | Single rewrite step as cospan | `machines/hypergraph/catgraph_bridge.rs` |
-| `MultiwayCospanGraph` | Full evolution as cospan graph | `machines/hypergraph/catgraph_bridge.rs` |
+| Type | Role | Source |
+|------|------|--------|
+| `Hypergraph` | Vertices + hyperedges | `catgraph::hypergraph` |
+| `Hyperedge` | N-ary edge | `catgraph::hypergraph` |
+| `RewriteRule` | DPO rewrite L -> R | `catgraph::hypergraph` |
+| `RewriteSpan` | Explicit span L <- K -> R | `catgraph::hypergraph` |
+| `HypergraphEvolution` | Multiway evolution graph | `catgraph::hypergraph` |
+| `WilsonLoop` | Causal invariance detector | `catgraph::hypergraph` |
+| `GaugeGroup` | Gauge group trait | `catgraph::hypergraph` |
+| `HypergraphRewriteGroup` | Lattice gauge theory | `catgraph::hypergraph` |
+| `HypergraphLattice` | D-dimensional lattice for gauge fields | `catgraph::hypergraph` |
+| `MultiwayCospan` | Single rewrite step as cospan | `machines/hypergraph/catgraph_bridge.rs` (local) |
+| `MultiwayCospanGraph` | Full evolution as cospan graph | `machines/hypergraph/catgraph_bridge.rs` (local) |
+| `MultiwayCospanExt` | Extension trait for multiway cospan methods | `machines/hypergraph/catgraph_bridge.rs` (local) |
 
 ### Catgraph Bridge API
 
@@ -333,10 +330,10 @@ assert!(analysis.is_irreducible());
 ### Running Tests
 
 ```bash
-cargo test --workspace                    # 416 tests (270 unit + 124 integration + 22 doc), 0 ignored
+cargo test --workspace                    # 332 tests (198 unit + 124 integration + 10 doc), 0 ignored
 cargo test -p irreducible                 # Core library unit tests (264)
 cargo test --test functoriality           # Single integration test file
-cargo test --workspace --features persist # 425 tests (+15 persistence)
+cargo test --workspace --features persist # 347 tests (+15 persistence)
 cargo run --example gorard_demo           # Run the 9-part demo
 cargo run --example builders              # Builder patterns
 cargo run --example bifunctor_tensor      # Tensor products, monoidal laws
@@ -349,9 +346,9 @@ cargo clippy --workspace -- -W clippy::pedantic  # Lint (zero warnings)
 
 | Category | Count | What it covers |
 |----------|-------|----------------|
-| Unit tests | 270 | All modules: functor, machines, categories, types, trace, curvature |
+| Unit tests | 198 | All modules: functor, machines, categories, types, trace, curvature (hypergraph unit tests moved to catgraph) |
 | Integration tests | 124 | 10 files: adjunction, catgraph bridge, computation types, functoriality, hypergraph, monoidal, multiway, persistence, property coherence, Stokes |
-| Doc tests | 22 | Module-level and type-level examples (all enabled, zero ignored) |
+| Doc tests | 10 | Module-level and type-level examples (hypergraph doc tests moved to catgraph) |
 
 ### Test Patterns
 
