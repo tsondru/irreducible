@@ -554,27 +554,28 @@ dependencies = [
 
 [[package]]
 name = "catgraph"
-version = "0.4.0"
-source = "git+https://github.com/tsondru/catgraph?tag=v0.4.0#040b9871023388796f2ddc38407a4944e0c4e13c"
+version = "0.6.0"
 dependencies = [
  "either",
  "itertools 0.14.0",
  "log",
  "num",
  "permutations",
- "petgraph",
+ "petgraph 0.8.3",
  "rand 0.10.0",
  "rayon",
+ "rust_decimal",
  "thiserror 2.0.18",
  "union-find",
 ]
 
 [[package]]
 name = "catgraph-surreal"
-version = "0.3.0"
-source = "git+https://github.com/tsondru/catgraph?tag=v0.4.0#040b9871023388796f2ddc38407a4944e0c4e13c"
+version = "0.5.0"
 dependencies = [
  "catgraph",
+ "petgraph 0.7.1",
+ "rust_decimal",
  "serde",
  "serde_json",
  "surrealdb",
@@ -2627,6 +2628,16 @@ name = "permutations"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6dce2abb8134920de8f39a030649cee7ff154ab1bc1834bb6c5a1577187c9df3"
+
+[[package]]
+name = "petgraph"
+version = "0.7.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3672b37090dbd86368a4145bc067582552b29c27377cad4e0a306c97f9bd7772"
+dependencies = [
+ "fixedbitset",
+ "indexmap",
+]
 
 [[package]]
 name = "petgraph"

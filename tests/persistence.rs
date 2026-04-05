@@ -6,7 +6,7 @@
 
 use irreducible::machines::hypergraph::{
     persistence::EvolutionPersistence, Hypergraph, HypergraphEvolution,
-    RewriteRule as HypergraphRewriteRule,
+    MultiwayCospanExt, RewriteRule as HypergraphRewriteRule,
 };
 use surrealdb::engine::local::{Db, Mem};
 use surrealdb::types::RecordId;
