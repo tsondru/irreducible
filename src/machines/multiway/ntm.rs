@@ -33,7 +33,7 @@ use std::collections::HashMap;
 
 use crate::machines::{Configuration, Direction, State, Symbol};
 
-use super::evolution_graph::{run_multiway_bfs, MultiwayEvolutionGraph};
+use catgraph::multiway::{run_multiway_bfs, MultiwayEvolutionGraph};
 
 /// Non-deterministic transition function type.
 ///
