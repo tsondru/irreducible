@@ -4,7 +4,9 @@
 //! cospan composability, multiway cospan graph construction, and span property
 //! validation using catgraph's Composable trait.
 
-use irreducible::machines::hypergraph::{Hypergraph, HypergraphEvolution, RewriteRule};
+use irreducible::machines::hypergraph::{
+    Hypergraph, HypergraphEvolution, MultiwayCospanExt, RewriteRule,
+};
 
 // ---------------------------------------------------------------------------
 // Rule to Span conversion

@@ -11,7 +11,8 @@ use surrealdb::engine::local::Db;
 use surrealdb::types::RecordId;
 use surrealdb::Surreal;
 
-use super::{HypergraphEvolution, RewriteRule};
+use catgraph::hypergraph::{HypergraphEvolution, RewriteRule};
+use super::catgraph_bridge::MultiwayCospanExt;
 
 /// Persistence layer for hypergraph evolution traces.
 ///
@@ -132,7 +133,7 @@ impl<'a> EvolutionPersistence<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use super::super::Hypergraph;
+    use catgraph::hypergraph::Hypergraph;
     use surrealdb::engine::local::Mem;
 
     async fn setup_db() -> Surreal<Db> {
