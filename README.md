@@ -2,9 +2,9 @@
 
 A Rust implementation of Jonathan Gorard's "A Functorial Perspective on (Multi)computational Irreducibility" ([arXiv:2301.04690](https://arxiv.org/pdf/2301.04690)), demonstrating that **computational irreducibility is equivalent to functoriality** of a map from a category of computations to a cobordism category.
 
-Uses [catgraph](https://github.com/tsondru/catgraph) v0.4.0 for categorical infrastructure (spans, cospans, adjunctions, bifunctors, coherence verification, symmetric monoidal categories). Category theory types (intervals, complexity, adjunction framework, bifunctor operations, coherence verifiers, temporal complexes) are defined in catgraph and re-exported transparently.
+Uses [catgraph](https://github.com/tsondru/catgraph) v0.7.0 for categorical infrastructure (spans, cospans, adjunctions, bifunctors, coherence, symmetric monoidal categories, hypergraph DPO rewriting, multiway evolution graphs, discrete curvature). Category theory types, hypergraph rewriting, and multiway infrastructure are defined in catgraph and re-exported transparently — irreducible is a thin domain layer adding computation models (TM, CA, SRS, NTM) and the functorial irreducibility framework.
 
-416 tests (431 with all features), zero clippy warnings. Rust 2024 edition.
+302 tests (317 with all features), zero clippy warnings. Rust 2024 edition.
 
 ## Quick Start
 
@@ -37,8 +37,8 @@ cargo run --example lattice_gauge         # Wilson loops, plaquette action
 cargo run --example persist_evolution --features persist  # SurrealDB persistence
 
 # Run all tests
-cargo test --workspace                    # 416 tests (270 unit + 124 integration + 22 doc)
-cargo test --workspace --features persist # 431 tests (+15 persistence)
+cargo test --workspace                    # 302 tests (169 unit + 124 integration + 9 doc)
+cargo test --workspace --features persist # 317 tests (+15 persistence)
 
 # Run just the library
 cargo test -p irreducible                 # Core library tests
@@ -76,15 +76,15 @@ The framework extends naturally to **multicomputational irreducibility** for non
 | **Bifunctor/Tensor** | `TensorProduct`, `tensor_bimap` | `functor/bifunctor.rs` |
 | **Stokes integration** | `TemporalComplex`, `ConservationResult` | `functor/stokes_integration.rs` |
 | **Stokes → cospan composability** | `TemporalComplex::to_cospan_chain()` | `functor/stokes_integration.rs` |
-| **DPO rewriting as spans** | `RewriteRule::to_span()` → `catgraph::Span<()>` | `machines/hypergraph/catgraph_bridge.rs` |
-| **Evolution as cospan chain** | `HypergraphEvolution::to_cospan_chain()` | `machines/hypergraph/catgraph_bridge.rs` |
-| **Causal invariance** | Wilson loops, holonomy analysis | `machines/hypergraph/evolution.rs` |
-| **Gauge group** | `HypergraphRewriteGroup`, lattice gauge | `machines/hypergraph/gauge.rs` |
-| **Branchial curvature** | `DiscreteCurvature` trait, `OllivierRicciCurvature`, `ManifoldCurvature` | `machines/multiway/curvature.rs`, `ollivier_ricci.rs`, `manifold_bridge.rs` |
+| **DPO rewriting as spans** | `RewriteRule::to_span()` → `catgraph::Span<u32>` | `catgraph::hypergraph` |
+| **Evolution as cospan chain** | `HypergraphEvolution::to_cospan_chain()` | `catgraph::hypergraph` |
+| **Causal invariance** | Wilson loops, holonomy analysis | `catgraph::hypergraph` |
+| **Gauge group** | `HypergraphRewriteGroup`, lattice gauge | `catgraph::hypergraph` |
+| **Branchial curvature** | `DiscreteCurvature` trait, `OllivierRicciCurvature` | `catgraph::multiway` |
 | **Complexity algebra** | `Complexity` trait, `StepCount` | `categories/complexity.rs` |
 | **Turing machines** | `TuringMachine`, `ExecutionHistory` | `machines/turing.rs` |
 | **Cellular automata (1D)** | `ElementaryCA`, `Generation` | `machines/cellular_automaton.rs` |
-| **Multiway systems** | `MultiwayEvolutionGraph`, `BranchialGraph` | `machines/multiway/` |
+| **Multiway systems** | `MultiwayEvolutionGraph`, `BranchialGraph` | `catgraph::multiway` |
 | **String rewriting** | `StringRewriteSystem`, `SRSState` | `machines/multiway/string_rewrite.rs` |
 | **Non-deterministic TM** | `NondeterministicTM`, `NTMBuilder` | `machines/multiway/ntm.rs` |
 | **Symmetric monoidal functor** | `MonoidalFunctorResult`, `CoherenceVerification` | `functor/monoidal.rs` |
@@ -229,73 +229,53 @@ You can have systems that are computationally irreducible but multicomputational
 
 ```text
 irreducible/
-├── src/                              # Library source
+├── src/
 │   ├── lib.rs                        # Re-exports
-│   ├── types.rs                      # CausaloidType, ContextKind, ComputationDomain/Context
-│   ├── categories/
-│   │   ├── cobordism.rs              # DiscreteInterval, ParallelIntervals (ℬ)
-│   │   ├── complexity.rs             # Complexity trait, StepCount
-│   │   └── computation_state.rs      # ComputationState
+│   ├── types.rs                      # ComputationDomain, ComputationContext, CausalEffect
+│   ├── categories/                   # Re-exports from catgraph (intervals, complexity, state)
 │   ├── functor/
 │   │   ├── mod.rs                    # IrreducibilityFunctor
 │   │   ├── adjunction.rs             # ZPrimeAdjunction, triangle identities
-│   │   ├── monoidal.rs              # Symmetric monoidal + CoherenceVerification
-│   │   ├── bifunctor.rs             # TensorProduct, tensor_bimap
-│   │   └── stokes_integration.rs    # TemporalComplex, Stokes → cospan bridge
+│   │   ├── monoidal.rs              # Symmetric monoidal functor verification
+│   │   ├── bifunctor.rs             # Re-exports catgraph::bifunctor
+│   │   └── stokes_integration.rs    # StokesIrreducibility wrapper
 │   └── machines/
 │       ├── turing.rs                 # TuringMachine, ExecutionHistory
 │       ├── cellular_automaton.rs     # ElementaryCA, Generation
-│       ├── multiway/                 # Non-deterministic systems
-│       │   ├── evolution_graph.rs    # MultiwayEvolutionGraph, BranchialGraph
-│       │   ├── branchial.rs         # Branchial foliation at Σ_t
-│       │   ├── curvature.rs         # DiscreteCurvature trait, CurvatureFoliation<C>
-│       │   ├── ollivier_ricci.rs   # OllivierRicciCurvature (default backend)
-│       │   ├── wasserstein.rs      # Wasserstein-1 solver (min-cost flow)
-│       │   ├── manifold_bridge.rs  # ManifoldCurvature (feature = "manifold-curvature")
-│       │   ├── string_rewrite.rs    # StringRewriteSystem, SRSState
-│       │   └── ntm.rs              # NondeterministicTM, NTMBuilder
-│       └── hypergraph/              # Wolfram Physics (catgraph bridge)
-│           ├── hyperedge.rs         # Hyperedge (n-ary)
-│           ├── hypergraph.rs        # Hypergraph (vertices + hyperedges)
-│           ├── rewrite_rule.rs      # RewriteRule, RewriteSpan, DPO matching
-│           ├── evolution.rs         # HypergraphEvolution, Wilson loops
-│           ├── gauge.rs             # HypergraphRewriteGroup, HypergraphLattice
-│           ├── catgraph_bridge.rs   # Span/Cospan bridge to catgraph
-│           └── persistence.rs      # EvolutionPersistence (feature = "persist")
-├── tests/                            # Integration tests (132 tests with persist)
-│   ├── adjunction_laws.rs           # Z' ⊣ Z triangle identities
-│   ├── catgraph_bridge.rs           # Span/cospan bridge correctness
-│   ├── computation_types.rs         # TM, CA, multiway systems
-│   ├── functoriality.rs            # Irreducibility functor laws
-│   ├── hypergraph_rewriting.rs     # DPO rewriting, evolution
-│   ├── monoidal_coherence.rs       # α, λ, ρ, σ coherence conditions
-│   ├── multiway_evolution.rs       # Non-deterministic evolution
-│   ├── persistence.rs              # SurrealDB persist roundtrips (feature-gated)
-│   ├── property_coherence.rs       # Coherence verification, differential coherence
-│   └── stokes_integration.rs       # Stokes → cospan composability
+│       ├── trace.rs                  # IrreducibilityTrace trait, TraceAnalysis
+│       ├── multiway/                 # Re-exports catgraph::multiway + local models
+│       │   ├── string_rewrite.rs     # StringRewriteSystem, SRSState (local)
+│       │   ├── ntm.rs               # NondeterministicTM, NTMBuilder (local)
+│       │   └── manifold_bridge.rs   # ManifoldCurvature (feature-gated, local)
+│       └── hypergraph/              # Re-exports catgraph::hypergraph + local types
+│           ├── catgraph_bridge.rs    # MultiwayCospanExt trait (local)
+│           └── persistence.rs       # EvolutionPersistence (feature = "persist")
+├── tests/                            # Integration tests (124 tests)
 └── examples/
-    ├── gorard_demo.rs               # 9-part presentation demo
-    ├── builders.rs                  # TuringMachineBuilder + NTMBuilder
-    ├── bifunctor_tensor.rs          # Tensor products, monoidal laws
-    ├── lattice_gauge.rs             # Wilson loops, plaquette action, gauge theory
-    └── persist_evolution.rs         # EvolutionPersistence lifecycle (feature-gated)
+    ├── gorard_demo.rs                # 9-part presentation demo
+    ├── builders.rs                   # TuringMachineBuilder + NTMBuilder
+    ├── bifunctor_tensor.rs           # Tensor products, monoidal laws
+    ├── lattice_gauge.rs              # Wilson loops, plaquette action
+    └── persist_evolution.rs          # Persistence lifecycle (feature-gated)
 ```
+
+**catgraph provides:** Hypergraph rewriting (DPO, evolution, Wilson loops, gauge theory), multiway evolution graphs (BFS, branchial foliation, Ollivier-Ricci curvature, Wasserstein transport), intervals, spans, cospans, coherence, adjunctions, Stokes integration, Petri nets.
 
 ---
 
 ## Testing
 
 ```bash
-cargo test --workspace                    # 416 tests, zero ignored
-cargo test --workspace --features persist # 431 tests (+15 persistence)
+cargo test --workspace                    # 302 tests, zero ignored
+cargo test --workspace --features persist # 317 tests (+15 persistence)
 cargo clippy -- -W clippy::pedantic       # zero warnings
 ```
 
 | Suite | Tests | What it covers |
 |-------|-------|---------------|
-| Unit tests (src/) | 270 | All modules: categories, functor, machines, multiway, hypergraph, curvature |
+| Unit tests (src/) | 169 | Functor, machines (TM, CA, SRS, NTM, trace), categories, types |
 | `adjunction_laws` | 11 | Z' ⊣ Z triangle identities, unit/counit naturality |
-| `catgraph_bridge` | 10 | Span/cospan conversion, composability, roundtrip |
+| `catgraph_bridge` | 10 | Multiway cospan analysis, composability |
 | `computation_types` | 22 | TM, CA, string rewrite, NTM classification |
 | `functoriality` | 13 | Functor laws, irreducibility detection |
 | `hypergraph_rewriting` | 20 | DPO matching, evolution, Wilson loops, gauge |
@@ -304,9 +284,11 @@ cargo clippy -- -W clippy::pedantic       # zero warnings
 | `persistence` | 8 | SurrealDB cospan/span roundtrip, multiway, isolation |
 | `property_coherence` | 10 | Coherence verification, differential coherence |
 | `stokes_integration` | 13 | Temporal complex, Stokes conservation, cospan bridge |
-| Doc tests | 22 | All public API examples |
+| Doc tests | 9 | Public API examples |
 | Persistence unit (feature-gated) | 7 | Unit tests in persistence.rs |
-| **Total** | **431** | |
+| **Total** | **317** | |
+
+Hypergraph and multiway infrastructure unit tests (~130) now run in catgraph's own test suite.
 
 ---
 
@@ -314,7 +296,7 @@ cargo clippy -- -W clippy::pedantic       # zero warnings
 
 ### Core
 
-- [catgraph](https://github.com/tsondru/catgraph) -- category theory (cospans, spans, symmetric monoidal categories)
+- [catgraph](https://github.com/tsondru/catgraph) v0.7.0 -- category theory (cospans, spans, hypergraph rewriting, multiway evolution, discrete curvature, symmetric monoidal categories)
 - `serde` + `serde_json` -- serialization
 
 ### Optional (`persist` feature)
