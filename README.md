@@ -13,6 +13,10 @@ Uses [catgraph](https://github.com/tsondru/catgraph) v0.7.0 for categorical infr
 irreducible = { git = "https://github.com/tsondru/irreducible" }
 # With SurrealDB persistence:
 # irreducible = { git = "https://github.com/tsondru/irreducible", features = ["persist"] }
+# With manifold curvature:
+# irreducible = { git = "https://github.com/tsondru/irreducible", features = ["manifold-curvature"] }
+# With LAPACK-accelerated eigendecomposition (requires libopenblas-dev):
+# irreducible = { git = "https://github.com/tsondru/irreducible", features = ["lapack"] }
 ```
 
 ```bash
@@ -35,6 +39,7 @@ cargo run --example builders              # TuringMachineBuilder + NTMBuilder
 cargo run --example bifunctor_tensor      # Tensor products, monoidal laws
 cargo run --example lattice_gauge         # Wilson loops, plaquette action
 cargo run --example persist_evolution --features persist  # SurrealDB persistence
+cargo run --example manifold_curvature --features manifold-curvature  # Riemannian curvature
 
 # Run all tests
 cargo test --workspace                    # 309 tests (176 unit + 124 integration + 9 doc)
@@ -60,6 +65,40 @@ The framework extends naturally to **multicomputational irreducibility** for non
 - **Author**: Jonathan Gorard (Cardiff University & University of Cambridge)
 - **Date**: October 2022
 - **Link**: <https://arxiv.org/pdf/2301.04690>
+
+---
+
+## Feature Flags
+
+| Feature | Gates | Dependencies |
+|---------|-------|--------------|
+| *(none)* | Core library (TM, CA, SRS, NTM, functor, cobordism) | `catgraph`, `serde` |
+| `manifold-curvature` | Riemannian manifold curvature via MDS embedding | `amari-calculus`, `nalgebra` |
+| `lapack` | LAPACK-accelerated eigendecomposition for MDS | `nalgebra-lapack` (implies `manifold-curvature`) |
+| `persist` | SurrealDB persistence for evolution traces | `catgraph-surreal`, `surrealdb`, `tokio` |
+
+### Installing OpenBLAS (required for `lapack` feature)
+
+The `lapack` feature uses [OpenBLAS](https://www.openblas.net/) for LAPACK routines. Install the development headers before building:
+
+```bash
+# Debian/Ubuntu
+sudo apt install libopenblas-dev
+
+# Fedora/RHEL
+sudo dnf install openblas-devel
+
+# Arch Linux
+sudo pacman -S openblas
+
+# macOS (Homebrew)
+brew install openblas
+```
+
+Then build with:
+```bash
+cargo test --features lapack
+```
 
 ---
 

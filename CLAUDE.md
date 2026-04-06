@@ -73,6 +73,8 @@ serde_json = "1.0"
 surrealdb = { version = "3.0.4", default-features = false, features = ["kv-mem"] }  # optional
 tokio = { version = "1", features = ["full"] }                    # optional
 amari-calculus = { path = "..." }                                  # optional (manifold-curvature feature)
+nalgebra = { version = "0.34", optional = true }                   # optional (manifold-curvature feature)
+nalgebra-lapack = { version = "0.27", features = ["lapack-openblas"] }  # optional (lapack feature)
 ```
 
 **Note:** During active development, the catgraph dep uses `path = "/home/oryx/Documents/tsondru/catgraph"`. Switch to git tag for releases.
@@ -82,7 +84,8 @@ amari-calculus = { path = "..." }                                  # optional (m
 | Feature | Gates | Dependencies |
 |---------|-------|--------------|
 | `persist` | SurrealDB persistence for evolution traces | `catgraph-surreal`, `surrealdb`, `tokio` |
-| `manifold-curvature` | Riemannian manifold curvature via amari-calculus | `amari-calculus` |
+| `manifold-curvature` | Riemannian manifold curvature via amari-calculus | `amari-calculus`, `nalgebra` |
+| `lapack` | LAPACK-accelerated eigendecomposition for MDS embedding | `nalgebra-lapack` (implies `manifold-curvature`; requires `libopenblas-dev`) |
 
 Default features: none. Core library is purely computational (no I/O, no async).
 
@@ -331,6 +334,8 @@ cargo test --workspace                    # 309 tests (176 unit + 124 integratio
 cargo test -p irreducible                 # Core library unit tests (264)
 cargo test --test functoriality           # Single integration test file
 cargo test --workspace --features persist # 324 tests (+15 persistence)
+cargo test --features manifold-curvature  # Manifold curvature unit tests (6)
+cargo test --features lapack              # LAPACK-accelerated eigendecomposition (requires libopenblas-dev)
 cargo run --example gorard_demo           # Run the 9-part demo
 cargo run --example builders              # Builder patterns
 cargo run --example bifunctor_tensor      # Tensor products, monoidal laws
@@ -406,6 +411,10 @@ let result = EXEC.run(move || {
 | Lambda calculus | Additional computation model with beta-reduction as morphisms |
 | Rule classification | Systematic irreducibility analysis of all 256 elementary CA rules |
 | deep_causality integration | Wire `CausalEffect<T>` into `deep_causality::PropagatingEffect` for causal computation; currently no production consumers but planned |
+| Higher-dimensional Stokes | nalgebra-sparse `CsrMatrix` for sparse boundary operators in catgraph's `TemporalComplex`; currently trivial in 1D |
+| Spectral coherence | nalgebra-lapack eigendecomposition for coherence matrix analysis in monoidal functor verification; deferred until matrices exceed ~100x100 |
+
+**Intentionally kept**: `CausalEffect<T>` in `types.rs` has zero internal consumers currently but is retained for the planned deep_causality integration. Do not flag as dead code.
 
 ## API Scope
 

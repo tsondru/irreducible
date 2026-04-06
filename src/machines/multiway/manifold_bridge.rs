@@ -13,7 +13,7 @@ use std::collections::VecDeque;
 use std::fmt;
 
 use amari_calculus::manifold::{MetricTensor, RiemannianManifold};
-use nalgebra::DMatrix;
+use nalgebra::{DMatrix, SVector};
 
 use catgraph::multiway::{BranchialGraph, CurvatureFoliation, DiscreteCurvature};
 
@@ -30,7 +30,7 @@ pub trait BranchialEmbedding<const DIM: usize> {
     /// Returns `(coordinates, metric)` where:
     /// - `coordinates[i]` is the position of vertex `i` in `DIM`-dimensional space
     /// - `metric` is the Riemannian metric tensor on the embedding manifold
-    fn embed(&self, branchial: &BranchialGraph) -> (Vec<[f64; DIM]>, MetricTensor<DIM>);
+    fn embed(&self, branchial: &BranchialGraph) -> (Vec<SVector<f64, DIM>>, MetricTensor<DIM>);
 }
 
 /// Branchial embedding via classical multidimensional scaling (MDS) on
@@ -56,7 +56,7 @@ where
         clippy::cast_possible_truncation,
         clippy::needless_range_loop
     )]
-    fn embed(&self, branchial: &BranchialGraph) -> (Vec<[f64; DIM]>, MetricTensor<DIM>) {
+    fn embed(&self, branchial: &BranchialGraph) -> (Vec<SVector<f64, DIM>>, MetricTensor<DIM>) {
         let n = branchial.nodes.len();
 
         if n == 0 {
@@ -64,7 +64,7 @@ where
         }
 
         if n == 1 {
-            return (vec![[0.0; DIM]], MetricTensor::euclidean());
+            return (vec![SVector::<f64, DIM>::zeros()], MetricTensor::euclidean());
         }
 
         // --- Step 1: All-pairs BFS ---
@@ -72,12 +72,7 @@ where
 
         // --- Step 2: Square the distances ---
         let nf = n as f64;
-        let mut d_sq = DMatrix::<f64>::zeros(n, n);
-        for i in 0..n {
-            for j in 0..n {
-                d_sq[(i, j)] = distances[(i, j)] * distances[(i, j)];
-            }
-        }
+        let d_sq = distances.component_mul(&distances);
 
         // --- Step 3: Double-center: B = -0.5 * H * D^2 * H ---
         // H = I - (1/n) * 1 * 1^T
@@ -87,6 +82,9 @@ where
         let b = &h * &d_sq * &h * (-0.5);
 
         // --- Step 4: Eigendecompose ---
+        #[cfg(feature = "lapack")]
+        let eigen = nalgebra_lapack::SymmetricEigen::new(b);
+        #[cfg(not(feature = "lapack"))]
         let eigen = b.symmetric_eigen();
 
         // Sort eigenvalues descending, keeping track of original indices
@@ -99,7 +97,7 @@ where
         indexed.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
 
         // --- Step 5: Extract top DIM eigenvalues and compute coordinates ---
-        let mut coords = vec![[0.0_f64; DIM]; n];
+        let mut coords = vec![SVector::<f64, DIM>::zeros(); n];
         for d in 0..DIM {
             if d < indexed.len() && indexed[d].1 > 0.0 {
                 let col_idx = indexed[d].0;
@@ -178,8 +176,8 @@ fn all_pairs_bfs(branchial: &BranchialGraph) -> DMatrix<f64> {
 pub struct ManifoldCurvature {
     /// Per-vertex Ricci curvature (trace of Ricci tensor at each vertex).
     vertex_curvatures: Vec<f64>,
-    /// Sectional curvatures for vertex pairs `((i, j), kappa)`.
-    sectional_curvatures: Vec<((usize, usize), f64)>,
+    /// Sectional curvatures stored as a symmetric `n × n` matrix.
+    sectional_curvatures: DMatrix<f64>,
     /// Scalar curvature R at the centroid.
     scalar: f64,
     /// Dimension of the embedding manifold.
@@ -221,7 +219,7 @@ impl ManifoldCurvature {
         if n == 0 {
             return Self {
                 vertex_curvatures: Vec::new(),
-                sectional_curvatures: Vec::new(),
+                sectional_curvatures: DMatrix::<f64>::zeros(0, 0),
                 scalar: 0.0,
                 embedding_dim: DIM,
                 dim: 0,
@@ -238,37 +236,29 @@ impl ManifoldCurvature {
             .map(|coord| {
                 let mut ricci_trace = 0.0;
                 for i in 0..DIM {
-                    ricci_trace += manifold.ricci_tensor(i, i, coord);
+                    ricci_trace += manifold.ricci_tensor(i, i, coord.as_slice());
                 }
                 ricci_trace
             })
             .collect();
 
         // --- Sectional curvatures for each pair ---
-        let mut sectional_curvatures = Vec::new();
+        let mut sectional_curvatures = DMatrix::<f64>::zeros(n, n);
         for i in 0..n {
             for j in (i + 1)..n {
-                // Midpoint between vertices i and j
-                let mut midpoint = [0.0_f64; DIM];
-                for d in 0..DIM {
-                    midpoint[d] = f64::midpoint(coords[i][d], coords[j][d]);
-                }
-                let sectional = manifold.riemann_tensor(0, 1, 0, 1, &midpoint[..DIM]);
-                sectional_curvatures.push(((i, j), sectional));
+                let midpoint = (coords[i] + coords[j]) * 0.5;
+                let sectional = manifold.riemann_tensor(0, 1, 0, 1, midpoint.as_slice());
+                sectional_curvatures[(i, j)] = sectional;
+                sectional_curvatures[(j, i)] = sectional;
             }
         }
 
         // --- Scalar curvature at centroid ---
-        let mut centroid = [0.0_f64; DIM];
-        for coord in &coords {
-            for d in 0..DIM {
-                centroid[d] += coord[d];
-            }
-        }
-        for d in 0..DIM {
-            centroid[d] /= n as f64;
-        }
-        let scalar = manifold.scalar_curvature(&centroid[..DIM]);
+        let centroid: SVector<f64, DIM> = coords
+            .iter()
+            .fold(SVector::zeros(), |acc, c| acc + c)
+            / (n as f64);
+        let scalar = manifold.scalar_curvature(centroid.as_slice());
 
         Self {
             vertex_curvatures,
@@ -308,11 +298,10 @@ impl DiscreteCurvature for ManifoldCurvature {
     }
 
     fn sectional_curvature(&self, i: usize, j: usize) -> f64 {
-        let (u, v) = if i < j { (i, j) } else { (j, i) };
-        self.sectional_curvatures
-            .iter()
-            .find(|&&(e, _)| e == (u, v))
-            .map_or(0.0, |&(_, k)| k)
+        if i >= self.sectional_curvatures.nrows() || j >= self.sectional_curvatures.ncols() {
+            return 0.0;
+        }
+        self.sectional_curvatures[(i, j)]
     }
 
     #[allow(clippy::cast_precision_loss)]
@@ -353,11 +342,9 @@ impl fmt::Display for ManifoldCurvature {
         writeln!(f, "  Embedding dimension: {}", self.embedding_dim)?;
         writeln!(f, "  Graph dimension: {}", self.dim)?;
         writeln!(f, "  Scalar curvature R: {:.6}", self.scalar)?;
-        writeln!(
-            f,
-            "  Sectional pairs analyzed: {}",
-            self.sectional_curvatures.len()
-        )?;
+        let n = self.sectional_curvatures.nrows();
+        let pairs = n * n.saturating_sub(1) / 2;
+        writeln!(f, "  Sectional pairs analyzed: {pairs}")?;
         writeln!(f, "  Is flat: {}", self.is_flat())?;
         write!(
             f,
@@ -399,7 +386,7 @@ mod tests {
 
         // All coordinates should be finite
         for coord in &coords {
-            for &c in coord {
+            for &c in coord.as_slice() {
                 assert!(c.is_finite(), "coordinate must be finite: {c}");
             }
         }
@@ -448,7 +435,7 @@ mod tests {
 
         let (coords, _metric) = ShortestPathMDS::<3>.embed(&branchial);
         assert_eq!(coords.len(), 1);
-        assert_eq!(coords[0], [0.0; 3]);
+        assert_eq!(coords[0], SVector::<f64, 3>::zeros());
 
         let curvature = ManifoldCurvature::from_branchial(&branchial, &ShortestPathMDS::<3>);
         assert!(curvature.is_flat());
@@ -528,7 +515,7 @@ mod tests {
         // Each coordinate vector has 3 elements — none should be zeroed
         for coord in &coords {
             assert_eq!(coord.len(), 3);
-            for &c in coord {
+            for &c in coord.as_slice() {
                 assert!(c.is_finite(), "coordinate must be finite: {c}");
             }
         }
