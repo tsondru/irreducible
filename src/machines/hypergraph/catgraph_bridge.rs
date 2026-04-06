@@ -188,12 +188,12 @@ impl MultiwayCospanExt for HypergraphEvolution {
 }
 
 /// Composes a sequence of cospans into a single composite.
+///
+/// Returns `None` if the sequence is empty or any consecutive pair is not composable.
 fn compose_cospan_path(cospans: &[&Cospan<u32>]) -> Option<Cospan<u32>> {
     let mut iter = cospans.iter();
     let first = (*iter.next()?).clone();
-    Some(iter.fold(first, |acc, c| {
-        acc.compose(c).expect("path cospans must be composable")
-    }))
+    iter.try_fold(first, |acc, c| acc.compose(c).ok())
 }
 
 impl MultiwayCospanGraph {
@@ -336,5 +336,25 @@ mod tests {
         let result = evolution.verify_causal_invariance_via_cospans();
         // The result should at least report correctly
         assert_eq!(result.is_invariant, result.merge_points_checked == 0 || result.invariant_merges == result.merge_points_checked);
+    }
+
+    #[test]
+    fn test_compose_cospan_path_incompatible_returns_none() {
+        // Build two cospans with incompatible boundaries:
+        // c1: middle has 3 elements, right leg maps 2 boundary points
+        // c2: middle has 1 element, left leg maps 5 boundary points
+        // The right boundary of c1 (size 2) != left boundary of c2 (size 5),
+        // so composition should fail.
+        let c1: Cospan<u32> = Cospan::new(vec![0, 1, 2], vec![0, 1], vec![10, 20, 30]);
+        let c2: Cospan<u32> = Cospan::new(vec![0, 0, 0, 0, 0], vec![0], vec![99]);
+
+        let result = compose_cospan_path(&[&c1, &c2]);
+        assert!(result.is_none(), "incompatible cospans should return None, not panic");
+    }
+
+    #[test]
+    fn test_compose_cospan_path_empty_returns_none() {
+        let result = compose_cospan_path(&[]);
+        assert!(result.is_none());
     }
 }

@@ -31,7 +31,7 @@
 
 use std::collections::HashMap;
 
-use crate::machines::{Configuration, Direction, State, Symbol};
+use crate::machines::{BuilderError, Configuration, Direction, State, Symbol};
 
 use catgraph::multiway::{run_multiway_bfs, MultiwayEvolutionGraph};
 
@@ -427,21 +427,31 @@ impl NTMBuilder {
         self
     }
 
+    /// Build the NTM, returning an error if required fields are missing.
+    ///
+    /// # Errors
+    /// Returns [`BuilderError::MissingInitialState`] or [`BuilderError::MissingBlank`]
+    /// if the corresponding field was not set.
+    pub fn try_build(self) -> Result<NondeterministicTM, BuilderError> {
+        Ok(NondeterministicTM::new(
+            self.states,
+            self.initial_state
+                .ok_or(BuilderError::MissingInitialState)?,
+            self.accept_states,
+            self.reject_states,
+            self.blank.ok_or(BuilderError::MissingBlank)?,
+            self.transitions,
+        ))
+    }
+
     /// Build the NTM.
     ///
     /// # Panics
-    ///
-    /// Panics if `initial_state` has not been set on the builder.
+    /// Panics if `initial_state` or blank symbol is not set.
     #[must_use]
     pub fn build(self) -> NondeterministicTM {
-        NondeterministicTM::new(
-            self.states,
-            self.initial_state.expect("initial_state must be set"),
-            self.accept_states,
-            self.reject_states,
-            self.blank.expect("blank symbol must be set"),
-            self.transitions,
-        )
+        self.try_build()
+            .expect("builder requires initial_state and blank to be set")
     }
 }
 
@@ -629,5 +639,23 @@ mod tests {
             head: 0,
         };
         assert!(ntm.is_halted(&halted_config));
+    }
+
+    #[test]
+    fn test_ntm_try_build_missing_initial_state() {
+        let result = NTMBuilder::new()
+            .states(vec![0])
+            .blank('_')
+            .try_build();
+        assert!(matches!(result, Err(BuilderError::MissingInitialState)));
+    }
+
+    #[test]
+    fn test_ntm_try_build_missing_blank() {
+        let result = NTMBuilder::new()
+            .states(vec![0])
+            .initial_state(0)
+            .try_build();
+        assert!(matches!(result, Err(BuilderError::MissingBlank)));
     }
 }

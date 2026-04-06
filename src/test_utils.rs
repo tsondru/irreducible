@@ -341,7 +341,7 @@ macro_rules! test_coherence_condition {
 /// interval composition, contiguity checks, and functor operations.
 ///
 /// Returns intervals: [0,1], [1,3], [3,5], [5,10]
-pub fn standard_test_intervals() -> Vec<DiscreteInterval> {
+pub(crate) fn standard_test_intervals() -> Vec<DiscreteInterval> {
     vec![
         DiscreteInterval::new(0, 1),
         DiscreteInterval::new(1, 3),
@@ -353,7 +353,7 @@ pub fn standard_test_intervals() -> Vec<DiscreteInterval> {
 /// Returns standard non-contiguous intervals for gap detection testing.
 ///
 /// Returns intervals: [0,2], [5,7], [10,12] (gaps at 2-5 and 7-10)
-pub fn non_contiguous_intervals() -> Vec<DiscreteInterval> {
+pub(crate) fn non_contiguous_intervals() -> Vec<DiscreteInterval> {
     vec![
         DiscreteInterval::new(0, 2),
         DiscreteInterval::new(5, 7),
@@ -365,7 +365,7 @@ pub fn non_contiguous_intervals() -> Vec<DiscreteInterval> {
 ///
 /// Provides a set of parallel intervals suitable for testing tensor
 /// products and symmetric monoidal structure.
-pub fn standard_parallel_intervals() -> Vec<ParallelIntervals> {
+pub(crate) fn standard_parallel_intervals() -> Vec<ParallelIntervals> {
     vec![
         ParallelIntervals::from_branch(DiscreteInterval::new(0, 5)),
         ParallelIntervals::from_branch(DiscreteInterval::new(10, 15)),
@@ -374,7 +374,7 @@ pub fn standard_parallel_intervals() -> Vec<ParallelIntervals> {
 }
 
 /// Returns a pair of parallel intervals for braiding tests.
-pub fn braiding_test_pair() -> (ParallelIntervals, ParallelIntervals) {
+pub(crate) fn braiding_test_pair() -> (ParallelIntervals, ParallelIntervals) {
     (
         ParallelIntervals::from_branch(DiscreteInterval::new(0, 5)),
         ParallelIntervals::from_branch(DiscreteInterval::new(10, 15)),
@@ -382,7 +382,7 @@ pub fn braiding_test_pair() -> (ParallelIntervals, ParallelIntervals) {
 }
 
 /// Returns parallel intervals representing a unit (identity element).
-pub fn unit_parallel_interval() -> ParallelIntervals {
+pub(crate) fn unit_parallel_interval() -> ParallelIntervals {
     ParallelIntervals::unit()
 }
 

@@ -61,11 +61,10 @@ impl ZPrimeOps for ZPrimeAdjunction {
 
     fn verify_triangle_2(interval: &DiscreteInterval) -> bool {
         let z_i = Self::z(interval);
-        let _eta_z_i = Self::unit_at(&z_i);
         let zprime_z_i = Self::zprime(&z_i);
         let epsilon_i = Self::counit_at(&zprime_z_i);
         let z_epsilon_i = Self::z(&epsilon_i);
-        z_epsilon_i.step == z_i.step && z_epsilon_i.complexity == z_i.complexity
+        z_epsilon_i == z_i
     }
 }
 

@@ -76,6 +76,9 @@ pub use functor::{ConservationResult, StokesError, StokesIrreducibility, Tempora
 // Type exports
 pub use types::{CausalEffect, ComputationContext, ComputationDomain};
 
+// Machine builder exports
+pub use machines::BuilderError;
+
 // Turing machine exports
 pub use machines::{ExecutionHistory, IrreducibilityAnalysis, TuringMachine};
 

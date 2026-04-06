@@ -100,6 +100,7 @@ Default features: none. Core library is purely computational (no I/O, no async).
 | `CAExecutionHistory` | CA evolution trace | `machines/cellular_automaton.rs` |
 | `StringRewriteSystem` | Pattern-based multiway | `machines/multiway/string_rewrite.rs` |
 | `NondeterministicTM` | Non-deterministic TM | `machines/multiway/ntm.rs` |
+| `BuilderError` | Error from `try_build()` on TM/NTM builders | `machines/mod.rs` |
 
 ### Category B (Cobordisms)
 
@@ -118,7 +119,7 @@ Default features: none. Core library is purely computational (no I/O, no async).
 | `ZPrimeAdjunction` | Z' ⊣ Z adjunction | `functor/adjunction.rs` |
 | `ZPrimeOps` | Adjunction operations trait | `functor/adjunction.rs` |
 | `AdjunctionVerification` | Triangle identity checks | `functor/adjunction.rs` |
-| `MonoidalFunctorResult` | Symmetric monoidal functor check | `functor/monoidal.rs` |
+| `MonoidalFunctorResult` | Symmetric monoidal functor check (`#[non_exhaustive]`) | `functor/monoidal.rs` |
 | `CoherenceVerification` | Alpha, lambda, rho, sigma conditions | `functor/monoidal.rs` |
 | `DifferentialCoherence` | Categorical curvature | `functor/monoidal.rs` |
 | `TensorProduct` | Bifunctor trait for tensor | `functor/bifunctor.rs` |
@@ -326,10 +327,10 @@ assert!(analysis.is_irreducible());
 ### Running Tests
 
 ```bash
-cargo test --workspace                    # 302 tests (169 unit + 124 integration + 9 doc), 0 ignored
+cargo test --workspace                    # 309 tests (176 unit + 124 integration + 9 doc), 0 ignored
 cargo test -p irreducible                 # Core library unit tests (264)
 cargo test --test functoriality           # Single integration test file
-cargo test --workspace --features persist # 317 tests (+15 persistence)
+cargo test --workspace --features persist # 324 tests (+15 persistence)
 cargo run --example gorard_demo           # Run the 9-part demo
 cargo run --example builders              # Builder patterns
 cargo run --example bifunctor_tensor      # Tensor products, monoidal laws
@@ -342,7 +343,7 @@ cargo clippy --workspace -- -W clippy::pedantic  # Lint (zero warnings)
 
 | Category | Count | What it covers |
 |----------|-------|----------------|
-| Unit tests | 169 | functor, machines (TM, CA, SRS, NTM, trace), categories, types (hypergraph + multiway infra moved to catgraph) |
+| Unit tests | 176 | functor, machines (TM, CA, SRS, NTM, trace), categories, types (hypergraph + multiway infra moved to catgraph) |
 | Integration tests | 124 | 10 files: adjunction, catgraph bridge, computation types, functoriality, hypergraph, monoidal, multiway, persistence, property coherence, Stokes |
 | Doc tests | 9 | Module-level and type-level examples (hypergraph + multiway doc tests moved to catgraph) |
 
@@ -404,6 +405,7 @@ let result = EXEC.run(move || {
 | Visualization | Multiway graphs, branchial structure, curvature heatmaps |
 | Lambda calculus | Additional computation model with beta-reduction as morphisms |
 | Rule classification | Systematic irreducibility analysis of all 256 elementary CA rules |
+| deep_causality integration | Wire `CausalEffect<T>` into `deep_causality::PropagatingEffect` for causal computation; currently no production consumers but planned |
 
 ## API Scope
 

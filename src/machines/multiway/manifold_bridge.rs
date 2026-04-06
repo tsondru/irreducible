@@ -249,8 +249,8 @@ impl ManifoldCurvature {
         for i in 0..n {
             for j in (i + 1)..n {
                 // Midpoint between vertices i and j
-                let mut midpoint = [0.0_f64; 3];
-                for d in 0..DIM.min(3) {
+                let mut midpoint = [0.0_f64; DIM];
+                for d in 0..DIM {
                     midpoint[d] = f64::midpoint(coords[i][d], coords[j][d]);
                 }
                 let sectional = manifold.riemann_tensor(0, 1, 0, 1, &midpoint[..DIM]);
@@ -259,13 +259,13 @@ impl ManifoldCurvature {
         }
 
         // --- Scalar curvature at centroid ---
-        let mut centroid = [0.0_f64; 3];
+        let mut centroid = [0.0_f64; DIM];
         for coord in &coords {
-            for d in 0..DIM.min(3) {
+            for d in 0..DIM {
                 centroid[d] += coord[d];
             }
         }
-        for d in 0..DIM.min(3) {
+        for d in 0..DIM {
             centroid[d] /= n as f64;
         }
         let scalar = manifold.scalar_curvature(&centroid[..DIM]);
@@ -496,5 +496,47 @@ mod tests {
         let curvature = ManifoldCurvature::from_branchial(&branchial, &ShortestPathMDS::<3>);
         assert_eq!(curvature.dimension(), 0);
         assert!(curvature.is_flat());
+    }
+
+    #[test]
+    fn dim3_embedding_uses_all_three_dimensions() {
+        // K₅ embedded in 3D — all 3 coordinate dimensions should be populated.
+        // This verifies the fix for the DIM > 3 truncation bug: previously
+        // midpoint and centroid buffers were hardcoded to [0.0; 3] with DIM.min(3),
+        // now they use [0.0; DIM] with full DIM iteration.
+        let nodes: Vec<MultiwayNodeId> = (0..5).map(|i| make_id(i, 0)).collect();
+        let edges = vec![
+            (nodes[0], nodes[1]),
+            (nodes[0], nodes[2]),
+            (nodes[0], nodes[3]),
+            (nodes[0], nodes[4]),
+            (nodes[1], nodes[2]),
+            (nodes[1], nodes[3]),
+            (nodes[1], nodes[4]),
+            (nodes[2], nodes[3]),
+            (nodes[2], nodes[4]),
+            (nodes[3], nodes[4]),
+        ];
+        let branchial = BranchialGraph {
+            step: 0,
+            nodes: nodes.clone(),
+            edges,
+        };
+
+        let (coords, _metric) = ShortestPathMDS::<3>.embed(&branchial);
+        assert_eq!(coords.len(), 5);
+        // Each coordinate vector has 3 elements — none should be zeroed
+        for coord in &coords {
+            assert_eq!(coord.len(), 3);
+            for &c in coord {
+                assert!(c.is_finite(), "coordinate must be finite: {c}");
+            }
+        }
+
+        let curvature = ManifoldCurvature::from_branchial(&branchial, &ShortestPathMDS::<3>);
+        assert_eq!(curvature.dimension(), 5);
+        assert!(curvature.scalar_curvature().is_finite());
+        // K₅ in 3D should have non-trivial sectional curvatures
+        assert!(curvature.sectional_curvature(0, 1).is_finite());
     }
 }

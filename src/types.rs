@@ -71,6 +71,9 @@ pub enum ComputationDomain {
     /// - `width`, `height`: Grid dimensions
     /// - `live_cells`: Number of live cells
     /// - `rule_birth`, `rule_survive`: B/S rule encoding
+    ///
+    /// **Note:** Forward-declared for domain metadata. No corresponding machine
+    /// implementation exists yet — see deferred work in CLAUDE.md.
     CellularAutomaton2D {
         /// Grid width
         width: usize,
@@ -89,6 +92,9 @@ pub enum ComputationDomain {
     /// - `rule`: Rule string (e.g., "RL", "LLRR")
     /// - `direction`: Current facing direction (0=N, 1=E, 2=S, 3=W)
     /// - `position`: (x, y) position on grid
+    ///
+    /// **Note:** Forward-declared for domain metadata. No corresponding machine
+    /// implementation exists yet — see deferred work in CLAUDE.md.
     LangtonsAnt {
         /// Rule string (e.g., "RL" for classic ant)
         rule: String,

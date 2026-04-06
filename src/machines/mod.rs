@@ -87,3 +87,23 @@ pub use trace::{
 
 /// State identifier for Turing machines.
 pub type State = u32;
+
+/// Error returned when a machine builder is missing required fields.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum BuilderError {
+    /// The `initial_state` field was not set.
+    MissingInitialState,
+    /// The `blank` symbol field was not set.
+    MissingBlank,
+}
+
+impl std::fmt::Display for BuilderError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::MissingInitialState => write!(f, "builder requires initial_state to be set"),
+            Self::MissingBlank => write!(f, "builder requires blank symbol to be set"),
+        }
+    }
+}
+
+impl std::error::Error for BuilderError {}

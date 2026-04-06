@@ -4,7 +4,7 @@ A Rust implementation of Jonathan Gorard's "A Functorial Perspective on (Multi)c
 
 Uses [catgraph](https://github.com/tsondru/catgraph) v0.7.0 for categorical infrastructure (spans, cospans, adjunctions, bifunctors, coherence, symmetric monoidal categories, hypergraph DPO rewriting, multiway evolution graphs, discrete curvature). Category theory types, hypergraph rewriting, and multiway infrastructure are defined in catgraph and re-exported transparently — irreducible is a thin domain layer adding computation models (TM, CA, SRS, NTM) and the functorial irreducibility framework.
 
-302 tests (317 with all features), zero clippy warnings. Rust 2024 edition.
+309 tests (324 with all features), zero clippy warnings. Rust 2024 edition.
 
 ## Quick Start
 
@@ -37,8 +37,8 @@ cargo run --example lattice_gauge         # Wilson loops, plaquette action
 cargo run --example persist_evolution --features persist  # SurrealDB persistence
 
 # Run all tests
-cargo test --workspace                    # 302 tests (169 unit + 124 integration + 9 doc)
-cargo test --workspace --features persist # 317 tests (+15 persistence)
+cargo test --workspace                    # 309 tests (176 unit + 124 integration + 9 doc)
+cargo test --workspace --features persist # 324 tests (+15 persistence)
 
 # Run just the library
 cargo test -p irreducible                 # Core library tests
@@ -266,14 +266,14 @@ irreducible/
 ## Testing
 
 ```bash
-cargo test --workspace                    # 302 tests, zero ignored
-cargo test --workspace --features persist # 317 tests (+15 persistence)
+cargo test --workspace                    # 309 tests, zero ignored
+cargo test --workspace --features persist # 324 tests (+15 persistence)
 cargo clippy -- -W clippy::pedantic       # zero warnings
 ```
 
 | Suite | Tests | What it covers |
 |-------|-------|---------------|
-| Unit tests (src/) | 169 | Functor, machines (TM, CA, SRS, NTM, trace), categories, types |
+| Unit tests (src/) | 176 | Functor, machines (TM, CA, SRS, NTM, trace), categories, types |
 | `adjunction_laws` | 11 | Z' ⊣ Z triangle identities, unit/counit naturality |
 | `catgraph_bridge` | 10 | Multiway cospan analysis, composability |
 | `computation_types` | 22 | TM, CA, string rewrite, NTM classification |
@@ -286,7 +286,7 @@ cargo clippy -- -W clippy::pedantic       # zero warnings
 | `stokes_integration` | 13 | Temporal complex, Stokes conservation, cospan bridge |
 | Doc tests | 9 | Public API examples |
 | Persistence unit (feature-gated) | 7 | Unit tests in persistence.rs |
-| **Total** | **317** | |
+| **Total** | **324** | |
 
 Hypergraph and multiway infrastructure unit tests (~130) now run in catgraph's own test suite.
 

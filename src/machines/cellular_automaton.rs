@@ -354,13 +354,13 @@ impl CAExecutionHistory {
     /// Get the number of steps executed.
     #[must_use]
     pub fn step_count(&self) -> usize {
-        self.transitions.len()
+        IrreducibilityTrace::step_count(self)
     }
 
     /// Convert to a sequence of discrete intervals.
     #[must_use]
     pub fn to_intervals(&self) -> Vec<DiscreteInterval> {
-        self.transitions.iter().map(CATransition::to_interval).collect()
+        IrreducibilityTrace::to_intervals(self)
     }
 
     /// Get the total interval.

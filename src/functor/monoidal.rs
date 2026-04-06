@@ -29,6 +29,7 @@ pub use catgraph::coherence::{
 ///
 /// Determines whether Z': 𝒯 → ℬ is a symmetric monoidal functor,
 /// which is the criterion for multicomputational irreducibility.
+#[non_exhaustive]
 #[allow(clippy::struct_excessive_bools)]
 #[derive(Clone, Debug)]
 pub struct MonoidalFunctorResult {
@@ -60,12 +61,15 @@ pub struct MonoidalFunctorResult {
 
     /// Braiding coherence: σ_{X,Y}: X ⊗ Y ≅ Y ⊗ X
     pub braiding_coherent: bool,
+
+    /// Reason for failure, if verification failed.
+    pub failure_reason: Option<String>,
 }
 
 impl MonoidalFunctorResult {
     /// Create a result indicating failure to verify.
     #[must_use]
-    pub fn failed(_reason: &str) -> Self {
+    pub fn failed(reason: &str) -> Self {
         Self {
             preserves_tensor: false,
             branches_irreducible: false,
@@ -76,6 +80,7 @@ impl MonoidalFunctorResult {
             left_unitor_coherent: false,
             right_unitor_coherent: false,
             braiding_coherent: false,
+            failure_reason: Some(reason.to_string()),
         }
     }
 
@@ -118,6 +123,10 @@ impl std::fmt::Display for MonoidalFunctorResult {
         writeln!(f, "  Left unitor coherent: {}", self.left_unitor_coherent)?;
         writeln!(f, "  Right unitor coherent: {}", self.right_unitor_coherent)?;
         writeln!(f, "  Braiding coherent: {}", self.braiding_coherent)?;
+
+        if let Some(reason) = &self.failure_reason {
+            writeln!(f, "  Failure reason: {reason}")?;
+        }
 
         Ok(())
     }
@@ -214,6 +223,7 @@ impl IrreducibilityFunctor {
             left_unitor_coherent: coherence.left_unitor_coherent,
             right_unitor_coherent: coherence.right_unitor_coherent,
             braiding_coherent: coherence.braiding_coherent,
+            failure_reason: None,
         }
     }
 
@@ -342,6 +352,7 @@ mod tests {
             left_unitor_coherent: true,
             right_unitor_coherent: true,
             braiding_coherent: true,
+            failure_reason: None,
         };
 
         let display = format!("{result}");
@@ -350,6 +361,16 @@ mod tests {
         assert!(display.contains("Left unitor coherent: true"));
         assert!(display.contains("Right unitor coherent: true"));
         assert!(display.contains("Braiding coherent: true"));
+    }
+
+    #[test]
+    fn test_monoidal_failed_preserves_reason() {
+        let result = MonoidalFunctorResult::failed("insufficient branches for analysis");
+        assert_eq!(
+            result.failure_reason,
+            Some("insufficient branches for analysis".to_string())
+        );
+        assert!(!result.is_multicomputationally_irreducible);
     }
 
     #[test]

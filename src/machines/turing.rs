@@ -9,7 +9,7 @@
 //! [`TuringMachine::binary_incrementer`], [`TuringMachine::infinite_left_mover`] (reducible).
 
 use super::trace::{self, IrreducibilityTrace};
-use super::{Configuration, Direction, State, Symbol, Transition};
+use super::{BuilderError, Configuration, Direction, State, Symbol, Transition};
 use crate::categories::DiscreteInterval;
 use std::collections::HashMap;
 
@@ -342,20 +342,31 @@ impl TuringMachineBuilder {
         self
     }
 
+    /// Build the Turing machine, returning an error if required fields are missing.
+    ///
+    /// # Errors
+    /// Returns [`BuilderError::MissingInitialState`] or [`BuilderError::MissingBlank`]
+    /// if the corresponding field was not set.
+    pub fn try_build(self) -> Result<TuringMachine, BuilderError> {
+        Ok(TuringMachine::new(
+            self.states,
+            self.initial_state
+                .ok_or(BuilderError::MissingInitialState)?,
+            self.accept_states,
+            self.reject_states,
+            self.blank.ok_or(BuilderError::MissingBlank)?,
+            self.transitions,
+        ))
+    }
+
     /// Build the Turing machine.
     ///
     /// # Panics
     /// Panics if `initial_state` or blank symbol is not set.
     #[must_use]
     pub fn build(self) -> TuringMachine {
-        TuringMachine::new(
-            self.states,
-            self.initial_state.expect("initial_state must be set"),
-            self.accept_states,
-            self.reject_states,
-            self.blank.expect("blank symbol must be set"),
-            self.transitions,
-        )
+        self.try_build()
+            .expect("builder requires initial_state and blank to be set")
     }
 }
 
@@ -402,7 +413,7 @@ impl ExecutionHistory {
     /// Get the number of steps executed.
     #[must_use]
     pub fn step_count(&self) -> usize {
-        self.transitions.len()
+        IrreducibilityTrace::step_count(self)
     }
 
     /// Convert the execution to a sequence of discrete intervals.
@@ -410,7 +421,7 @@ impl ExecutionHistory {
     /// This is the image of the transitions under the functor Z'.
     #[must_use]
     pub fn to_intervals(&self) -> Vec<DiscreteInterval> {
-        self.transitions.iter().map(Transition::to_interval).collect()
+        IrreducibilityTrace::to_intervals(self)
     }
 
     /// Get the total interval [0, n] for n steps.
@@ -687,17 +698,11 @@ mod tests {
     }
 
     #[test]
-    fn test_infinite_loop_has_shortcuts() {
+    fn test_infinite_left_mover_does_not_halt() {
         let tm = TuringMachine::infinite_left_mover();
         let history = tm.run("", 100);
 
-        // Should not halt (hit max_steps)
         assert!(!history.halted);
-
-        // Should find shortcuts (repeated blank tape + state 0 + varying head)
-        // Actually, since head keeps moving left and tape is all blanks,
-        // fingerprint includes head position, so no exact repeat.
-        // Let's test with a true cycling machine instead.
     }
 
     #[test]
@@ -755,5 +760,23 @@ mod tests {
         let display = format!("{}", analysis);
         assert!(display.contains("Steps: 6"));
         assert!(display.contains("Is irreducible: true"));
+    }
+
+    #[test]
+    fn test_tm_try_build_missing_initial_state() {
+        let result = TuringMachineBuilder::new()
+            .states(vec![0])
+            .blank('_')
+            .try_build();
+        assert!(matches!(result, Err(BuilderError::MissingInitialState)));
+    }
+
+    #[test]
+    fn test_tm_try_build_missing_blank() {
+        let result = TuringMachineBuilder::new()
+            .states(vec![0])
+            .initial_state(0)
+            .try_build();
+        assert!(matches!(result, Err(BuilderError::MissingBlank)));
     }
 }

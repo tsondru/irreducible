@@ -37,7 +37,7 @@ persist = ["dep:catgraph-surreal", "dep:surrealdb", "dep:tokio"]
 [dependencies]
 amari-calculus = { workspace = true, optional = true }
 catgraph.workspace = true
-nalgebra = { version = "0.33", optional = true }
+nalgebra = { version = "0.34", optional = true }
 serde.workspace = true
 serde_json.workspace = true
 catgraph-surreal = { workspace = true, optional = true }
