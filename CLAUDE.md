@@ -66,8 +66,8 @@ irreducible/                            # Workspace root
 
 ```toml
 [workspace.dependencies]
-catgraph = { git = "https://github.com/tsondru/catgraph", tag = "v0.7.0" }  # Category theory (spans, cospans, adjunctions, coherence, hypergraph, multiway)
-catgraph-surreal = { git = "https://github.com/tsondru/catgraph", tag = "v0.7.0" }  # optional (persist feature, HypergraphEvolutionStore)
+catgraph = { git = "https://github.com/tsondru/catgraph", tag = "v0.7.1" }  # Category theory (spans, cospans, adjunctions, coherence, hypergraph, multiway)
+catgraph-surreal = { git = "https://github.com/tsondru/catgraph", tag = "v0.7.1" }  # optional (persist feature, HypergraphEvolutionStore)
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 surrealdb = { version = "3.0.4", default-features = false, features = ["kv-mem"] }  # optional

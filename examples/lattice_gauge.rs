@@ -43,7 +43,7 @@ fn wilson_loops_from_evolution() {
 /// 2D lattice with gauge group and site states.
 fn lattice_gauge_field() {
     let group = HypergraphRewriteGroup::new(4);
-    let mut lattice: HypergraphLattice<2> = HypergraphLattice::new([3, 3], group);
+    let mut lattice: HypergraphLattice<2> = HypergraphLattice::new([3, 3], group, vec![]);
 
     // Populate lattice sites with small hypergraphs
     for x in 0..3_usize {
