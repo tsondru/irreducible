@@ -21,8 +21,7 @@
 //! - [`standard_parallel_intervals`] - Standard parallel intervals for monoidal testing
 //!
 
-use crate::categories::{DiscreteInterval, ParallelIntervals};
-use crate::functor::bifunctor::TensorProduct;
+use crate::categories::DiscreteInterval;
 
 // ============================================================================
 // Display Testing Macro
@@ -332,112 +331,12 @@ macro_rules! test_coherence_condition {
 }
 
 // ============================================================================
-// Standard Test Fixtures
-// ============================================================================
-
-/// Returns standard test intervals for composition testing.
-///
-/// Provides a set of contiguous intervals that can be used to test
-/// interval composition, contiguity checks, and functor operations.
-///
-/// Returns intervals: [0,1], [1,3], [3,5], [5,10]
-pub(crate) fn standard_test_intervals() -> Vec<DiscreteInterval> {
-    vec![
-        DiscreteInterval::new(0, 1),
-        DiscreteInterval::new(1, 3),
-        DiscreteInterval::new(3, 5),
-        DiscreteInterval::new(5, 10),
-    ]
-}
-
-/// Returns standard non-contiguous intervals for gap detection testing.
-///
-/// Returns intervals: [0,2], [5,7], [10,12] (gaps at 2-5 and 7-10)
-pub(crate) fn non_contiguous_intervals() -> Vec<DiscreteInterval> {
-    vec![
-        DiscreteInterval::new(0, 2),
-        DiscreteInterval::new(5, 7),
-        DiscreteInterval::new(10, 12),
-    ]
-}
-
-/// Returns standard parallel intervals for monoidal testing.
-///
-/// Provides a set of parallel intervals suitable for testing tensor
-/// products and symmetric monoidal structure.
-pub(crate) fn standard_parallel_intervals() -> Vec<ParallelIntervals> {
-    vec![
-        ParallelIntervals::from_branch(DiscreteInterval::new(0, 5)),
-        ParallelIntervals::from_branch(DiscreteInterval::new(10, 15)),
-        ParallelIntervals::from_branch(DiscreteInterval::new(20, 25)),
-    ]
-}
-
-/// Returns a pair of parallel intervals for braiding tests.
-pub(crate) fn braiding_test_pair() -> (ParallelIntervals, ParallelIntervals) {
-    (
-        ParallelIntervals::from_branch(DiscreteInterval::new(0, 5)),
-        ParallelIntervals::from_branch(DiscreteInterval::new(10, 15)),
-    )
-}
-
-/// Returns parallel intervals representing a unit (identity element).
-pub(crate) fn unit_parallel_interval() -> ParallelIntervals {
-    ParallelIntervals::unit()
-}
-
-// ============================================================================
 // Tests
 // ============================================================================
 
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_standard_intervals_contiguous() {
-        let intervals = standard_test_intervals();
-        assert_eq!(intervals.len(), 4);
-
-        // Verify contiguity
-        for window in intervals.windows(2) {
-            assert_eq!(window[0].end, window[1].start);
-        }
-    }
-
-    #[test]
-    fn test_non_contiguous_intervals_have_gaps() {
-        let intervals = non_contiguous_intervals();
-        assert_eq!(intervals.len(), 3);
-
-        // Verify gaps exist
-        assert_ne!(intervals[0].end, intervals[1].start);
-        assert_ne!(intervals[1].end, intervals[2].start);
-    }
-
-    #[test]
-    fn test_standard_parallel_intervals() {
-        let intervals = standard_parallel_intervals();
-        assert_eq!(intervals.len(), 3);
-
-        // Each should be a single-branch parallel interval
-        for pi in &intervals {
-            assert_eq!(pi.branch_count(), 1);
-        }
-    }
-
-    #[test]
-    fn test_braiding_pair() {
-        let (a, b) = braiding_test_pair();
-        assert_eq!(a.branch_count(), 1);
-        assert_eq!(b.branch_count(), 1);
-    }
-
-    #[test]
-    fn test_unit_interval() {
-        let unit = unit_parallel_interval();
-        assert!(unit.is_unit());
-    }
 
     #[test]
     fn test_assert_display_contains_macro() {

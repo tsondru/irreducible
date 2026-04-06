@@ -30,14 +30,14 @@ use catgraph::multiway::{run_multiway_bfs, MultiwayEvolutionGraph};
 
 /// A single rewrite rule: pattern → replacement.
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
-pub struct RewriteRule {
+pub struct SrsRewriteRule {
     /// The pattern to match.
     pub pattern: String,
     /// The replacement string.
     pub replacement: String,
 }
 
-impl RewriteRule {
+impl SrsRewriteRule {
     /// Create a new rewrite rule.
     pub fn new(pattern: impl Into<String>, replacement: impl Into<String>) -> Self {
         Self {
@@ -94,7 +94,7 @@ impl RewriteRule {
 #[derive(Clone, Debug)]
 pub struct StringRewriteSystem {
     /// The rewrite rules.
-    pub rules: Vec<RewriteRule>,
+    pub rules: Vec<SrsRewriteRule>,
     /// Maximum string length (to prevent explosion).
     pub max_string_length: Option<usize>,
 }
@@ -106,7 +106,7 @@ impl StringRewriteSystem {
         Self {
             rules: rules
                 .into_iter()
-                .map(|(p, r)| RewriteRule::new(p, r))
+                .map(|(p, r)| SrsRewriteRule::new(p, r))
                 .collect(),
             max_string_length: None,
         }
@@ -119,9 +119,9 @@ impl StringRewriteSystem {
         self
     }
 
-    /// Create from `RewriteRule` objects directly.
+    /// Create from `SrsRewriteRule` objects directly.
     #[must_use]
-    pub fn from_rules(rules: Vec<RewriteRule>) -> Self {
+    pub fn from_rules(rules: Vec<SrsRewriteRule>) -> Self {
         Self {
             rules,
             max_string_length: None,
@@ -328,7 +328,7 @@ mod tests {
 
     #[test]
     fn test_rewrite_rule_matches() {
-        let rule = RewriteRule::new("AB", "BA");
+        let rule = SrsRewriteRule::new("AB", "BA");
         assert!(rule.matches_at("ABC", 0));
         assert!(!rule.matches_at("ABC", 1));
         assert!(!rule.matches_at("A", 0));
@@ -336,7 +336,7 @@ mod tests {
 
     #[test]
     fn test_rewrite_rule_apply() {
-        let rule = RewriteRule::new("AB", "BA");
+        let rule = SrsRewriteRule::new("AB", "BA");
         assert_eq!(rule.apply_at("ABC", 0), Some("BAC".to_string()));
         assert_eq!(rule.apply_at("XAB", 1), Some("XBA".to_string()));
         assert_eq!(rule.apply_at("ABAB", 0), Some("BAAB".to_string()));
@@ -345,7 +345,7 @@ mod tests {
 
     #[test]
     fn test_rewrite_rule_find_matches() {
-        let rule = RewriteRule::new("AB", "BA");
+        let rule = SrsRewriteRule::new("AB", "BA");
         assert_eq!(rule.find_matches("ABABAB"), vec![0, 2, 4]);
         let expected: Vec<usize> = vec![];
         assert_eq!(rule.find_matches("AAA"), expected);

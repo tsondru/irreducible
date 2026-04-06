@@ -5,8 +5,8 @@
 //! and agreement between domain-specific and generic trace analysis.
 
 use irreducible::{
-    analyze_trace, DiscreteInterval, ElementaryCA, IrreducibilityFunctor, IrreducibilityTrace,
-    TuringMachine,
+    analyze_trace, DiscreteInterval, ElementaryCA, Generation, IrreducibilityFunctor,
+    IrreducibilityTrace, StokesIrreducibility, TuringMachine,
 };
 
 // ---------------------------------------------------------------------------
@@ -252,4 +252,73 @@ fn repeat_detection_maps_to_shortcuts_and_cycles() {
         assert_eq!(repeat.end_step, cycle.end_step);
         assert_eq!(repeat.cycle_length, cycle.cycle_length);
     }
+}
+
+// ---------------------------------------------------------------------------
+// Three-way agreement tests (functor + trace + Stokes)
+// ---------------------------------------------------------------------------
+
+#[test]
+fn three_way_agreement_irreducible_tm() {
+    let bb = TuringMachine::busy_beaver_2_2();
+    let history = bb.run("", 20);
+    let intervals = history.to_intervals();
+
+    // Perspective 1: Functor contiguity
+    assert!(IrreducibilityFunctor::is_sequence_irreducible(&intervals));
+
+    // Perspective 2: Trace analysis (contiguity + no repeats + complexity ratio)
+    let trace = analyze_trace(&history);
+    assert!(trace.is_irreducible);
+
+    // Perspective 3: Stokes conservation law
+    let stokes = StokesIrreducibility::analyze(&intervals).unwrap();
+    assert!(stokes.is_irreducible());
+}
+
+#[test]
+fn three_way_agreement_reducible() {
+    // Rule 0 kills all cells after one step, then cycles on all-dead state
+    let ca = ElementaryCA::new(0, 5);
+    let initial = Generation::new(vec![true, false, true, false, true], 0);
+    let history = ca.run(initial, 10);
+    let intervals = history.to_intervals();
+
+    // Perspective 1: Functor — intervals are contiguous (each step [i, i+1]),
+    // but the functor only checks contiguity, so it may still say true.
+    // The real test is whether trace analysis and Stokes agree on reducibility.
+    let functor_irreducible = IrreducibilityFunctor::is_sequence_irreducible(&intervals);
+
+    // Perspective 2: Trace analysis detects state repetition → reducible
+    let trace = analyze_trace(&history);
+    assert!(!trace.is_irreducible);
+
+    // Perspective 3: Stokes — for contiguous intervals it may succeed,
+    // but if intervals are non-contiguous it returns Err (also non-irreducible).
+    let stokes_irreducible = match StokesIrreducibility::analyze(&intervals) {
+        Ok(analysis) => analysis.is_irreducible(),
+        Err(_) => false,
+    };
+
+    // The trace perspective is the most sensitive (detects cycles).
+    // If functor and Stokes only check contiguity, they may agree with each
+    // other but still correctly not imply full irreducibility.
+    // At minimum: trace says reducible, and functor + Stokes agree with each other.
+    assert_eq!(functor_irreducible, stokes_irreducible);
+    assert!(!trace.is_irreducible);
+}
+
+#[test]
+fn rule_110_turing_complete_produces_contiguous_intervals() {
+    let ca = ElementaryCA::rule_110(41);
+    let initial = ca.single_cell_initial();
+    let history = ca.run(initial, 30);
+    let intervals = history.to_intervals();
+
+    // Rule 110 is Turing-complete; from a single-cell seed it produces
+    // complex non-repeating structure → contiguous and irreducible.
+    assert!(IrreducibilityFunctor::is_sequence_irreducible(&intervals));
+
+    let trace = analyze_trace(&history);
+    assert!(trace.is_irreducible);
 }

@@ -224,6 +224,59 @@ fn max_steps_limit_is_respected() {
 }
 
 // ---------------------------------------------------------------------------
+// Detailed statistics via MultiwayStatistics
+// ---------------------------------------------------------------------------
+
+#[test]
+fn srs_statistics_detailed() {
+    let srs = StringRewriteSystem::new(vec![("AB", "BA"), ("A", "AA")]);
+    let evolution = srs.run_multiway("AB", 4, 200);
+    let stats = evolution.statistics();
+
+    assert!(
+        stats.total_nodes > 1,
+        "Branching rules should produce more than one node, got {}",
+        stats.total_nodes,
+    );
+    assert!(
+        stats.fork_count >= 1,
+        "Branching rules should create at least one fork, got {}",
+        stats.fork_count,
+    );
+    assert!(
+        stats.max_depth >= 1,
+        "Four steps should reach depth >= 1, got {}",
+        stats.max_depth,
+    );
+}
+
+#[test]
+fn ntm_statistics_detailed() {
+    // NTM with branching: two transitions from state 0 on '_'
+    let ntm = NondeterministicTM::builder()
+        .states(vec![0, 1, 2])
+        .initial_state(0)
+        .accept_states(vec![1, 2])
+        .blank('_')
+        .transition(0, '_', vec![(1, 'X', Direction::Right), (2, 'Y', Direction::Left)])
+        .build();
+
+    let evolution = ntm.run_multiway("_", 3, 50);
+    let stats = evolution.statistics();
+
+    assert!(
+        stats.total_nodes > 1,
+        "Branching NTM should produce more than one node, got {}",
+        stats.total_nodes,
+    );
+    assert!(
+        stats.fork_count >= 1,
+        "Two transitions from same state+symbol should create a fork, got {}",
+        stats.fork_count,
+    );
+}
+
+// ---------------------------------------------------------------------------
 // Edge cases
 // ---------------------------------------------------------------------------
 

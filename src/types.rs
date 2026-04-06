@@ -310,6 +310,7 @@ impl<T> Default for CausalEffect<T> {
 
 impl<T> CausalEffect<T> {
     /// Create a successful effect with a value
+    #[must_use]
     pub fn success(value: T) -> Self {
         Self {
             value: Some(value),
@@ -320,6 +321,7 @@ impl<T> CausalEffect<T> {
     }
 
     /// Create a failed effect with an error message
+    #[must_use]
     pub fn error(message: impl Into<String>) -> Self {
         Self {
             value: None,
@@ -337,11 +339,13 @@ impl<T> CausalEffect<T> {
     }
 
     /// Check if this effect is successful (has value, no error)
+    #[must_use]
     pub fn is_success(&self) -> bool {
         self.value.is_some() && !self.has_error
     }
 
     /// Map the value if successful, preserving error state
+    #[must_use]
     pub fn map<U, F: FnOnce(T) -> U>(self, f: F) -> CausalEffect<U> {
         CausalEffect {
             value: self.value.map(f),

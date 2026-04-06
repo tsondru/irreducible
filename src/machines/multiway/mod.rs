@@ -28,7 +28,7 @@ pub use catgraph::multiway::{
 };
 
 // Local computation models
-pub use string_rewrite::{RewriteApplication, RewriteRule, SRSState, StringRewriteSystem};
+pub use string_rewrite::{RewriteApplication, SrsRewriteRule, SRSState, StringRewriteSystem};
 pub use ntm::{NTMBuilder, NTMTransitionData, NondeterministicTM};
 
 // Feature-gated manifold curvature

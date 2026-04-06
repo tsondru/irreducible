@@ -35,7 +35,7 @@ irreducible/                            # Workspace root
 │       ├── transition.rs              # Direction, Transition
 │       ├── multiway/
 │       │   ├── mod.rs                 # Re-exports from catgraph::multiway + local models
-│       │   ├── string_rewrite.rs      # StringRewriteSystem, SRSState (local)
+│       │   ├── string_rewrite.rs      # StringRewriteSystem, SrsRewriteRule, SRSState (local)
 │       │   ├── ntm.rs                 # NondeterministicTM, NTMBuilder (local)
 │       │   └── manifold_bridge.rs     # ManifoldCurvature, BranchialEmbedding (feature-gated, local)
 │       └── hypergraph/
@@ -102,6 +102,7 @@ Default features: none. Core library is purely computational (no I/O, no async).
 | `Generation` | A single CA generation (global state) | `machines/cellular_automaton.rs` |
 | `CAExecutionHistory` | CA evolution trace | `machines/cellular_automaton.rs` |
 | `StringRewriteSystem` | Pattern-based multiway | `machines/multiway/string_rewrite.rs` |
+| `SrsRewriteRule` | SRS pattern → replacement | `machines/multiway/string_rewrite.rs` |
 | `NondeterministicTM` | Non-deterministic TM | `machines/multiway/ntm.rs` |
 | `BuilderError` | Error from `try_build()` on TM/NTM builders | `machines/mod.rs` |
 
@@ -330,11 +331,11 @@ assert!(analysis.is_irreducible());
 ### Running Tests
 
 ```bash
-cargo test --workspace                    # 309 tests (176 unit + 124 integration + 9 doc), 0 ignored
-cargo test -p irreducible                 # Core library unit tests (264)
+cargo test --workspace                    # 318 tests (171 unit + 138 integration + 9 doc), 0 ignored
+cargo test -p irreducible                 # Core library unit tests (171)
 cargo test --test functoriality           # Single integration test file
-cargo test --workspace --features persist # 324 tests (+15 persistence)
-cargo test --features manifold-curvature  # Manifold curvature unit tests (6)
+cargo test --workspace --features persist # 333 tests (+15 persistence)
+cargo test --features manifold-curvature  # Manifold curvature tests (6 unit + 3 integration)
 cargo test --features lapack              # LAPACK-accelerated eigendecomposition (requires libopenblas-dev)
 cargo run --example gorard_demo           # Run the 9-part demo
 cargo run --example builders              # Builder patterns
@@ -348,8 +349,8 @@ cargo clippy --workspace -- -W clippy::pedantic  # Lint (zero warnings)
 
 | Category | Count | What it covers |
 |----------|-------|----------------|
-| Unit tests | 176 | functor, machines (TM, CA, SRS, NTM, trace), categories, types (hypergraph + multiway infra moved to catgraph) |
-| Integration tests | 124 | 10 files: adjunction, catgraph bridge, computation types, functoriality, hypergraph, monoidal, multiway, persistence, property coherence, Stokes |
+| Unit tests | 171 | functor, machines (TM, CA, SRS, NTM, trace), categories, types (hypergraph + multiway infra moved to catgraph) |
+| Integration tests | 138 | 11 files: adjunction, catgraph bridge, computation types, functoriality, hypergraph, manifold curvature, monoidal, multiway, persistence, property coherence, Stokes |
 | Doc tests | 9 | Module-level and type-level examples (hypergraph + multiway doc tests moved to catgraph) |
 
 ### Test Patterns
@@ -358,6 +359,7 @@ cargo clippy --workspace -- -W clippy::pedantic  # Lint (zero warnings)
 - Cellular automata: `ElementaryCA::rule_30(21)` (conjectured irreducible), `rule_90(21)` (known reducible)
 - Multiway: `StringRewriteSystem::new(vec![("AB", "BA")])` for branching
 - Hypergraph: `Hypergraph::new()` + `add_hyperedge()` + `RewriteRule::from_pattern()`
+- Three-way agreement: `IrreducibilityFunctor` + `analyze_trace()` + `StokesIrreducibility` on same execution
 
 ## Clippy Preferences
 

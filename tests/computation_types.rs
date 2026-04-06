@@ -303,6 +303,155 @@ fn causal_effect_json_roundtrip() {
 }
 
 // ---------------------------------------------------------------------------
+// Builder error paths (TM and NTM try_build)
+// ---------------------------------------------------------------------------
+
+#[test]
+fn tm_try_build_missing_blank_returns_error() {
+    use irreducible::machines::{Direction, TuringMachineBuilder};
+    use irreducible::BuilderError;
+
+    let result = TuringMachineBuilder::new()
+        .states(vec![0, 1])
+        .initial_state(0)
+        .accept_states(vec![1])
+        .transition(0, '1', 1, '1', Direction::Right)
+        .try_build();
+
+    assert!(result.is_err());
+    assert_eq!(result.unwrap_err(), BuilderError::MissingBlank);
+}
+
+#[test]
+fn tm_try_build_missing_initial_state_returns_error() {
+    use irreducible::machines::TuringMachineBuilder;
+    use irreducible::BuilderError;
+
+    let result = TuringMachineBuilder::new()
+        .states(vec![0, 1])
+        .blank('_')
+        .accept_states(vec![1])
+        .try_build();
+
+    assert!(result.is_err());
+    assert_eq!(result.unwrap_err(), BuilderError::MissingInitialState);
+}
+
+#[test]
+fn ntm_try_build_missing_blank_returns_error() {
+    use irreducible::machines::Direction;
+    use irreducible::{BuilderError, NTMBuilder};
+
+    let result = NTMBuilder::new()
+        .states(vec![0, 1])
+        .initial_state(0)
+        .accept_states(vec![1])
+        .transition(0, '0', vec![(1, '0', Direction::Right)])
+        .try_build();
+
+    assert!(result.is_err());
+    assert_eq!(result.unwrap_err(), BuilderError::MissingBlank);
+}
+
+#[test]
+fn ntm_try_build_missing_initial_state_returns_error() {
+    use irreducible::{BuilderError, NTMBuilder};
+
+    let result = NTMBuilder::new()
+        .states(vec![0, 1])
+        .blank('_')
+        .accept_states(vec![1])
+        .try_build();
+
+    assert!(result.is_err());
+    assert_eq!(result.unwrap_err(), BuilderError::MissingInitialState);
+}
+
+// ---------------------------------------------------------------------------
+// Internal machine types (Tape, Configuration, Transition)
+// ---------------------------------------------------------------------------
+
+#[test]
+fn tape_from_input_read_write() {
+    use irreducible::machines::{Symbol, Tape};
+
+    let mut tape = Tape::from_input("101", '_');
+
+    // Verify reads at positions
+    assert_eq!(tape.read(0), '1');
+    assert_eq!(tape.read(1), '0');
+    assert_eq!(tape.read(2), '1');
+    assert_eq!(tape.read(3), '_'); // beyond input => blank
+
+    // Write a symbol and verify
+    tape.write(1, 'X');
+    assert_eq!(tape.read(1), 'X');
+    assert_eq!(tape.content_string(), "1X1");
+
+    // Verify the Symbol type alias is char
+    let s: Symbol = 'A';
+    assert_eq!(s, 'A');
+}
+
+#[test]
+fn configuration_initial_and_fingerprint() {
+    use irreducible::machines::Configuration;
+
+    let config = Configuration::initial("101", 0, '_');
+
+    // Fingerprint is deterministic
+    let fp1 = config.fingerprint();
+    let fp2 = config.fingerprint();
+    assert_eq!(fp1, fp2);
+
+    // Display output contains state and head position info
+    let display = format!("{config}");
+    assert!(
+        display.contains("q0"),
+        "Display should contain state q0, got: {display}"
+    );
+    // Head is at position 0, so the first symbol should be bracketed
+    assert!(
+        display.contains("[1]"),
+        "Display should show head position with brackets, got: {display}"
+    );
+}
+
+#[test]
+fn transition_to_interval_and_complexity() {
+    use irreducible::machines::{Configuration, Tape, Transition};
+
+    let from = Configuration::new(Tape::from_input("ab", '_'), 0, 0);
+    let to = Configuration::new(Tape::from_input("ab", '_'), 1, 1);
+    let transition = Transition::new(from, to, 3);
+
+    // to_interval maps step 3 to [3, 4]
+    let interval = transition.to_interval();
+    assert_eq!(interval.start, 3);
+    assert_eq!(interval.end, 4);
+    assert_eq!(interval.steps(), 1);
+
+    // complexity is always 1 for an elementary transition
+    let complexity = transition.complexity();
+    assert!(complexity.as_steps() > 0);
+    assert_eq!(complexity.as_steps(), 1);
+}
+
+#[test]
+fn tape_fingerprint_differs_for_different_content() {
+    use irreducible::machines::Tape;
+
+    let tape_a = Tape::from_input("abc", '_');
+    let tape_b = Tape::from_input("xyz", '_');
+
+    assert_ne!(
+        tape_a.fingerprint(),
+        tape_b.fingerprint(),
+        "Tapes with different content should have different fingerprints"
+    );
+}
+
+// ---------------------------------------------------------------------------
 // Error / negative path tests
 // ---------------------------------------------------------------------------
 

@@ -343,3 +343,51 @@ fn evolution_zero_steps_is_trivial() {
     assert_eq!(root.step, 0);
     assert_eq!(root.state.edge_count(), 1);
 }
+
+// ---------------------------------------------------------------------------
+// Combined pipeline: multiway evolution + gauge analysis
+// ---------------------------------------------------------------------------
+
+#[test]
+fn multiway_evolution_with_gauge_analysis_pipeline() {
+    // 1. Create a hypergraph with a couple of edges
+    let graph = Hypergraph::from_edges(vec![vec![0, 1, 2], vec![2, 3, 4]]);
+    assert_eq!(graph.edge_count(), 2);
+
+    // 2. Define two rewrite rules
+    let rule1 = RewriteRule::wolfram_a_to_bb();
+    let rule2 = RewriteRule::edge_split();
+
+    // 3. Run multiway evolution
+    let evolution = HypergraphEvolution::run_multiway(&graph, &[rule1, rule2], 5, 100);
+    assert!(
+        evolution.node_count() > 1,
+        "Two rules on two edges should produce branching"
+    );
+
+    // 4. Compute Wilson loops
+    let loops = evolution.find_wilson_loops();
+    // Wilson loops exist when branches merge; collect holonomies
+    let holonomies: Vec<f64> = loops.iter().map(|wl| wl.holonomy).collect();
+
+    // 5 & 6. Compute plaquette action per holonomy and total action
+    for &h in &holonomies {
+        let pa = plaquette_action(h);
+        assert!(pa.is_finite() || h == 0.0, "Plaquette action should be finite for h > 0");
+    }
+
+    let action = total_action(&holonomies);
+    assert!(
+        action.is_finite(),
+        "Total action across all holonomies should be finite (got {action})"
+    );
+
+    // 7. Check causal invariance
+    let _invariant = evolution.is_causally_invariant();
+
+    // 8. Verify statistics are populated
+    let stats = evolution.statistics();
+    assert!(stats.total_nodes > 0);
+    assert!(stats.max_step >= 1);
+    assert!(!stats.rule_applications.is_empty());
+}

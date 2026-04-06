@@ -4,7 +4,7 @@ A Rust implementation of Jonathan Gorard's "A Functorial Perspective on (Multi)c
 
 Uses [catgraph](https://github.com/tsondru/catgraph) v0.7.0 for categorical infrastructure (spans, cospans, adjunctions, bifunctors, coherence, symmetric monoidal categories, hypergraph DPO rewriting, multiway evolution graphs, discrete curvature). Category theory types, hypergraph rewriting, and multiway infrastructure are defined in catgraph and re-exported transparently — irreducible is a thin domain layer adding computation models (TM, CA, SRS, NTM) and the functorial irreducibility framework.
 
-309 tests (324 with all features), zero clippy warnings. Rust 2024 edition.
+318 tests (336 with all features), zero clippy warnings. Rust 2024 edition.
 
 ## Quick Start
 
@@ -42,8 +42,8 @@ cargo run --example persist_evolution --features persist  # SurrealDB persistenc
 cargo run --example manifold_curvature --features manifold-curvature  # Riemannian curvature
 
 # Run all tests
-cargo test --workspace                    # 309 tests (176 unit + 124 integration + 9 doc)
-cargo test --workspace --features persist # 324 tests (+15 persistence)
+cargo test --workspace                    # 318 tests (171 unit + 138 integration + 9 doc)
+cargo test --workspace --features persist # 333 tests (+15 persistence)
 
 # Run just the library
 cargo test -p irreducible                 # Core library tests
@@ -305,8 +305,8 @@ irreducible/
 ## Testing
 
 ```bash
-cargo test --workspace                    # 309 tests, zero ignored
-cargo test --workspace --features persist # 324 tests (+15 persistence)
+cargo test --workspace                    # 318 tests, zero ignored
+cargo test --workspace --features persist # 333 tests (+15 persistence)
 cargo clippy -- -W clippy::pedantic       # zero warnings
 ```
 

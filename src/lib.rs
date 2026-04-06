@@ -98,7 +98,7 @@ pub use machines::multiway::{
     BranchialGraph, BranchialStepStats, BranchialSummary,
     CurvatureFoliation, DiscreteCurvature,
     OllivierFoliation, OllivierRicciCurvature,
-    RewriteApplication, RewriteRule, SRSState, StringRewriteSystem,
+    RewriteApplication, SrsRewriteRule, SRSState, StringRewriteSystem,
     NTMBuilder, NTMTransitionData, NondeterministicTM,
 };
 
