@@ -9,7 +9,7 @@
 //! ## Modules
 //!
 //! - [`types`] - Core type definitions (`ComputationDomain`, `ComputationContext`, `CausalEffect`)
-//! - [`categories`] - Category theory abstractions (`DiscreteInterval`, `Complexity`, `ComputationState`)
+//! - Category theory types (`DiscreteInterval`, `Complexity`, `ComputationState`) re-exported from catgraph
 //! - [`functor`] - The irreducibility functor Z': 𝒯 → ℬ, adjunction, monoidal structure, Stokes
 //! - [`machines`] - Computational machines (Turing machines, cellular automata, hypergraph rewriting)
 //!
@@ -40,7 +40,6 @@
 //! println!("Rule 30 irreducible: {}", analysis.is_irreducible);
 //! ```
 
-pub mod categories;
 pub mod functor;
 pub mod machines;
 pub mod types;
@@ -48,10 +47,10 @@ pub mod types;
 #[cfg(test)]
 pub mod test_utils;
 
-// Category theory exports
-pub use categories::{
-    Complexity, ComputationState, DiscreteInterval, ParallelIntervals, StepCount,
-};
+// Category theory exports (re-exported from catgraph)
+pub use catgraph::interval::{DiscreteInterval, ParallelIntervals};
+pub use catgraph::complexity::{Complexity, StepCount};
+pub use catgraph::computation_state::ComputationState;
 
 // Functor exports
 pub use functor::IrreducibilityFunctor;
@@ -85,8 +84,8 @@ pub use machines::{ExecutionHistory, IrreducibilityAnalysis, TuringMachine};
 // Cellular automaton exports (1D)
 pub use machines::{CAExecutionHistory, CAIrreducibilityAnalysis, ElementaryCA, Generation};
 
-// Trace analysis exports
-pub use machines::{
+// Trace analysis exports (re-exported from catgraph)
+pub use catgraph::trace::{
     analyze_trace, detect_repeats, IrreducibilityTrace, RepeatDetection, TraceAnalysis,
 };
 

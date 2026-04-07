@@ -10,7 +10,7 @@
 
 use super::trace::{self, IrreducibilityTrace};
 use super::{BuilderError, Configuration, Direction, State, Symbol, Transition};
-use crate::categories::DiscreteInterval;
+use catgraph::interval::DiscreteInterval;
 use std::collections::HashMap;
 
 /// Transition function type: (state, symbol) -> (`new_state`, `write_symbol`, direction)

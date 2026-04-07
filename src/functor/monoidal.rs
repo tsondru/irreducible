@@ -12,7 +12,7 @@
 
 use std::hash::Hash;
 
-use crate::categories::{DiscreteInterval, ParallelIntervals};
+use catgraph::interval::{DiscreteInterval, ParallelIntervals};
 use catgraph::multiway::{
     extract_branchial_foliation, BranchialGraph, MultiwayEvolutionGraph,
 };

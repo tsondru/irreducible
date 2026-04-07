@@ -6,7 +6,7 @@
 
 pub use catgraph::stokes::{ConservationResult, StokesError, TemporalComplex};
 
-use crate::categories::DiscreteInterval;
+use catgraph::interval::DiscreteInterval;
 
 /// Stokes-theorem perspective on computational irreducibility.
 ///

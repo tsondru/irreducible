@@ -8,7 +8,7 @@
 pub use catgraph::adjunction::{
     AdjunctionIrreducibility, AdjunctionVerification, ZPrimeOps,
 };
-use crate::categories::{ComputationState, DiscreteInterval};
+use catgraph::{computation_state::ComputationState, interval::DiscreteInterval};
 
 /// The Z' ⊣ Z adjunction between computation and cobordism categories.
 ///
@@ -16,7 +16,8 @@ use crate::categories::{ComputationState, DiscreteInterval};
 ///
 /// ```rust
 /// use irreducible::functor::{ZPrimeAdjunction, ZPrimeOps};
-/// use irreducible::categories::{ComputationState, DiscreteInterval};
+/// use catgraph::computation_state::ComputationState;
+/// use catgraph::interval::DiscreteInterval;
 ///
 /// // Map computation to interval (Z')
 /// let state = ComputationState::new(0, 5);

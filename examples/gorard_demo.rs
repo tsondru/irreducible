@@ -38,7 +38,7 @@ use irreducible::{
         CoherenceVerification, verify_associator_coherence, verify_braiding_coherence,
         StokesIrreducibility,
     },
-    categories::ComputationState,
+    ComputationState,
     // Hypergraph rewriting + catgraph bridge
     machines::hypergraph::{Hypergraph, HypergraphEvolution,
         RewriteRule as HypergraphRewriteRule},

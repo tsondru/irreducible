@@ -42,7 +42,10 @@ pub use stokes_integration::{
     ConservationResult, StokesError, StokesIrreducibility, TemporalComplex,
 };
 
-use crate::categories::{Complexity, DiscreteInterval, ParallelIntervals, StepCount};
+use catgraph::{
+    complexity::{Complexity, StepCount},
+    interval::{DiscreteInterval, ParallelIntervals},
+};
 
 /// The irreducibility functor Z': 𝒯 → ℬ.
 ///
