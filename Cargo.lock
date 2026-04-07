@@ -74,6 +74,7 @@ checksum = "683d7910e743518b0e34f1186f92494becacb047c7b6bf616c96772180fef923"
 [[package]]
 name = "amari-calculus"
 version = "0.19.1"
+source = "git+https://github.com/justinelliottcobb/Amari?tag=v0.19.1#23c4ed8acb82a070f2e9f84a14af5279b64de283"
 dependencies = [
  "amari-core",
  "amari-measure",
@@ -84,6 +85,7 @@ dependencies = [
 [[package]]
 name = "amari-core"
 version = "0.19.1"
+source = "git+https://github.com/justinelliottcobb/Amari?tag=v0.19.1#23c4ed8acb82a070f2e9f84a14af5279b64de283"
 dependencies = [
  "approx",
  "bytemuck",
@@ -95,6 +97,7 @@ dependencies = [
 [[package]]
 name = "amari-dual"
 version = "0.19.1"
+source = "git+https://github.com/justinelliottcobb/Amari?tag=v0.19.1#23c4ed8acb82a070f2e9f84a14af5279b64de283"
 dependencies = [
  "amari-core",
  "num-traits",
@@ -104,6 +107,7 @@ dependencies = [
 [[package]]
 name = "amari-info-geom"
 version = "0.19.1"
+source = "git+https://github.com/justinelliottcobb/Amari?tag=v0.19.1#23c4ed8acb82a070f2e9f84a14af5279b64de283"
 dependencies = [
  "amari-core",
  "approx",
@@ -114,6 +118,7 @@ dependencies = [
 [[package]]
 name = "amari-measure"
 version = "0.19.1"
+source = "git+https://github.com/justinelliottcobb/Amari?tag=v0.19.1#23c4ed8acb82a070f2e9f84a14af5279b64de283"
 dependencies = [
  "amari-core",
  "amari-dual",
@@ -127,6 +132,7 @@ dependencies = [
 [[package]]
 name = "amari-tropical"
 version = "0.19.1"
+source = "git+https://github.com/justinelliottcobb/Amari?tag=v0.19.1#23c4ed8acb82a070f2e9f84a14af5279b64de283"
 dependencies = [
  "amari-core",
  "num-traits",
@@ -589,7 +595,8 @@ dependencies = [
 
 [[package]]
 name = "catgraph"
-version = "0.8.0"
+version = "0.9.0"
+source = "git+https://github.com/tsondru/catgraph?tag=v0.9.0#9b9adfc7b5e36fe333e3a98d9b912d5e7ca3652c"
 dependencies = [
  "either",
  "itertools 0.14.0",
@@ -607,6 +614,7 @@ dependencies = [
 [[package]]
 name = "catgraph-surreal"
 version = "0.7.0"
+source = "git+https://github.com/tsondru/catgraph?tag=v0.9.0#9b9adfc7b5e36fe333e3a98d9b912d5e7ca3652c"
 dependencies = [
  "catgraph",
  "rust_decimal",
