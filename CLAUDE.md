@@ -66,13 +66,13 @@ irreducible/                            # Workspace root
 
 ```toml
 [workspace.dependencies]
-catgraph = { git = "https://github.com/tsondru/catgraph", tag = "v0.7.1" }  # Category theory (spans, cospans, adjunctions, coherence, hypergraph, multiway)
-catgraph-surreal = { git = "https://github.com/tsondru/catgraph", tag = "v0.7.1" }  # optional (persist feature, HypergraphEvolutionStore)
+catgraph = { git = "https://github.com/tsondru/catgraph", tag = "v0.10.1" }  # Category theory (spans, cospans, adjunctions, coherence, hypergraph, multiway, Fong-Spivak)
+catgraph-surreal = { git = "https://github.com/tsondru/catgraph", tag = "v0.10.1" }  # optional (persist feature, HypergraphEvolutionStore)
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 surrealdb = { version = "3.0.4", default-features = false, features = ["kv-mem"] }  # optional
 tokio = { version = "1", features = ["full"] }                    # optional
-amari-calculus = { path = "..." }                                  # optional (manifold-curvature feature)
+amari-calculus = { git = "https://github.com/justinelliottcobb/Amari", tag = "v0.19.1" }  # optional (manifold-curvature feature)
 nalgebra = { version = "0.34", optional = true }                   # optional (manifold-curvature feature)
 nalgebra-lapack = { version = "0.27", features = ["lapack-openblas"] }  # optional (lapack feature)
 ```
@@ -171,6 +171,23 @@ Default features: none. Core library is purely computational (no I/O, no async).
 | `MultiwayCospan` | Single rewrite step as cospan | `machines/hypergraph/catgraph_bridge.rs` (local) |
 | `MultiwayCospanGraph` | Full evolution as cospan graph | `machines/hypergraph/catgraph_bridge.rs` (local) |
 | `MultiwayCospanExt` | Extension trait for multiway cospan methods | `machines/hypergraph/catgraph_bridge.rs` (local) |
+
+### Fong-Spivak Categorical Infrastructure (catgraph v0.10.0+)
+
+| Type / Trait | Role | Source |
+|--------------|------|--------|
+| `HypergraphCategory<Lambda>` | Symmetric monoidal category with Frobenius structure (§2.3) | `catgraph::hypergraph_category` |
+| `HypergraphFunctor<L1,L2,Src,Tgt>` | Structure-preserving map between hypergraph categories (§2.3) | `catgraph::hypergraph_functor` |
+| `RelabelingFunctor` | Free hypergraph functor induced by a set map | `catgraph::hypergraph_functor` |
+| `CospanToFrobeniusFunctor` | Decomposes cospans into Frobenius morphisms (Prop 3.8) | `catgraph::hypergraph_functor` |
+| `CospanAlgebra<Lambda>` | Lax symmetric monoidal functor `Cospan_Λ → C` (§2.1) | `catgraph::cospan_algebra` |
+| `PartitionAlgebra` | Initial cospan-algebra `a(x) = Cospan(0, x)` (Example 2.3) | `catgraph::cospan_algebra` |
+| `NameAlgebra` | Named morphisms via compact closed structure (Prop 3.2) | `catgraph::cospan_algebra` |
+| `cup_single` / `cap_single` | Cup/cap morphisms for self-dual compact closed (§3.1) | `catgraph::compact_closed` |
+| `cup` / `cap` | Multi-type cup/cap | `catgraph::compact_closed` |
+| `name` / `unname` | Name bijection `H(X,Y) ≅ H(I, X⊗Y)` (Prop 3.2) | `catgraph::compact_closed` |
+
+**Integration status:** These modules are available in catgraph v0.10.1 but not yet re-exported or used by irreducible. See TODO.md for integration plan.
 
 ### Catgraph Bridge API
 
@@ -407,6 +424,7 @@ let result = EXEC.run(move || {
 
 | Area | Notes |
 |------|-------|
+| Fong-Spivak integration | Re-export and use catgraph v0.10.1 Fong-Spivak modules (`HypergraphCategory`, `CospanAlgebra`, `HypergraphFunctor`, `compact_closed`). See TODO.md for phased plan |
 | Non-Euclidean embedding | `BranchialEmbedding` with non-flat metric (spherical, hyperbolic) for non-trivial `ManifoldCurvature` (#9) |
 | Petri net machine | `PetriNetMachine` wrapper implementing `IrreducibilityTrace` using catgraph's `PetriNet<Lambda>` |
 | Visualization | Multiway graphs, branchial structure, curvature heatmaps |
