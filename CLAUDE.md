@@ -24,6 +24,7 @@ irreducible/                            # Workspace root
 │   │   ├── adjunction.rs              # ZPrimeAdjunction + re-exports catgraph::adjunction
 │   │   ├── monoidal.rs                # MonoidalFunctorResult + re-exports catgraph::coherence
 │   │   ├── bifunctor.rs               # Re-exports catgraph::bifunctor (TensorProduct, etc.)
+│   │   ├── fong_spivak.rs             # Fong-Spivak re-exports + FrobeniusVerificationResult, verify_cospan_chain_frobenius
 │   │   └── stokes_integration.rs      # StokesIrreducibility + re-exports catgraph::stokes
 │   └── machines/
 │       ├── mod.rs                      # Machine re-exports, State type alias
@@ -45,6 +46,7 @@ irreducible/                            # Workspace root
 ├── tests/                              # Integration tests (public API only)
 │   ├── adjunction_laws.rs              # Z' ⊣ Z triangle identities, unit/counit
 │   ├── catgraph_bridge.rs             # Span/cospan roundtrip, cospan chain composition
+│   ├── fong_spivak.rs                 # Fong-Spivak re-exports + Frobenius verification
 │   ├── computation_types.rs           # TM/CA domain types, computation context
 │   ├── functoriality.rs              # Functor Z' composition preservation
 │   ├── hypergraph_rewriting.rs       # DPO rewriting, multiway evolution, gauge theory
@@ -58,6 +60,7 @@ irreducible/                            # Workspace root
     ├── gorard_demo.md                 # Companion documentation
     ├── builders.rs                    # TuringMachineBuilder + NTMBuilder patterns
     ├── bifunctor_tensor.rs            # Tensor products, monoidal law verification
+    ├── fong_spivak.rs                 # Fong-Spivak three-perspective agreement demo
     ├── lattice_gauge.rs               # Wilson loops, plaquette action, gauge theory
     └── persist_evolution.rs           # EvolutionPersistence lifecycle (feature-gated)
 ```
@@ -348,16 +351,17 @@ assert!(analysis.is_irreducible());
 ### Running Tests
 
 ```bash
-cargo test --workspace                    # 318 tests (171 unit + 138 integration + 9 doc), 0 ignored
-cargo test -p irreducible                 # Core library unit tests (171)
+cargo test --workspace                    # 310 tests (152 unit + 149 integration + 9 doc), 0 ignored
+cargo test -p irreducible                 # Core library unit tests (152)
 cargo test --test functoriality           # Single integration test file
-cargo test --workspace --features persist # 333 tests (+15 persistence)
+cargo test --workspace --features persist # 325 tests (+15 persistence)
 cargo test --features manifold-curvature  # Manifold curvature tests (6 unit + 3 integration)
 cargo test --features lapack              # LAPACK-accelerated eigendecomposition (requires libopenblas-dev)
 cargo run --example gorard_demo           # Run the 9-part demo
 cargo run --example builders              # Builder patterns
 cargo run --example bifunctor_tensor      # Tensor products, monoidal laws
 cargo run --example lattice_gauge         # Wilson loops, gauge theory
+cargo run --example fong_spivak           # Fong-Spivak three-perspective agreement
 cargo run --example persist_evolution --features persist  # SurrealDB persistence
 cargo clippy --workspace -- -W clippy::pedantic  # Lint (zero warnings)
 ```
@@ -366,8 +370,8 @@ cargo clippy --workspace -- -W clippy::pedantic  # Lint (zero warnings)
 
 | Category | Count | What it covers |
 |----------|-------|----------------|
-| Unit tests | 171 | functor, machines (TM, CA, SRS, NTM, trace), categories, types (hypergraph + multiway infra moved to catgraph) |
-| Integration tests | 138 | 11 files: adjunction, catgraph bridge, computation types, functoriality, hypergraph, manifold curvature, monoidal, multiway, persistence, property coherence, Stokes |
+| Unit tests | 152 | functor, machines (TM, CA, SRS, NTM, trace), categories, types (hypergraph + multiway infra moved to catgraph) |
+| Integration tests | 149 | 12 files: adjunction, catgraph bridge, computation types, fong_spivak, functoriality, hypergraph, manifold curvature, monoidal, multiway, persistence, property coherence, Stokes |
 | Doc tests | 9 | Module-level and type-level examples (hypergraph + multiway doc tests moved to catgraph) |
 
 ### Test Patterns

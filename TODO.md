@@ -2,19 +2,19 @@
 
 ## Phase 1: Re-export new types (small, immediate)
 
-- [ ] Re-export `HypergraphCategory` trait from `catgraph::hypergraph_category` through `src/functor/` or `src/lib.rs`
-- [ ] Re-export `HypergraphFunctor`, `RelabelingFunctor`, `CospanToFrobeniusFunctor` from `catgraph::hypergraph_functor`
-- [ ] Re-export `CospanAlgebra`, `PartitionAlgebra`, `NameAlgebra` from `catgraph::cospan_algebra`
-- [ ] Re-export `cup`, `cap`, `cup_single`, `cap_single`, `name`, `unname` from `catgraph::compact_closed`
-- [ ] Add integration tests verifying the re-exports are usable from irreducible's public API
-- [ ] Run `cargo test --workspace` and `cargo clippy -- -W clippy::pedantic`
+- [x] Re-export `HypergraphCategory` trait from `catgraph::hypergraph_category` through `src/functor/` or `src/lib.rs`
+- [x] Re-export `HypergraphFunctor`, `RelabelingFunctor`, `CospanToFrobeniusFunctor` from `catgraph::hypergraph_functor`
+- [x] Re-export `CospanAlgebra`, `PartitionAlgebra`, `NameAlgebra` from `catgraph::cospan_algebra`
+- [x] Re-export `cup`, `cap`, `cup_single`, `cap_single`, `name`, `unname` from `catgraph::compact_closed`
+- [x] Add integration tests verifying the re-exports are usable from irreducible's public API
+- [x] Run `cargo test --workspace` and `cargo clippy -- -W clippy::pedantic`
 
 ## Phase 2: HypergraphCategory in cospan verification (medium)
 
-- [ ] Verify Stokes cospan chains satisfy `HypergraphCategory` Frobenius axioms — add test in `tests/stokes_integration.rs`
-- [ ] Verify hypergraph evolution cospan chains satisfy `HypergraphCategory` — add test in `tests/catgraph_bridge.rs`
-- [ ] Use `HypergraphCategory::cup`/`cap` in `StokesIrreducibility::to_cospan_chain()` if it strengthens the verification
-- [ ] Add example in `examples/` demonstrating Frobenius structure on cobordism cospans
+- [x] Verify Stokes cospan chains satisfy `HypergraphCategory` Frobenius axioms — add test in `tests/stokes_integration.rs`
+- [x] Verify hypergraph evolution cospan chains satisfy `HypergraphCategory` — add test in `tests/catgraph_bridge.rs`
+- [x] Use `HypergraphCategory::cup`/`cap` in `StokesIrreducibility::to_cospan_chain()` if it strengthens the verification
+- [x] Add example in `examples/` demonstrating Frobenius structure on cobordism cospans
 
 ## Phase 3: CospanAlgebra for the functor Z' (larger, architectural)
 
