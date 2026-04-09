@@ -107,3 +107,10 @@ pub use machines::hypergraph::{
     CausalInvarianceResult, WilsonLoop, RewriteSpan,
     HypergraphRewriteGroup, HypergraphLattice, plaquette_action, total_action,
 };
+
+// Fong-Spivak categorical infrastructure (re-exported from catgraph)
+pub use functor::{
+    cap, cap_single, cap_tensor, compose_names, cospan_to_frobenius, cup, cup_single, cup_tensor,
+    name, unname, CospanAlgebra, CospanToFrobeniusFunctor, HypergraphCategory, HypergraphFunctor,
+    NameAlgebra, PartitionAlgebra, RelabelingFunctor,
+};

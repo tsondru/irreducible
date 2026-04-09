@@ -16,6 +16,7 @@
 
 pub mod adjunction;
 pub mod bifunctor;
+pub mod fong_spivak;
 pub mod monoidal;
 pub mod stokes_integration;
 
@@ -40,6 +41,13 @@ pub use bifunctor::{
 // Re-export Stokes integration types
 pub use stokes_integration::{
     ConservationResult, StokesError, StokesIrreducibility, TemporalComplex,
+};
+
+// Re-export Fong-Spivak types
+pub use fong_spivak::{
+    cap, cap_single, cap_tensor, compose_names, cospan_to_frobenius, cup, cup_single, cup_tensor,
+    name, unname, CospanAlgebra, CospanToFrobeniusFunctor, HypergraphCategory, HypergraphFunctor,
+    NameAlgebra, PartitionAlgebra, RelabelingFunctor,
 };
 
 use catgraph::{
