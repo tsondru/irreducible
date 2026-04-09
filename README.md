@@ -1,72 +1,106 @@
-# Computational Irreducibility as Functoriality
+# irreducible
 
-A Rust implementation of Jonathan Gorard's "A Functorial Perspective on (Multi)computational Irreducibility" ([arXiv:2301.04690](https://arxiv.org/pdf/2301.04690)), demonstrating that **computational irreducibility is equivalent to functoriality** of a map from a category of computations to a cobordism category.
+Computational irreducibility as functoriality in Rust, implementing Jonathan Gorard's ["A Functorial Perspective on (Multi)computational Irreducibility"](https://arxiv.org/pdf/2301.04690) (arXiv:2301.04690).
 
-Uses [catgraph](https://github.com/tsondru/catgraph) v0.7.0 for categorical infrastructure (spans, cospans, adjunctions, bifunctors, coherence, symmetric monoidal categories, hypergraph DPO rewriting, multiway evolution graphs, discrete curvature). Category theory types, hypergraph rewriting, and multiway infrastructure are defined in catgraph and re-exported transparently — irreducible is a thin domain layer adding computation models (TM, CA, SRS, NTM) and the functorial irreducibility framework.
+**Core insight**: A computation is irreducible iff a certain functor Z': T -> B (from computations to cobordisms) preserves composition. No shortcuts exist when Z' is functorial.
 
-318 tests (336 with all features), zero clippy warnings. Rust 2024 edition.
+Uses [catgraph](https://github.com/tsondru/catgraph) v0.10.1 for categorical infrastructure (cospans, spans, adjunctions, coherence, hypergraph DPO rewriting, multiway evolution, Fong-Spivak hypergraph categories). irreducible adds computation models (TM, CA, SRS, NTM) and the functorial irreducibility framework.
+
+310 tests (325 with all features), zero clippy warnings. Rust 2024 edition.
+
+## Component Index
+
+| Module | Component | Purpose |
+|--------|-----------|---------|
+| `functor/mod.rs` | `IrreducibilityFunctor`, `MultiwayIrreducibilityResult` | Functor Z': T -> B, multiway branch analysis |
+| `functor/adjunction.rs` | `ZPrimeAdjunction`, `AdjunctionVerification` | Z' ⊣ Z adjunction, triangle identities |
+| `functor/monoidal.rs` | `MonoidalFunctorResult`, `CoherenceVerification` | Symmetric monoidal functor check (alpha, lambda, rho, sigma) |
+| `functor/bifunctor.rs` | `TensorProduct`, `IntervalTransform` | Re-exports catgraph bifunctor laws |
+| `functor/fong_spivak.rs` | `FrobeniusVerificationResult`, `verify_cospan_chain_frobenius` | Fong-Spivak Frobenius decomposition verification |
+| `functor/stokes_integration.rs` | `StokesIrreducibility`, `TemporalComplex` | Stokes conservation analysis, cospan bridge |
+| `machines/turing.rs` | `TuringMachine`, `ExecutionHistory` | Deterministic Turing machines |
+| `machines/cellular_automaton.rs` | `ElementaryCA`, `Generation` | 1D elementary cellular automata (256 rules) |
+| `machines/trace.rs` | `IrreducibilityTrace`, `TraceAnalysis` | Generic trace analysis, repeat detection |
+| `machines/multiway/string_rewrite.rs` | `StringRewriteSystem`, `SRSState` | Pattern-based multiway string rewriting |
+| `machines/multiway/ntm.rs` | `NondeterministicTM`, `NTMBuilder` | Non-deterministic Turing machines |
+| `machines/multiway/manifold_bridge.rs` | `ManifoldCurvature`, `BranchialEmbedding` | Riemannian curvature via MDS (feature-gated) |
+| `machines/hypergraph/catgraph_bridge.rs` | `MultiwayCospanExt`, `MultiwayCospanGraph` | Hypergraph evolution cospan analysis |
+| `machines/hypergraph/persistence.rs` | `EvolutionPersistence` | SurrealDB persistence (feature-gated) |
+| `types.rs` | `ComputationDomain`, `ComputationContext`, `CausalEffect` | Domain types for computation models |
+
+## Fong-Spivak Feature Map
+
+Re-exports from catgraph v0.10.1 implementing [Fong & Spivak, *Hypergraph Categories*](https://arxiv.org/abs/1806.08304) SS2-3:
+
+| Paper Reference | Re-exported Type | Purpose |
+|-----------------|------------------|---------|
+| Def 2.12 | `HypergraphCategory` | Symmetric monoidal + Frobenius structure (eta, epsilon, mu, delta) |
+| Def 2.2 | `CospanAlgebra`, `PartitionAlgebra`, `NameAlgebra` | Lax monoidal functors Cospan -> Set |
+| Def 2.12, Eq 12 | `HypergraphFunctor`, `RelabelingFunctor` | Structure-preserving maps between hypergraph categories |
+| Prop 3.8 | `CospanToFrobeniusFunctor` | Decomposes cospans into Frobenius generators |
+| SS3.1 | `cup`, `cap`, `name`, `unname` | Self-dual compact closed structure |
+| Thm 3.14 | `Cospan<Lambda>: HypergraphCategory` | Free hypergraph category |
+
+**Frobenius verification**: `verify_cospan_chain_frobenius()` decomposes each cospan in a chain via `CospanToFrobeniusFunctor` and checks that composition is preserved -- a stronger categorical check than monoidal coherence.
+
+## Alignment with Gorard's Paper
+
+| Paper Concept | Implementation | Location |
+|---|---|---|
+| Cobordism category B | `DiscreteInterval`, `ParallelIntervals` | catgraph::interval |
+| Functor Z': T -> B | `IrreducibilityFunctor` | functor/mod.rs |
+| Adjunction Z' ⊣ Z | `ZPrimeAdjunction`, triangle identities | functor/adjunction.rs |
+| Coherence (alpha, lambda, rho, sigma) | `CoherenceVerification`, `DifferentialCoherence` | functor/monoidal.rs |
+| Stokes integration | `TemporalComplex`, `ConservationResult` | functor/stokes_integration.rs |
+| Frobenius structure | `FrobeniusVerificationResult`, `verify_cospan_chain_frobenius` | functor/fong_spivak.rs |
+| DPO rewriting as spans | `RewriteRule::to_span()` | catgraph::hypergraph |
+| Evolution as cospan chain | `HypergraphEvolution::to_cospan_chain()` | catgraph::hypergraph |
+| Causal invariance | Wilson loops, holonomy analysis | catgraph::hypergraph |
+| Branchial curvature | `OllivierRicciCurvature` | catgraph::multiway |
+| Complexity algebra | `Complexity`, `StepCount` | catgraph::complexity |
 
 ## Quick Start
 
 ```toml
 [dependencies]
 irreducible = { git = "https://github.com/tsondru/irreducible" }
-# With SurrealDB persistence:
-# irreducible = { git = "https://github.com/tsondru/irreducible", features = ["persist"] }
-# With manifold curvature:
-# irreducible = { git = "https://github.com/tsondru/irreducible", features = ["manifold-curvature"] }
-# With LAPACK-accelerated eigendecomposition (requires libopenblas-dev):
-# irreducible = { git = "https://github.com/tsondru/irreducible", features = ["lapack"] }
 ```
 
-```bash
-# Run the presentation demo (designed for non-Rust readers)
-cargo run --example gorard_demo
+```rust
+use irreducible::machines::{TuringMachine, Direction};
+use irreducible::machines::trace::analyze_trace;
 
-# This shows:
-# 1. Core insight: Irreducibility = Functoriality
-# 2. Turing machines (Busy Beaver vs cycling)
-# 3. Cellular automata (Rule 30 vs Rule 0)
-# 4. Z' ⊣ Z Adjunction with triangle identities
-# 5. Multiway systems with tensor products
-# 6. Coherence conditions (α, λ, ρ, σ)
-# 7. Stokes integration (conservation → cospan composability)
-# 8. Hypergraph rewriting (Wolfram Physics via catgraph)
-# 9. Multiway branching (branchial foliation, curvature)
-
-# Run focused examples
-cargo run --example builders              # TuringMachineBuilder + NTMBuilder
-cargo run --example bifunctor_tensor      # Tensor products, monoidal laws
-cargo run --example lattice_gauge         # Wilson loops, plaquette action
-cargo run --example persist_evolution --features persist  # SurrealDB persistence
-cargo run --example manifold_curvature --features manifold-curvature  # Riemannian curvature
-
-# Run all tests
-cargo test --workspace                    # 318 tests (171 unit + 138 integration + 9 doc)
-cargo test --workspace --features persist # 333 tests (+15 persistence)
-
-# Run just the library
-cargo test -p irreducible                 # Core library tests
+let bb = TuringMachine::busy_beaver_2_2();
+let history = bb.run("", 20);
+let analysis = analyze_trace(&history);
+assert!(analysis.is_irreducible);
+assert_eq!(analysis.step_count, 6);
 ```
 
-## Overview
+### Three Perspectives on Irreducibility
 
-This library formalizes Wolfram's concept of computational irreducibility using category theory:
+```rust
+use irreducible::{
+    IrreducibilityFunctor, StokesIrreducibility, TuringMachine,
+};
 
-- **Computational Irreducibility**: A computation is irreducible if it cannot be shortcut — you must trace every step to get the result
-- **Functoriality**: A functor preserves compositional structure exactly
-- **Core Insight**: These are the same thing. A computation is irreducible iff a certain map Z': 𝒯 → ℬ is a functor
+let bb = TuringMachine::busy_beaver_2_2();
+let history = bb.run("", 20);
+let intervals = history.to_intervals();
 
-The framework extends naturally to **multicomputational irreducibility** for non-deterministic (multiway) systems via symmetric monoidal categories, and to **hypergraph rewriting** for Wolfram Physics via catgraph's span/cospan types.
+// 1. Functorial: contiguous intervals under Z'
+let functorial = IrreducibilityFunctor::is_sequence_irreducible(&intervals);
 
-## Paper Reference
+// 2. Stokes: conservation laws hold
+let stokes = StokesIrreducibility::analyze(&intervals).unwrap();
+let stokes_ok = stokes.is_irreducible();
 
-- **Title**: A Functorial Perspective on (Multi)computational Irreducibility
-- **Author**: Jonathan Gorard (Cardiff University & University of Cambridge)
-- **Date**: October 2022
-- **Link**: <https://arxiv.org/pdf/2301.04690>
+// 3. Frobenius: valid decomposition into generators (Fong-Spivak)
+let frobenius = stokes.verify_frobenius();
+let frobenius_ok = frobenius.all_valid && frobenius.composition_preserved;
 
----
+assert!(functorial && stokes_ok && frobenius_ok); // all agree
+```
 
 ## Feature Flags
 
@@ -74,61 +108,42 @@ The framework extends naturally to **multicomputational irreducibility** for non
 |---------|-------|--------------|
 | *(none)* | Core library (TM, CA, SRS, NTM, functor, cobordism) | `catgraph`, `serde` |
 | `manifold-curvature` | Riemannian manifold curvature via MDS embedding | `amari-calculus`, `nalgebra` |
-| `lapack` | LAPACK-accelerated eigendecomposition for MDS | `nalgebra-lapack` (implies `manifold-curvature`) |
+| `lapack` | LAPACK-accelerated eigendecomposition for MDS | `nalgebra-lapack` (implies `manifold-curvature`; requires `libopenblas-dev`) |
 | `persist` | SurrealDB persistence for evolution traces | `catgraph-surreal`, `surrealdb`, `tokio` |
 
-### Installing OpenBLAS (required for `lapack` feature)
-
-The `lapack` feature uses [OpenBLAS](https://www.openblas.net/) for LAPACK routines. Install the development headers before building:
+## Examples
 
 ```bash
-# Debian/Ubuntu
-sudo apt install libopenblas-dev
-
-# Fedora/RHEL
-sudo dnf install openblas-devel
-
-# Arch Linux
-sudo pacman -S openblas
-
-# macOS (Homebrew)
-brew install openblas
+cargo run --example gorard_demo           # 9-part presentation demo
+cargo run --example builders              # TuringMachineBuilder + NTMBuilder
+cargo run --example bifunctor_tensor      # Tensor products, monoidal laws
+cargo run --example fong_spivak           # Fong-Spivak three-perspective agreement
+cargo run --example lattice_gauge         # Wilson loops, plaquette action
+cargo run --example persist_evolution --features persist  # SurrealDB persistence
 ```
 
-Then build with:
+## Testing
+
 ```bash
-cargo test --features lapack
+cargo test --workspace                    # 310 tests (152 unit + 149 integration + 9 doc)
+cargo test --workspace --features persist # 325 tests (+15 persistence)
+cargo clippy --workspace -- -W clippy::pedantic  # zero warnings
 ```
 
----
-
-## Alignment with Gorard's Paper
-
-| Paper Concept | Implementation | Location |
-|---|---|---|
-| **Cobordism category ℬ** | `DiscreteInterval` [n,m] ⊂ ℕ | `categories/cobordism.rs` |
-| **Tensor product (parallel)** | `ParallelIntervals` with `tensor()` | `categories/cobordism.rs` |
-| **Functor Z': 𝒯 → ℬ** | `IrreducibilityFunctor` | `functor/mod.rs` |
-| **Adjunction Z' ⊣ Z** | `ZPrimeAdjunction`, triangle identities | `functor/adjunction.rs` |
-| **Coherence conditions (α,λ,ρ,σ)** | `CoherenceVerification` | `functor/monoidal.rs` |
-| **Differential coherence** | `DifferentialCoherence`, categorical curvature | `functor/monoidal.rs` |
-| **Bifunctor/Tensor** | `TensorProduct`, `tensor_bimap` | `functor/bifunctor.rs` |
-| **Stokes integration** | `TemporalComplex`, `ConservationResult` | `functor/stokes_integration.rs` |
-| **Stokes → cospan composability** | `TemporalComplex::to_cospan_chain()` | `functor/stokes_integration.rs` |
-| **DPO rewriting as spans** | `RewriteRule::to_span()` → `catgraph::Span<u32>` | `catgraph::hypergraph` |
-| **Evolution as cospan chain** | `HypergraphEvolution::to_cospan_chain()` | `catgraph::hypergraph` |
-| **Causal invariance** | Wilson loops, holonomy analysis | `catgraph::hypergraph` |
-| **Gauge group** | `HypergraphRewriteGroup`, lattice gauge | `catgraph::hypergraph` |
-| **Branchial curvature** | `DiscreteCurvature` trait, `OllivierRicciCurvature` | `catgraph::multiway` |
-| **Complexity algebra** | `Complexity` trait, `StepCount` | `categories/complexity.rs` |
-| **Turing machines** | `TuringMachine`, `ExecutionHistory` | `machines/turing.rs` |
-| **Cellular automata (1D)** | `ElementaryCA`, `Generation` | `machines/cellular_automaton.rs` |
-| **Multiway systems** | `MultiwayEvolutionGraph`, `BranchialGraph` | `catgraph::multiway` |
-| **String rewriting** | `StringRewriteSystem`, `SRSState` | `machines/multiway/string_rewrite.rs` |
-| **Non-deterministic TM** | `NondeterministicTM`, `NTMBuilder` | `machines/multiway/ntm.rs` |
-| **Symmetric monoidal functor** | `MonoidalFunctorResult`, `CoherenceVerification` | `functor/monoidal.rs` |
-
----
+| Suite | Tests | What it covers |
+|-------|-------|---------------|
+| Unit tests | 152 | Functor, machines (TM, CA, SRS, NTM, trace), categories, types |
+| `adjunction_laws` | 11 | Z' ⊣ Z triangle identities, unit/counit naturality |
+| `catgraph_bridge` | 10 | Multiway cospan analysis, composability |
+| `computation_types` | 30 | TM, CA, string rewrite, NTM classification |
+| `fong_spivak` | 11 | Re-export validation, Frobenius verification, three-way agreement |
+| `functoriality` | 16 | Functor laws, irreducibility detection |
+| `hypergraph_rewriting` | 21 | DPO matching, evolution, Wilson loops, gauge |
+| `monoidal_coherence` | 11 | Associator, unitors, braiding, pentagon/hexagon |
+| `multiway_evolution` | 16 | Branchial graphs, curvature foliation, NTM |
+| `property_coherence` | 10 | Coherence verification, differential coherence |
+| `stokes_integration` | 13 | Temporal complex, Stokes conservation, cospan bridge |
+| Doc tests | 9 | Public API examples |
 
 ## Key Concepts
 
@@ -136,260 +151,47 @@ cargo test --features lapack
 
 | Category | Objects | Morphisms | Composition |
 |---|---|---|---|
-| **𝒯** (Computation) | Data structures / states | Computations / transitions | Sequential execution |
-| **ℬ** (Cobordism) | Step numbers (ℕ) | Discrete intervals [n,m] ∩ ℕ | Union of contiguous intervals |
+| T (Computation) | Data structures / states | Computations / transitions | Sequential execution |
+| B (Cobordism) | Step numbers (N) | Discrete intervals [n,m] | Union of contiguous intervals |
 
 ### The Functor Z'
 
-```text
-Z': 𝒯 → ℬ
+Z' maps states to step numbers and computations to intervals. **Theorem**: Z' is a functor iff all computations in T are irreducible.
 
-Maps:
-  - States → Step numbers
-  - Computations → Intervals of steps traversed
-```
+For non-deterministic (multiway) systems, both categories gain symmetric monoidal structure. **Theorem**: Z' is a symmetric monoidal functor iff the system is multicomputationally irreducible.
 
-**Theorem**: Z' is a functor ⟺ all computations in 𝒯 are irreducible
+### The Adjunction Z' ⊣ Z
 
-### Multiway Extension
+From the paper (Section 4.2): computational irreducibility is *dual/adjoint* to locality of time evolution in quantum mechanics. For multiway systems, Z' is adjoint to the functor defining functorial quantum field theory (Atiyah-Segal axioms).
 
-For non-deterministic systems, both categories gain symmetric monoidal structure:
+### Stokes Integration and Cospan Composability
 
-- **𝒯**: Tensor product ⊗ represents parallel computation branches
-- **ℬ**: Coproduct ⊕ represents disjoint union of intervals
+For 1D simplicial complexes, Stokes conservation reduces to contiguity + monotonicity -- exactly the conditions for cospan composability in B. This bridges differential geometry (Stokes theorem) to category theory (cospan composition).
 
-**Theorem**: Z' is a symmetric monoidal functor ⟺ the system is multicomputationally irreducible
+### Frobenius Decomposition (Fong-Spivak)
 
----
-
-## Categorical Hypergraph Rewriting (catgraph Bridge)
-
-The hypergraph rewriting module connects Gorard's irreducibility framework to Wolfram Physics via catgraph's categorical types.
-
-### DPO Rewrite Rules as Spans
-
-A Double-Pushout (DPO) rewrite rule is naturally a span L ← K → R:
-
-```text
-    L ←── K ──→ R
-    │           │
-    left        right
-    pattern     replacement
-```
-
-where K is the kernel (preserved vertices). `RewriteRule::to_span()` produces a `catgraph::Span<()>` encoding this structure:
-
-```rust
-use irreducible::machines::hypergraph::RewriteRule;
-
-let rule = RewriteRule::wolfram_a_to_bb();  // {0,1,2} → {0,1},{1,2}
-let span = rule.to_span();
-// |L| = 3, |R| = 3, |K| = 3 (all preserved)
-```
-
-### Evolution as Cospan Chain
-
-Each rewrite step Gᵢ → Gᵢ₊₁ produces a cospan (pushout). The full evolution is a composable chain:
-
-```rust
-use irreducible::machines::hypergraph::{Hypergraph, HypergraphEvolution, RewriteRule};
-
-let initial = Hypergraph::from_edges(vec![vec![0, 1, 2]]);
-let evolution = HypergraphEvolution::run(&initial, &[RewriteRule::wolfram_a_to_bb()], 5);
-let cospans = evolution.to_cospan_chain();  // Vec<catgraph::Cospan<()>>
-```
-
-### Causal Invariance via Wilson Loops
-
-Causal invariance — the property that rewrite order doesn't matter — manifests as holonomy = 1 for all Wilson loops. When this holds, different orderings produce equivalent cospan chains, the categorical manifestation of gauge invariance.
-
----
-
-## Stokes Integration → Cospan Composability
-
-A novel contribution: for 1-dimensional simplicial complexes, the exterior derivative dω is vacuously zero (no 2-simplices). Stokes conservation therefore reduces to:
-
-1. **Contiguity** — intervals connect without gaps
-2. **Monotonicity** — time flows forward
-
-These are exactly the conditions for **cospan composability** in the cobordism category ℬ. This bridges differential geometry (Stokes theorem) to category theory (cospan composition) through catgraph:
-
-```rust
-use irreducible::functor::StokesIrreducibility;
-use irreducible::DiscreteInterval;
-
-let intervals = vec![
-    DiscreteInterval::new(0, 2),
-    DiscreteInterval::new(2, 5),
-    DiscreteInterval::new(5, 7),
-];
-
-let analysis = StokesIrreducibility::analyze(&intervals).unwrap();
-let cospans = analysis.to_cospan_chain();  // 3 composable cospans in ℬ
-assert!(analysis.is_irreducible());
-```
-
----
-
-## The Adjunction Z' ⊣ Z
-
-From the paper (Section 4.2): "The existence of the adjunction Z' ⊣ Z encodes a kind of 'quantum duality' between computation and time."
-
-```text
-Z' ⊣ Z
-
-Where:
-  Z': 𝒯 → ℬ  (computation states → time intervals)
-  Z : ℬ → 𝒯  (time intervals → computation states)
-
-Triangle identities:
-  ε_{Z'X} ∘ Z'(η_X) = id_{Z'X}
-  Z(ε_Y) ∘ η_{ZY} = id_{ZY}
-```
-
-**Key Insight**: Computational irreducibility is *dual/adjoint* to locality of time evolution in quantum mechanics. For multiway systems, Z' is adjoint to the functor defining functorial quantum field theory (Atiyah-Segal axioms).
-
----
-
-## The Orthogonality Principle
-
-A key insight from Gorard: **computational irreducibility** and **multicomputational irreducibility** are orthogonal:
-
-| Type | Source | Depends On |
-|---|---|---|
-| **Computational** | State evolution function | Which states follow which |
-| **Multicomputational** | State equivalence function | Which states are "the same" |
-
-You can have systems that are computationally irreducible but multicomputationally reducible, or vice versa, or both, or neither.
-
----
-
-## Architecture
-
-```text
-irreducible/
-├── src/
-│   ├── lib.rs                        # Re-exports
-│   ├── types.rs                      # ComputationDomain, ComputationContext, CausalEffect
-│   ├── categories/                   # Re-exports from catgraph (intervals, complexity, state)
-│   ├── functor/
-│   │   ├── mod.rs                    # IrreducibilityFunctor
-│   │   ├── adjunction.rs             # ZPrimeAdjunction, triangle identities
-│   │   ├── monoidal.rs              # Symmetric monoidal functor verification
-│   │   ├── bifunctor.rs             # Re-exports catgraph::bifunctor
-│   │   └── stokes_integration.rs    # StokesIrreducibility wrapper
-│   └── machines/
-│       ├── turing.rs                 # TuringMachine, ExecutionHistory
-│       ├── cellular_automaton.rs     # ElementaryCA, Generation
-│       ├── trace.rs                  # IrreducibilityTrace trait, TraceAnalysis
-│       ├── multiway/                 # Re-exports catgraph::multiway + local models
-│       │   ├── string_rewrite.rs     # StringRewriteSystem, SRSState (local)
-│       │   ├── ntm.rs               # NondeterministicTM, NTMBuilder (local)
-│       │   └── manifold_bridge.rs   # ManifoldCurvature (feature-gated, local)
-│       └── hypergraph/              # Re-exports catgraph::hypergraph + local types
-│           ├── catgraph_bridge.rs    # MultiwayCospanExt trait (local)
-│           └── persistence.rs       # EvolutionPersistence (feature = "persist")
-├── tests/                            # Integration tests (124 tests)
-└── examples/
-    ├── gorard_demo.rs                # 9-part presentation demo
-    ├── builders.rs                   # TuringMachineBuilder + NTMBuilder
-    ├── bifunctor_tensor.rs           # Tensor products, monoidal laws
-    ├── lattice_gauge.rs              # Wilson loops, plaquette action
-    └── persist_evolution.rs          # Persistence lifecycle (feature-gated)
-```
-
-**catgraph provides:** Hypergraph rewriting (DPO, evolution, Wilson loops, gauge theory), multiway evolution graphs (BFS, branchial foliation, Ollivier-Ricci curvature, Wasserstein transport), intervals, spans, cospans, coherence, adjunctions, Stokes integration, Petri nets.
-
----
-
-## Testing
-
-```bash
-cargo test --workspace                    # 318 tests, zero ignored
-cargo test --workspace --features persist # 333 tests (+15 persistence)
-cargo clippy -- -W clippy::pedantic       # zero warnings
-```
-
-| Suite | Tests | What it covers |
-|-------|-------|---------------|
-| Unit tests (src/) | 176 | Functor, machines (TM, CA, SRS, NTM, trace), categories, types |
-| `adjunction_laws` | 11 | Z' ⊣ Z triangle identities, unit/counit naturality |
-| `catgraph_bridge` | 10 | Multiway cospan analysis, composability |
-| `computation_types` | 22 | TM, CA, string rewrite, NTM classification |
-| `functoriality` | 13 | Functor laws, irreducibility detection |
-| `hypergraph_rewriting` | 20 | DPO matching, evolution, Wilson loops, gauge |
-| `monoidal_coherence` | 11 | Associator, unitors, braiding, pentagon/hexagon |
-| `multiway_evolution` | 14 | Branchial graphs, curvature foliation, NTM |
-| `persistence` | 8 | SurrealDB cospan/span roundtrip, multiway, isolation |
-| `property_coherence` | 10 | Coherence verification, differential coherence |
-| `stokes_integration` | 13 | Temporal complex, Stokes conservation, cospan bridge |
-| Doc tests | 9 | Public API examples |
-| Persistence unit (feature-gated) | 7 | Unit tests in persistence.rs |
-| **Total** | **324** | |
-
-Hypergraph and multiway infrastructure unit tests (~130) now run in catgraph's own test suite.
-
----
+`Cospan<Lambda>` implements `HypergraphCategory` (Thm 3.14). `CospanToFrobeniusFunctor` decomposes each cospan into Frobenius generators. If composition is preserved through decomposition, the cospan chain has valid Frobenius structure -- a categorical invariant complementing the Stokes and functorial perspectives.
 
 ## Dependencies
 
-### Core
-
-- [catgraph](https://github.com/tsondru/catgraph) v0.7.0 -- category theory (cospans, spans, hypergraph rewriting, multiway evolution, discrete curvature, symmetric monoidal categories)
+- [catgraph](https://github.com/tsondru/catgraph) v0.10.1 -- category theory infrastructure (cospans, spans, Fong-Spivak hypergraph categories, DPO rewriting, multiway evolution, discrete curvature)
 - `serde` + `serde_json` -- serialization
+- Optional: `amari-calculus` (manifold curvature), `nalgebra` / `nalgebra-lapack` (linear algebra), `catgraph-surreal` + `surrealdb` + `tokio` (persistence)
 
-### Optional (`persist` feature)
+## References
 
-- [catgraph-surreal](https://github.com/tsondru/catgraph) -- SurrealDB persistence for catgraph types
-- `surrealdb` 3.0.4 (kv-mem) -- embedded SurrealDB
-- `tokio` -- async runtime for persistence layer
-
-### Optional (`manifold-curvature` feature)
-
-- `amari-calculus` -- Riemannian manifold curvature via branchial graph embedding
-
----
-
-## Deferred Work
-
-- **Visualization** -- multiway graphs, branchial graphs, curvature heatmaps
-- **Lambda calculus** -- computational model for lambda-term reduction
-- **Rule classification** -- systematic analysis of all 256 elementary CA rules
-- **Proptest functor laws** -- property-based verification of Z'(g∘f) = Z'(g) ∘ Z'(f) over random inputs (coherence/adjunction proptests exist in `property_coherence.rs`)
-
----
+- Gorard (2022): ["A Functorial Perspective on (Multi)computational Irreducibility"](https://arxiv.org/pdf/2301.04690)
+- Fong & Spivak (2019): ["Hypergraph Categories"](https://arxiv.org/abs/1806.08304)
+- Mac Lane (1998): *Categories for the Working Mathematician*
+- Wolfram (2002): *A New Kind of Science*
+- Abramsky & Coecke (2004): "A categorical semantics of quantum protocols"
+- Atiyah (1988): "Topological quantum field theories"
 
 ## Contributors
 
 - [tsondru](https://github.com/tsondru)
 - [Claude](https://anthropic.com) (Anthropic)
 
----
-
-## References
-
-### Primary
-
-- Gorard (2022): "A Functorial Perspective on (Multi)computational Irreducibility" — [arXiv:2301.04690](https://arxiv.org/pdf/2301.04690)
-
-### Categorical Infrastructure
-
-- Fong & Spivak: "Hypergraph Categories" — [arXiv:1806.08304](https://arxiv.org/abs/1806.08304)
-- Mac Lane (1998): *Categories for the Working Mathematician*
-- catgraph: Cospans, spans, wiring diagrams, Frobenius algebras
-
-### Background on Computational Irreducibility
-
-- Wolfram (2002): *A New Kind of Science*
-- Gorard (2018): "The Slowdown Theorem"
-
-### Quantum Mechanics Connection
-
-- Abramsky & Coecke (2004): "A categorical semantics of quantum protocols"
-- Atiyah (1988): "Topological quantum field theories"
-
----
-
 ## License
 
-[MIT license](LICENSE).
+[MIT](LICENSE)
