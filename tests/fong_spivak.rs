@@ -6,9 +6,11 @@
 use catgraph::category::{Composable, ComposableMutating};
 use catgraph::cospan::Cospan;
 use catgraph::frobenius::FrobeniusMorphism;
+use irreducible::machines::hypergraph::{Hypergraph, HypergraphEvolution, RewriteRule};
 use irreducible::{
-    cap_single, cup_single, CospanAlgebra, CospanToFrobeniusFunctor, HypergraphCategory,
-    HypergraphFunctor, PartitionAlgebra, RelabelingFunctor,
+    cap_single, cup_single, verify_cospan_chain_frobenius, CospanAlgebra, CospanToFrobeniusFunctor,
+    DiscreteInterval, ElementaryCA, HypergraphCategory, HypergraphFunctor, PartitionAlgebra,
+    RelabelingFunctor, StokesIrreducibility, TemporalComplex, TuringMachine,
 };
 
 // ---------------------------------------------------------------------------
@@ -104,4 +106,109 @@ fn partition_algebra_map_cospan() {
         result.is_ok(),
         "partition algebra should map empty element through unit cospan"
     );
+}
+
+// ---------------------------------------------------------------------------
+// Phase 2: Frobenius verification
+// ---------------------------------------------------------------------------
+
+#[test]
+fn empty_chain_frobenius() {
+    let result = verify_cospan_chain_frobenius(&[]);
+    assert!(result.all_valid);
+    assert!(result.composition_preserved);
+    assert!(result.per_cospan.is_empty());
+}
+
+#[test]
+fn single_cospan_frobenius() {
+    let intervals = vec![DiscreteInterval::new(0, 3)];
+    let complex = TemporalComplex::from_intervals(&intervals).unwrap();
+    let chain = complex.to_cospan_chain();
+
+    let result = verify_cospan_chain_frobenius(&chain);
+    assert!(result.all_valid);
+    assert!(result.composition_preserved);
+    assert_eq!(result.per_cospan.len(), 1);
+    assert!(result.per_cospan[0].is_valid);
+    assert!(
+        result.per_cospan[0].generator_count > 0,
+        "single cospan should have at least one generator layer"
+    );
+}
+
+#[test]
+fn stokes_frobenius_verification_irreducible_tm() {
+    let bb = TuringMachine::busy_beaver_2_2();
+    let history = bb.run("", 20);
+    let intervals = history.to_intervals();
+
+    let analysis = StokesIrreducibility::analyze(&intervals).unwrap();
+    let frobenius = analysis.verify_frobenius();
+
+    assert!(frobenius.all_valid, "all cospans should decompose");
+    assert!(
+        frobenius.composition_preserved,
+        "composition should be preserved"
+    );
+    assert_eq!(frobenius.per_cospan.len(), intervals.len());
+}
+
+#[test]
+fn stokes_frobenius_verification_irreducible_ca() {
+    let ca = ElementaryCA::rule_30(11);
+    let initial = ca.single_cell_initial();
+    let history = ca.run(initial, 10);
+    let intervals = history.to_intervals();
+
+    let analysis = StokesIrreducibility::analyze(&intervals).unwrap();
+    let frobenius = analysis.verify_frobenius();
+
+    assert!(frobenius.all_valid);
+    assert!(frobenius.composition_preserved);
+    assert_eq!(frobenius.per_cospan.len(), intervals.len());
+}
+
+#[test]
+fn frobenius_agrees_with_functorial_irreducibility() {
+    let bb = TuringMachine::busy_beaver_2_2();
+    let history = bb.run("", 20);
+    let intervals = history.to_intervals();
+
+    let analysis = StokesIrreducibility::analyze(&intervals).unwrap();
+
+    // Both perspectives should agree on irreducibility
+    let stokes_irreducible = analysis.is_irreducible();
+    let frobenius_valid = analysis.verify_frobenius().all_valid;
+
+    assert_eq!(
+        stokes_irreducible, frobenius_valid,
+        "Stokes irreducibility ({stokes_irreducible}) should agree with Frobenius validity ({frobenius_valid})"
+    );
+}
+
+#[test]
+fn hypergraph_evolution_frobenius_verification() {
+    let rule = RewriteRule::wolfram_a_to_bb();
+    let graph = Hypergraph::from_edges(vec![vec![0, 1, 2]]);
+
+    let evolution = HypergraphEvolution::run(&graph, &[rule], 3);
+    let chain = evolution.to_cospan_chain();
+
+    if !chain.is_empty() {
+        let result = verify_cospan_chain_frobenius(&chain);
+        assert!(
+            result.all_valid,
+            "all evolution cospans should decompose into Frobenius generators"
+        );
+        assert_eq!(result.per_cospan.len(), chain.len());
+
+        for check in &result.per_cospan {
+            assert!(check.is_valid);
+            assert!(
+                check.generator_count > 0,
+                "each cospan should have at least one generator layer"
+            );
+        }
+    }
 }

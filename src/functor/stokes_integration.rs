@@ -8,6 +8,8 @@ pub use catgraph::stokes::{ConservationResult, StokesError, TemporalComplex};
 
 use catgraph::interval::DiscreteInterval;
 
+use super::fong_spivak::{verify_cospan_chain_frobenius, FrobeniusVerificationResult};
+
 /// Stokes-theorem perspective on computational irreducibility.
 ///
 /// Wraps a [`TemporalComplex`] (simplicial complex from interval chain)
@@ -78,6 +80,16 @@ impl StokesIrreducibility {
     #[must_use]
     pub fn to_cospan_chain(&self) -> Vec<catgraph::cospan::Cospan<u32>> {
         self.complex.to_cospan_chain()
+    }
+
+    /// Verify Frobenius structure on the Stokes cospan chain.
+    ///
+    /// Decomposes each cospan via [`CospanToFrobeniusFunctor`](super::CospanToFrobeniusFunctor)
+    /// and checks that composition is preserved. This provides a Fong-Spivak categorical
+    /// verification complementing the differential-geometric Stokes check.
+    #[must_use]
+    pub fn verify_frobenius(&self) -> FrobeniusVerificationResult {
+        verify_cospan_chain_frobenius(&self.to_cospan_chain())
     }
 }
 

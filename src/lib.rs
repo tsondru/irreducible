@@ -111,6 +111,7 @@ pub use machines::hypergraph::{
 // Fong-Spivak categorical infrastructure (re-exported from catgraph)
 pub use functor::{
     cap, cap_single, cap_tensor, compose_names, cospan_to_frobenius, cup, cup_single, cup_tensor,
-    name, unname, CospanAlgebra, CospanToFrobeniusFunctor, HypergraphCategory, HypergraphFunctor,
-    NameAlgebra, PartitionAlgebra, RelabelingFunctor,
+    name, unname, CospanAlgebra, CospanFrobeniusCheck, CospanToFrobeniusFunctor,
+    FrobeniusVerificationResult, HypergraphCategory, HypergraphFunctor, NameAlgebra,
+    PartitionAlgebra, RelabelingFunctor, verify_cospan_chain_frobenius,
 };

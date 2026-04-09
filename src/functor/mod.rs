@@ -46,8 +46,9 @@ pub use stokes_integration::{
 // Re-export Fong-Spivak types
 pub use fong_spivak::{
     cap, cap_single, cap_tensor, compose_names, cospan_to_frobenius, cup, cup_single, cup_tensor,
-    name, unname, CospanAlgebra, CospanToFrobeniusFunctor, HypergraphCategory, HypergraphFunctor,
-    NameAlgebra, PartitionAlgebra, RelabelingFunctor,
+    name, unname, CospanAlgebra, CospanFrobeniusCheck, CospanToFrobeniusFunctor,
+    FrobeniusVerificationResult, HypergraphCategory, HypergraphFunctor, NameAlgebra,
+    PartitionAlgebra, RelabelingFunctor, verify_cospan_chain_frobenius,
 };
 
 use catgraph::{
