@@ -8,6 +8,15 @@ Uses [catgraph](https://github.com/tsondru/catgraph) v0.10.5 for the Fong-Spivak
 
 419 tests, zero clippy warnings. Rust 2024 edition.
 
+## Deprecations in v0.4.1
+
+The monoidal coherence and 1D Stokes APIs are `#[deprecated(since = "0.4.1")]` and will be removed in v0.4.3:
+
+- `coherence::CoherenceVerification::verify_all`, `coherence::DifferentialCoherence`, and the four `verify_*_coherence` helpers — tautological for the strict SMC structure of `ParallelIntervals` (tensor is `Vec` concat, equivalence is sorted-multiset equality, so associator/unitor/braiding cannot fail).
+- `stokes::TemporalComplex::exterior_derivative` and `stokes::ConservationResult::is_closed` — correct but trivial on a 1D simplicial complex (the 2-form space is `{0}`).
+
+**What replaces them**: v0.4.3 will rewrite both layers on top of [`catgraph-physics`](https://github.com/tsondru/catgraph) multiway substrate — a genuine non-strict symmetric monoidal category (confluence up to causal equivalence) with real 2-simplices (confluence diamonds). Discrete exterior derivative `d: Ω¹ → Ω²` over the diamond 2-cells becomes a falsifiable check, and the coherence axioms become real constraints on non-confluent multiway fragments. The cospan-chain bridge in `stokes.rs` is NOT deprecated and will survive the rewrite under a more honest module name.
+
 ## Component Index
 
 | Module | Component | Purpose |

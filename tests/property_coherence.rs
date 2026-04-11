@@ -2,6 +2,10 @@
 //!
 //! Uses proptest to verify that monoidal coherence laws and the Z' ⊣ Z adjunction
 //! hold for arbitrary well-formed inputs, not just hand-picked examples.
+//!
+//! NOTE (v0.4.1): the coherence proptests exercise deprecated APIs (see
+//! `src/coherence.rs` module docs). Kept green until v0.4.3 Phase 2.5.
+#![allow(deprecated)]
 
 use proptest::prelude::*;
 

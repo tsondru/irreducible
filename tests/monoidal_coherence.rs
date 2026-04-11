@@ -3,6 +3,10 @@
 //! Verifies tensor product symmetry and associativity, unit laws,
 //! monoidal functor results for multiway computations, differential
 //! coherence, and bifunctor operations on ParallelIntervals.
+//!
+//! NOTE (v0.4.1): exercises deprecated coherence APIs (see `src/coherence.rs`
+//! module docs). Kept green until v0.4.3 Phase 2.5 rewrite.
+#![allow(deprecated)]
 
 use irreducible::{
     tensor_bimap, verify_associativity, verify_symmetry, verify_unit_laws, DifferentialCoherence,

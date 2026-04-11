@@ -6,6 +6,24 @@
 
 **Core insight**: Computational irreducibility is equivalent to functoriality of Z': T -> B, a map from a category of computations (T) to a cobordism category (B). A computation is irreducible iff Z' preserves composition -- no shortcuts exist.
 
+## Deprecation notice (v0.4.1, Phase 1.5a)
+
+The following APIs are `#[deprecated(since = "0.4.1")]` and will be removed in v0.4.3:
+
+- `coherence::CoherenceVerification::verify_all`
+- `coherence::DifferentialCoherence::{verify, has_categorical_curvature, coherence_defect}`
+- `coherence::{verify_associator_coherence, verify_left_unitor_coherence, verify_right_unitor_coherence, verify_braiding_coherence}`
+- `stokes::TemporalComplex::exterior_derivative`
+- `stokes::ConservationResult::is_closed`
+
+**Why:** these checks are mathematically correct but tautological. `ParallelIntervals` is a strict symmetric monoidal category (tensor = Vec concat, equivalence = sorted-multiset equality), so associator/unitor/braiding checks cannot fail. `TemporalComplex` is a 1D simplicial complex, so the exterior derivative on a 1-form lands in Ω² = {0} — uniquely zero. The APIs give users false confidence they're verifying non-trivial properties.
+
+**What replaces them:** irreducible v0.4.3 (Phase 2.5) rewrites coherence and stokes on top of `catgraph-physics` multiway substrate — a genuine non-strict SMC (confluence up to causal equivalence) with real 2-simplices (confluence diamonds). The full spec lives in `catgraph/.claude/refactor/phase-2.5-coherence-stokes-rewrite.md` in the catgraph workspace.
+
+**What you should do:** stop using the deprecated APIs in new code. Existing call sites keep working (compiler emits warnings) until the v0.4.3 removal.
+
+The cospan-chain bridge (`TemporalComplex::to_cospan_chain`, `compose_cospan_chain`) is **not deprecated** — it is correct and will survive the Phase 2.5 rewrite under a more honest module name.
+
 ## Workspace Structure
 
 ```
@@ -435,8 +453,9 @@ let result = EXEC.run(move || {
 | Lambda calculus | Additional computation model with beta-reduction as morphisms |
 | Rule classification | Systematic irreducibility analysis of all 256 elementary CA rules |
 | deep_causality integration | Wire `CausalEffect<T>` into `deep_causality::PropagatingEffect` for causal computation; currently no production consumers but planned |
-| Higher-dimensional Stokes | nalgebra-sparse `CsrMatrix` for sparse boundary operators in catgraph's `TemporalComplex`; currently trivial in 1D |
-| Spectral coherence | nalgebra-lapack eigendecomposition for coherence matrix analysis in monoidal functor verification; deferred until matrices exceed ~100x100 |
+| Higher-dimensional Stokes | Real `d: Ω¹ → Ω²` over a 2D multiway-diamond complex lands in v0.4.3 (Phase 2.5). Substrate: `nalgebra-sparse` `CooMatrix` → `CsrMatrix` for ∂₁/∂₂, `spmm_csr_dense` with `Op::Transpose` for `dω`, `CsrMatrix` Mul for `d²=0` verification. See `phase-2.5-coherence-stokes-rewrite.md` in the catgraph workspace. |
+| Non-strict monoidal coherence | Real associator/unitor/braiding verification lands in v0.4.3 (Phase 2.5) on `catgraph-physics` multiway — confluence up to causal equivalence gives a non-strict SMC where the axioms are falsifiable. Replaces the v0.4.1-deprecated tautological checks. |
+| Spectral coherence | nalgebra `SymmetricEigen` on densified `DMatrix` for Hodge Laplacian eigendecomposition at ≤1000 simplices, deferred until Phase 2.5 harmonic-forms work. Above ~5000 simplices, Lanczos / ARPACK required (no nalgebra iterative eigensolvers). |
 
 **Intentionally kept**: `CausalEffect<T>` in `types.rs` has zero internal consumers currently but is retained for the planned deep_causality integration. Do not flag as dead code.
 

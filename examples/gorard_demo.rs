@@ -1,5 +1,10 @@
 //! # A Functorial Perspective on (Multi)computational Irreducibility
 //!
+//! NOTE (v0.4.1): the monoidal-functor section uses deprecated coherence
+//! APIs that are tautological for `ParallelIntervals`. See the
+//! `src/coherence.rs` module docs. A Phase 2.5 replacement will demonstrate
+//! real verification against `catgraph_physics` multiway substrate.
+//!
 //! This demo implements the key insights from Jonathan Gorard's paper (arXiv:2301.04690):
 //!
 //! > "Computational irreducibility is equivalent to functoriality of the complexity
@@ -17,6 +22,8 @@
 //! - **Category ℬ**: Cobordisms (objects = time steps, morphisms = intervals)
 //! - **Functor Z'**: Maps transitions to their complexity intervals
 //! - **Functoriality**: Z'(g∘f) = Z'(g) ∘ Z'(f) means "no shortcuts exist"
+
+#![allow(deprecated)]
 
 use irreducible::{
     // Core types

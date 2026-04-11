@@ -20,7 +20,15 @@ pub mod fong_spivak;
 pub mod monoidal;
 pub mod stokes_integration;
 
-// Re-export monoidal functor types
+// Re-export monoidal functor types.
+//
+// The coherence helpers (`verify_*_coherence`, `CoherenceVerification`,
+// `DifferentialCoherence`) are `#[deprecated(since = "0.4.1")]` at their
+// definition site because they are tautological for the strict SMC
+// structure of `ParallelIntervals`. Consumers using these re-exports will
+// see the deprecation warnings on call. Real multiway-based coherence
+// lands in v0.4.3 (Phase 2.5).
+#[allow(deprecated)]
 pub use monoidal::{
     verify_associator_coherence, verify_braiding_coherence, verify_left_unitor_coherence,
     verify_right_unitor_coherence, CoherenceVerification, DifferentialCoherence,

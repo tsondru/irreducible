@@ -2,6 +2,10 @@
 //!
 //! Verifies `TemporalComplex` conservation, exterior derivative properties,
 //! cospan chain composability, and edge cases.
+//!
+//! NOTE (v0.4.1): exercises deprecated `exterior_derivative` and `is_closed`
+//! (see `src/stokes.rs` module docs). Kept green until v0.4.3 Phase 2.5.
+#![allow(deprecated)]
 
 use catgraph::category::Composable;
 use irreducible::interval::DiscreteInterval;

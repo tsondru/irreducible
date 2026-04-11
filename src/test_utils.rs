@@ -151,6 +151,7 @@ macro_rules! intervals {
 macro_rules! test_full_coherence {
     ($test_name:ident, $intervals:expr) => {
         #[test]
+        #[allow(deprecated)]
         fn $test_name() {
             use $crate::functor::monoidal::CoherenceVerification;
             let intervals = $intervals;
@@ -209,6 +210,7 @@ macro_rules! test_differential_coherence {
     };
     ($test_name:ident, $intervals:expr, $expected_coherent:expr) => {
         #[test]
+        #[allow(deprecated)]
         fn $test_name() {
             use $crate::functor::monoidal::DifferentialCoherence;
             let intervals = $intervals;
@@ -280,6 +282,7 @@ macro_rules! test_coherence_condition {
     // Associator: α_{A,B,C}: (A ⊗ B) ⊗ C ≅ A ⊗ (B ⊗ C)
     (associator, $test_name:ident, $a:expr, $b:expr, $c:expr) => {
         #[test]
+        #[allow(deprecated)]
         fn $test_name() {
             use $crate::functor::monoidal::verify_associator_coherence;
             let a = $a;
@@ -294,6 +297,7 @@ macro_rules! test_coherence_condition {
     // Left unitor: λ_X: I ⊗ X ≅ X
     (left_unitor, $test_name:ident, $x:expr) => {
         #[test]
+        #[allow(deprecated)]
         fn $test_name() {
             use $crate::functor::monoidal::verify_left_unitor_coherence;
             let x = $x;
@@ -306,6 +310,7 @@ macro_rules! test_coherence_condition {
     // Right unitor: ρ_X: X ⊗ I ≅ X
     (right_unitor, $test_name:ident, $x:expr) => {
         #[test]
+        #[allow(deprecated)]
         fn $test_name() {
             use $crate::functor::monoidal::verify_right_unitor_coherence;
             let x = $x;
@@ -318,6 +323,7 @@ macro_rules! test_coherence_condition {
     // Braiding: σ_{X,Y}: X ⊗ Y ≅ Y ⊗ X
     (braiding, $test_name:ident, $x:expr, $y:expr) => {
         #[test]
+        #[allow(deprecated)]
         fn $test_name() {
             use $crate::functor::monoidal::verify_braiding_coherence;
             let x = $x;

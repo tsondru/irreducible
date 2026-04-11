@@ -19,7 +19,13 @@ use catgraph::multiway::{
 
 use super::{BranchResult, IrreducibilityFunctor};
 
-// Re-export coherence types from catgraph
+// Re-export coherence types from local module.
+//
+// All re-exported items here are #[deprecated(since = "0.4.1")] at their
+// definition site — see `src/coherence.rs` module docs. Consumers reading
+// these re-exports will see the deprecation warnings on use. Real
+// multiway-based coherence lands in v0.4.3 (Phase 2.5).
+#[allow(deprecated)]
 pub use crate::coherence::{
     verify_associator_coherence, verify_braiding_coherence, verify_left_unitor_coherence,
     verify_right_unitor_coherence, CoherenceVerification, DifferentialCoherence,
@@ -184,6 +190,15 @@ impl IrreducibilityFunctor {
     /// 2. Tensor product is preserved: Z'(f ⊗ g) = Z'(f) ⊕ Z'(g)
     ///
     /// This is the criterion for **multicomputational irreducibility**.
+    ///
+    /// **Note (v0.4.1):** the coherence step in this check calls
+    /// [`CoherenceVerification::verify_all`], which is deprecated because
+    /// the underlying checks are tautological for [`ParallelIntervals`].
+    /// The coherence bit of the result therefore carries no information
+    /// and `is_multicomputationally_irreducible` collapses to
+    /// `branches_irreducible && preserves_tensor`. A real multiway-based
+    /// coherence check lands in v0.4.3 (Phase 2.5).
+    #[allow(deprecated)]
     #[must_use]
     pub fn verify_symmetric_monoidal_functor<S: Clone + Hash, T: Clone>(
         graph: &MultiwayEvolutionGraph<S, T>,
@@ -281,6 +296,7 @@ impl IrreducibilityFunctor {
 // moved to catgraph::interval::ParallelIntervals — available via re-export.
 
 #[cfg(test)]
+#[allow(deprecated)]
 mod tests {
     use super::*;
     use crate::machines::multiway::{MultiwayEvolutionGraph, StringRewriteSystem};

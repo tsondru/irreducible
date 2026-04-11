@@ -2,6 +2,10 @@
 //!
 //! Verifies symmetric monoidal coherence conditions (associator, unitors,
 //! braiding) and differential coherence interpretation for `ParallelIntervals`.
+//!
+//! NOTE (v0.4.1): exercises deprecated APIs (see `src/coherence.rs` module
+//! docs). Kept green until v0.4.3 Phase 2.5 rewrite replaces them.
+#![allow(deprecated)]
 
 use irreducible::coherence::{
     verify_associator_coherence, verify_braiding_coherence, verify_left_unitor_coherence,

@@ -9,6 +9,32 @@
 //!
 //! Also provides [`DifferentialCoherence`] which interprets algebraic coherence
 //! through a differential geometric lens (Stokes-like closure conditions).
+//!
+//! # Deprecated as of v0.4.1 — tautological for strict SMC
+//!
+//! [`ParallelIntervals`] is a **strict** symmetric monoidal category:
+//! `tensor` is literally `Vec` concatenation and `structurally_equivalent` is
+//! sorted-multiset equality of branch cardinalities. Under these definitions:
+//!
+//! - `(a⊗b)⊗c` and `a⊗(b⊗c)` are the *same* `Vec` — the associator check
+//!   cannot fail for any input.
+//! - `I⊗X` and `X⊗I` are both `X` by construction — unitor checks cannot fail.
+//! - `x⊗y` and `y⊗x` differ only in Vec order, erased by sorted-multiset
+//!   equality — braiding cannot fail.
+//!
+//! The checks in this module are therefore **mathematically correct but
+//! tautological** — they cannot detect any violation because the type system
+//! already enforces the axioms. They give users false confidence that
+//! non-trivial verification is happening.
+//!
+//! **Meaningful coherence verification lands in irreducible v0.4.3 (Phase 2.5)**
+//! on top of `catgraph_physics` multiway graphs — a genuine non-strict SMC
+//! where associator, unitors, and braiding become real constraints on
+//! confluence structure. See `.claude/refactor/phase-2.5-coherence-stokes-rewrite.md`
+//! in the catgraph workspace for the full spec.
+//!
+//! Consumers should stop depending on these APIs. They remain for backward
+//! compatibility only and will be removed in v0.4.3.
 
 use crate::interval::ParallelIntervals;
 
@@ -21,6 +47,13 @@ use crate::interval::ParallelIntervals;
 /// The associator proves that grouping in tensor products doesn't matter.
 /// For parallel intervals, this checks structural equivalence of:
 /// `(a ⊗ b) ⊗ c` vs `a ⊗ (b ⊗ c)`
+///
+/// **Deprecated (v0.4.1):** tautological for strict SMC — always returns
+/// `true`. See module docs and Phase 2.5 spec.
+#[deprecated(
+    since = "0.4.1",
+    note = "tautological for strict SMC — ParallelIntervals tensor is Vec concat, so this always returns true. Real verification lands in v0.4.3 (Phase 2.5) on catgraph_physics multiway substrate."
+)]
 #[must_use]
 pub fn verify_associator_coherence(
     a: &ParallelIntervals,
@@ -41,6 +74,13 @@ pub fn verify_associator_coherence(
 ///
 /// The left unitor proves that tensoring with the unit (empty) on the left
 /// gives back the original structure.
+///
+/// **Deprecated (v0.4.1):** tautological for strict SMC — always returns
+/// `true`. See module docs and Phase 2.5 spec.
+#[deprecated(
+    since = "0.4.1",
+    note = "tautological for strict SMC — always returns true. Real verification lands in v0.4.3 (Phase 2.5)."
+)]
 #[must_use]
 pub fn verify_left_unitor_coherence(x: &ParallelIntervals) -> bool {
     // I = empty ParallelIntervals (unit object)
@@ -56,6 +96,13 @@ pub fn verify_left_unitor_coherence(x: &ParallelIntervals) -> bool {
 ///
 /// The right unitor proves that tensoring with the unit (empty) on the right
 /// gives back the original structure.
+///
+/// **Deprecated (v0.4.1):** tautological for strict SMC — always returns
+/// `true`. See module docs and Phase 2.5 spec.
+#[deprecated(
+    since = "0.4.1",
+    note = "tautological for strict SMC — always returns true. Real verification lands in v0.4.3 (Phase 2.5)."
+)]
 #[must_use]
 pub fn verify_right_unitor_coherence(x: &ParallelIntervals) -> bool {
     // I = empty ParallelIntervals (unit object)
@@ -70,6 +117,13 @@ pub fn verify_right_unitor_coherence(x: &ParallelIntervals) -> bool {
 /// Verify braiding coherence: σ_{X,Y}: X ⊗ Y ≅ Y ⊗ X.
 ///
 /// The braiding proves that the tensor product is symmetric - order doesn't matter.
+///
+/// **Deprecated (v0.4.1):** tautological for strict SMC — always returns
+/// `true`. See module docs and Phase 2.5 spec.
+#[deprecated(
+    since = "0.4.1",
+    note = "tautological for strict SMC — always returns true. Real verification lands in v0.4.3 (Phase 2.5)."
+)]
 #[must_use]
 pub fn verify_braiding_coherence(x: &ParallelIntervals, y: &ParallelIntervals) -> bool {
     // X ⊗ Y
@@ -110,6 +164,15 @@ impl CoherenceVerification {
     /// Verify all coherence conditions for a collection of parallel intervals.
     ///
     /// Tests associator with all triples and braiding with all pairs.
+    ///
+    /// **Deprecated (v0.4.1):** all four checks are tautological for
+    /// [`ParallelIntervals`] — this method always returns a fully-coherent
+    /// result. See module docs and Phase 2.5 spec.
+    #[deprecated(
+        since = "0.4.1",
+        note = "tautological for strict SMC — always returns fully_coherent=true. Real verification lands in v0.4.3 (Phase 2.5) on catgraph_physics multiway."
+    )]
+    #[allow(deprecated)]
     pub fn verify_all(intervals: &[ParallelIntervals]) -> Self {
         if intervals.is_empty() {
             return Self {
@@ -231,7 +294,17 @@ impl DifferentialCoherence {
     ///
     /// Performs both algebraic coherence verification and interprets
     /// the results through the lens of differential forms and Stokes theorem.
-    #[allow(clippy::cast_possible_truncation, clippy::cast_precision_loss)]
+    ///
+    /// **Deprecated (v0.4.1):** inherits the tautology from
+    /// [`CoherenceVerification::verify_all`] — always returns a
+    /// differentially-coherent result. Real verification lands in v0.4.3
+    /// (Phase 2.5) on a 2D simplicial complex from multiway confluence
+    /// diamonds.
+    #[deprecated(
+        since = "0.4.1",
+        note = "inherits tautology from CoherenceVerification::verify_all. Real differential verification lands in v0.4.3 (Phase 2.5)."
+    )]
+    #[allow(clippy::cast_possible_truncation, clippy::cast_precision_loss, deprecated)]
     #[must_use]
     pub fn verify(intervals: &[ParallelIntervals]) -> Self {
         // Step 1: Standard algebraic coherence
@@ -288,6 +361,13 @@ impl DifferentialCoherence {
     /// Non-zero curvature indicates coherence failures — the category
     /// is not "flat" in the sense that parallel transport (composition)
     /// is path-dependent.
+    ///
+    /// **Deprecated (v0.4.1):** inherits tautology from
+    /// [`DifferentialCoherence::verify`] — always returns `false`.
+    #[deprecated(
+        since = "0.4.1",
+        note = "inherits tautology — always returns false. See v0.4.3 (Phase 2.5) rewrite."
+    )]
     #[inline]
     #[must_use]
     pub fn has_categorical_curvature(&self) -> bool {
@@ -298,6 +378,13 @@ impl DifferentialCoherence {
     ///
     /// Analogous to scalar curvature in Riemannian geometry.
     /// A value of 0.0 indicates perfect coherence (flat category).
+    ///
+    /// **Deprecated (v0.4.1):** inherits tautology from
+    /// [`DifferentialCoherence::verify`] — always returns `0.0`.
+    #[deprecated(
+        since = "0.4.1",
+        note = "inherits tautology — always returns 0.0. See v0.4.3 (Phase 2.5) rewrite."
+    )]
     #[inline]
     #[must_use]
     pub fn coherence_defect(&self) -> f64 {
@@ -306,6 +393,7 @@ impl DifferentialCoherence {
 }
 
 impl std::fmt::Display for DifferentialCoherence {
+    #[allow(deprecated)]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(f, "Differential Coherence:")?;
         writeln!(
@@ -331,6 +419,7 @@ impl std::fmt::Display for DifferentialCoherence {
 }
 
 #[cfg(test)]
+#[allow(deprecated)]
 mod tests {
     use super::*;
     use crate::interval::DiscreteInterval;

@@ -3,6 +3,12 @@
 //! Shows temporal complex construction from intervals, conservation verification,
 //! differential forms, integration, cospan chain generation and composition,
 //! and error handling.
+//!
+//! NOTE (v0.4.1): `exterior_derivative` and `is_closed` are deprecated. They
+//! are trivial on a 1D complex — see `src/stokes.rs` module docs. A Phase
+//! 2.5 replacement example (`examples/multiway_stokes.rs`) will demonstrate
+//! a non-trivial `d: Ω¹ → Ω²` on multiway confluence diamonds.
+#![allow(deprecated)]
 
 use catgraph::category::Composable;
 use irreducible::interval::DiscreteInterval;

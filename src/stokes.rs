@@ -25,6 +25,31 @@
 //! cospan composability — exactly the condition for categorical composition
 //! in the cobordism category ℬ. This bridges Stokes integration to
 //! catgraph's cospan architecture.
+//!
+//! # Deprecations as of v0.4.1 — trivial exterior derivative in 1D
+//!
+//! [`TemporalComplex`] is a **1-dimensional** simplicial complex. The space
+//! of 2-forms Ω² on a 1D complex is the zero space (no 2-simplices), so
+//! `d: Ω¹ → Ω²` is uniquely the zero map. [`TemporalComplex::exterior_derivative`]
+//! correctly returns `0` — and therefore [`ConservationResult::is_closed`] is
+//! trivially `true` for every well-formed input.
+//!
+//! The *mathematics* is correct; the *informativeness* is not. Users reading
+//! `is_closed == true` may believe a non-trivial closure condition was
+//! verified, when in fact nothing could have failed.
+//!
+//! **Meaningful exterior-derivative verification lands in irreducible v0.4.3
+//! (Phase 2.5)** on top of a 2D simplicial complex built from `catgraph_physics`
+//! multiway confluence diamonds, where `d: Ω¹ → Ω²` is non-trivial and
+//! `is_closed` becomes a falsifiable property ("is this 1-form path-independent
+//! across every diamond"). See
+//! `.claude/refactor/phase-2.5-coherence-stokes-rewrite.md` in the catgraph
+//! workspace for the full spec.
+//!
+//! The cospan-chain bridge ([`TemporalComplex::to_cospan_chain`] and
+//! [`TemporalComplex::compose_cospan_chain`]) is **not deprecated** — it is
+//! correct and useful, and will survive the Phase 2.5 rewrite under a more
+//! honest module name.
 
 use catgraph::cospan::Cospan;
 use catgraph::errors::CatgraphError;
@@ -129,6 +154,15 @@ impl TemporalComplex {
     ///
     /// For a 1-dimensional complex, d(1-form) = 0 always (no 2-simplices).
     /// Returns a zero vector.
+    ///
+    /// **Deprecated (v0.4.1):** correct but trivial — the 2-form space on a
+    /// 1D complex is {0}, so this is the unique zero map and gives no
+    /// information. Real exterior derivative lands in v0.4.3 (Phase 2.5) on
+    /// a 2D multiway-confluence complex. See module docs.
+    #[deprecated(
+        since = "0.4.1",
+        note = "correct but trivial — d(1-form) = 0 uniquely on a 1D complex. Real derivative lands in v0.4.3 (Phase 2.5) on catgraph_physics multiway 2-cells."
+    )]
     #[must_use]
     pub fn exterior_derivative(&self, _form: &[f64]) -> Vec<f64> {
         vec![0.0; self.num_time_steps().saturating_sub(2)]
@@ -152,8 +186,9 @@ impl TemporalComplex {
     ///
     /// 1. **Contiguity**: Intervals must be composable (no gaps)
     /// 2. **Monotonicity**: Time must flow forward (no negative steps)
-    /// 3. **Closure**: The 1-form is closed (trivially true in dim-1)
-    #[allow(clippy::cast_possible_truncation, clippy::cast_precision_loss)]
+    /// 3. **Closure**: The 1-form is closed (trivially true in dim-1; see
+    ///    [`ConservationResult::is_closed`] deprecation note)
+    #[allow(clippy::cast_possible_truncation, clippy::cast_precision_loss, deprecated)]
     #[must_use]
     pub fn verify_conservation(&self) -> ConservationResult {
         let form = self.intervals_to_form();
@@ -222,6 +257,15 @@ pub struct ConservationResult {
     /// Whether the computation is conserved (closed, contiguous, monotonic).
     pub is_conserved: bool,
     /// Whether the derived 1-form is closed (dω = 0).
+    ///
+    /// **Deprecated (v0.4.1):** trivially `true` on a 1D complex — the
+    /// space of 2-forms is {0}, so every 1-form is closed. Retained for
+    /// backward compatibility; removed in v0.4.3 (Phase 2.5) when the real
+    /// non-trivial closure check lands on a 2D multiway substrate.
+    #[deprecated(
+        since = "0.4.1",
+        note = "trivially true on a 1D complex. Real closure check lands in v0.4.3 (Phase 2.5)."
+    )]
     pub is_closed: bool,
     /// Whether intervals are contiguous (no gaps).
     pub is_contiguous: bool,
@@ -279,6 +323,7 @@ impl std::fmt::Display for StokesError {
 impl std::error::Error for StokesError {}
 
 #[cfg(test)]
+#[allow(deprecated)]
 mod tests {
     use super::*;
     use catgraph::category::Composable;

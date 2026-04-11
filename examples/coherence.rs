@@ -3,6 +3,13 @@
 //! Shows individual coherence checks (associator, unitors, braiding),
 //! comprehensive verification via CoherenceVerification::verify_all,
 //! and differential coherence analysis.
+//!
+//! NOTE (v0.4.1): this example exercises deprecated APIs. The checks are
+//! tautological for `ParallelIntervals` — see `src/coherence.rs` module
+//! docs. A Phase 2.5 replacement example (`examples/multiway_coherence.rs`)
+//! will demonstrate real verification against `catgraph_physics` multiway
+//! substrate.
+#![allow(deprecated)]
 
 use irreducible::coherence::{
     verify_associator_coherence, verify_braiding_coherence, verify_left_unitor_coherence,

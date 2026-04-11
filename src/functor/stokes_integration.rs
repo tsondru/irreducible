@@ -1,8 +1,17 @@
 //! Stokes integration for computational irreducibility analysis.
 //!
 //! Core types (`TemporalComplex`, `ConservationResult`, `StokesError`)
-//! re-exported from [`catgraph::stokes`]. This module provides the
+//! re-exported from the local `stokes` module. This module provides the
 //! irreducibility-specific `StokesIrreducibility` wrapper.
+//!
+//! **Note (v0.4.1):** `TemporalComplex::exterior_derivative` and
+//! `ConservationResult::is_closed` are deprecated because they are trivial
+//! on a 1D simplicial complex. `StokesIrreducibility::is_irreducible`
+//! depends on `conservation.is_conserved`, which ANDs `is_closed` into the
+//! result — effectively `is_conserved == is_contiguous && is_monotonic` in
+//! the current implementation. The real exterior-derivative check lands in
+//! v0.4.3 (Phase 2.5) on a 2D multiway substrate. See `src/stokes.rs`
+//! module docs.
 
 pub use crate::stokes::{ConservationResult, StokesError, TemporalComplex};
 
