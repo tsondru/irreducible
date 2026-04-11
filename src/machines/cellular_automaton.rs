@@ -27,7 +27,7 @@
 //! (no known shortcut exists to compute generation n without computing 1..n-1).
 
 use super::trace::{self, IrreducibilityTrace};
-use catgraph::interval::DiscreteInterval;
+use crate::interval::DiscreteInterval;
 use std::collections::hash_map::DefaultHasher;
 use std::fmt;
 use std::hash::{Hash, Hasher};

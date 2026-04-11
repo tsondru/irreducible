@@ -12,7 +12,7 @@
 
 use std::hash::Hash;
 
-use catgraph::interval::{DiscreteInterval, ParallelIntervals};
+use crate::interval::{DiscreteInterval, ParallelIntervals};
 use catgraph::multiway::{
     extract_branchial_foliation, BranchialGraph, MultiwayEvolutionGraph,
 };
@@ -20,7 +20,7 @@ use catgraph::multiway::{
 use super::{BranchResult, IrreducibilityFunctor};
 
 // Re-export coherence types from catgraph
-pub use catgraph::coherence::{
+pub use crate::coherence::{
     verify_associator_coherence, verify_braiding_coherence, verify_left_unitor_coherence,
     verify_right_unitor_coherence, CoherenceVerification, DifferentialCoherence,
 };
@@ -189,7 +189,7 @@ impl IrreducibilityFunctor {
         graph: &MultiwayEvolutionGraph<S, T>,
     ) -> MonoidalFunctorResult {
         // Step 1: Check individual branch irreducibility
-        let branch_intervals = graph.to_branch_intervals();
+        let branch_intervals = crate::machines::multiway::branch_intervals(graph);
         let multiway_result = Self::verify_multiway_functoriality(&branch_intervals);
 
         // Step 2: Check tensor preservation at each step

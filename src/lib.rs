@@ -44,13 +44,24 @@ pub mod functor;
 pub mod machines;
 pub mod types;
 
+// Category theory primitives — moved into irreducible as of v0.4.0
+// (previously re-exported from catgraph v0.9.0–v0.10.4).
+pub mod adjunction;
+pub mod bifunctor;
+pub mod coherence;
+pub mod complexity;
+pub mod computation_state;
+pub mod interval;
+pub mod stokes;
+pub mod trace;
+
 #[cfg(test)]
 pub mod test_utils;
 
-// Category theory exports (re-exported from catgraph)
-pub use catgraph::interval::{DiscreteInterval, ParallelIntervals};
-pub use catgraph::complexity::{Complexity, StepCount};
-pub use catgraph::computation_state::ComputationState;
+// Category theory exports (now local modules)
+pub use interval::{DiscreteInterval, ParallelIntervals};
+pub use complexity::{Complexity, StepCount};
+pub use computation_state::ComputationState;
 
 // Functor exports
 pub use functor::IrreducibilityFunctor;
@@ -84,8 +95,8 @@ pub use machines::{ExecutionHistory, IrreducibilityAnalysis, TuringMachine};
 // Cellular automaton exports (1D)
 pub use machines::{CAExecutionHistory, CAIrreducibilityAnalysis, ElementaryCA, Generation};
 
-// Trace analysis exports (re-exported from catgraph)
-pub use catgraph::trace::{
+// Trace analysis exports (local module)
+pub use trace::{
     analyze_trace, detect_repeats, IrreducibilityTrace, RepeatDetection, TraceAnalysis,
 };
 

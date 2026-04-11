@@ -7,7 +7,7 @@
 //!
 //! Re-exported from [`catgraph::bifunctor`].
 
-pub use catgraph::bifunctor::{
+pub use crate::bifunctor::{
     tensor_bimap, tensor_first, tensor_second, verify_associativity, verify_symmetry,
     verify_unit_laws, IntervalTransform, TensorProduct,
 };

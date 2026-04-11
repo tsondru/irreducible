@@ -4,18 +4,26 @@ Computational irreducibility as functoriality in Rust, implementing Jonathan Gor
 
 **Core insight**: A computation is irreducible iff a certain functor Z': T -> B (from computations to cobordisms) preserves composition. No shortcuts exist when Z' is functorial.
 
-Uses [catgraph](https://github.com/tsondru/catgraph) v0.10.1 for categorical infrastructure (cospans, spans, adjunctions, coherence, hypergraph DPO rewriting, multiway evolution, Fong-Spivak hypergraph categories). irreducible adds computation models (TM, CA, SRS, NTM) and the functorial irreducibility framework.
+Uses [catgraph](https://github.com/tsondru/catgraph) v0.10.5 for the Fong-Spivak categorical infrastructure (cospans, spans, hypergraph DPO rewriting, multiway evolution, hypergraph categories, cospan-algebras, Thm 1.2 equivalence). irreducible owns the computation-facing layer — interval algebra, adjunctions, monoidal coherence, Stokes integration, trace analysis — plus the computation models (TM, CA, SRS, NTM).
 
-310 tests (325 with all features), zero clippy warnings. Rust 2024 edition.
+419 tests, zero clippy warnings. Rust 2024 edition.
 
 ## Component Index
 
 | Module | Component | Purpose |
 |--------|-----------|---------|
+| `interval.rs` | `DiscreteInterval`, `ParallelIntervals` | Discrete interval algebra for the cobordism category B |
+| `complexity.rs` | `Complexity`, `StepCount` | Sequential/parallel complexity composition |
+| `computation_state.rs` | `ComputationState` | State lifecycle + interval-map bridge |
+| `adjunction.rs` | `ZPrimeOps`, `AdjunctionIrreducibility`, `AdjunctionVerification` | Abstract Z' ⊣ Z adjunction traits |
+| `bifunctor.rs` | `TensorProduct`, `IntervalTransform` | Bifunctor laws (associativity, unit, symmetry) |
+| `coherence.rs` | `CoherenceVerification`, `DifferentialCoherence` | Monoidal coherence axioms (associator, unitors, braiding) |
+| `stokes.rs` | `TemporalComplex`, `ConservationResult`, `StokesError` | Simplicial conservation + cospan chain bridge |
+| `trace.rs` | `IrreducibilityTrace`, `analyze_trace`, `RepeatDetection` | Generic trace analysis, repeat detection |
 | `functor/mod.rs` | `IrreducibilityFunctor`, `MultiwayIrreducibilityResult` | Functor Z': T -> B, multiway branch analysis |
-| `functor/adjunction.rs` | `ZPrimeAdjunction`, `AdjunctionVerification` | Z' ⊣ Z adjunction, triangle identities |
+| `functor/adjunction.rs` | `ZPrimeAdjunction`, `AdjunctionVerification` | Concrete Z' ⊣ Z adjunction for computation states |
 | `functor/monoidal.rs` | `MonoidalFunctorResult`, `CoherenceVerification` | Symmetric monoidal functor check (alpha, lambda, rho, sigma) |
-| `functor/bifunctor.rs` | `TensorProduct`, `IntervalTransform` | Re-exports catgraph bifunctor laws |
+| `functor/bifunctor.rs` | `TensorProduct`, `IntervalTransform` | Re-exports local bifunctor laws |
 | `functor/fong_spivak.rs` | `FrobeniusVerificationResult`, `verify_cospan_chain_frobenius` | Fong-Spivak Frobenius decomposition verification |
 | `functor/stokes_integration.rs` | `StokesIrreducibility`, `TemporalComplex` | Stokes conservation analysis, cospan bridge |
 | `machines/turing.rs` | `TuringMachine`, `ExecutionHistory` | Deterministic Turing machines |
@@ -30,7 +38,7 @@ Uses [catgraph](https://github.com/tsondru/catgraph) v0.10.1 for categorical inf
 
 ## Fong-Spivak Feature Map
 
-Re-exports from catgraph v0.10.1 implementing [Fong & Spivak, *Hypergraph Categories*](https://arxiv.org/abs/1806.08304) SS2-3:
+Re-exports from catgraph v0.10.5 implementing [Fong & Spivak, *Hypergraph Categories*](https://arxiv.org/abs/1806.08304) SS2-3:
 
 | Paper Reference | Re-exported Type | Purpose |
 |-----------------|------------------|---------|
@@ -47,7 +55,7 @@ Re-exports from catgraph v0.10.1 implementing [Fong & Spivak, *Hypergraph Catego
 
 | Paper Concept | Implementation | Location |
 |---|---|---|
-| Cobordism category B | `DiscreteInterval`, `ParallelIntervals` | catgraph::interval |
+| Cobordism category B | `DiscreteInterval`, `ParallelIntervals` | irreducible::interval |
 | Functor Z': T -> B | `IrreducibilityFunctor` | functor/mod.rs |
 | Adjunction Z' ⊣ Z | `ZPrimeAdjunction`, triangle identities | functor/adjunction.rs |
 | Coherence (alpha, lambda, rho, sigma) | `CoherenceVerification`, `DifferentialCoherence` | functor/monoidal.rs |
@@ -57,7 +65,7 @@ Re-exports from catgraph v0.10.1 implementing [Fong & Spivak, *Hypergraph Catego
 | Evolution as cospan chain | `HypergraphEvolution::to_cospan_chain()` | catgraph::hypergraph |
 | Causal invariance | Wilson loops, holonomy analysis | catgraph::hypergraph |
 | Branchial curvature | `OllivierRicciCurvature` | catgraph::multiway |
-| Complexity algebra | `Complexity`, `StepCount` | catgraph::complexity |
+| Complexity algebra | `Complexity`, `StepCount` | irreducible::complexity |
 
 ## Quick Start
 

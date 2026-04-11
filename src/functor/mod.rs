@@ -51,7 +51,7 @@ pub use fong_spivak::{
     PartitionAlgebra, RelabelingFunctor, verify_cospan_chain_frobenius,
 };
 
-use catgraph::{
+use crate::{
     complexity::{Complexity, StepCount},
     interval::{DiscreteInterval, ParallelIntervals},
 };

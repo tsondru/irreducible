@@ -13,6 +13,7 @@
 
 #[cfg(feature = "manifold-curvature")]
 pub mod manifold_bridge;
+mod interval_bridge;
 mod ntm;
 mod string_rewrite;
 
@@ -20,12 +21,18 @@ mod string_rewrite;
 pub use catgraph::multiway::{
     run_multiway_bfs, BranchId, MergePoint, MultiwayCycle, MultiwayEdge, MultiwayEdgeKind,
     MultiwayEvolutionGraph, MultiwayNode, MultiwayNodeId, MultiwayStatistics,
-    branchial_to_parallel_intervals, extract_branchial_foliation, find_all_merge_points,
+    extract_branchial_foliation, find_all_merge_points,
     BranchialGraph, BranchialStepStats, BranchialSummary,
     CurvatureFoliation, DiscreteCurvature,
     OllivierFoliation, OllivierRicciCurvature,
     wasserstein_1,
 };
+
+// Local re-implementations of the interval-typed bridge helpers that used
+// to live in catgraph::multiway (removed in catgraph v0.10.5 when interval
+// moved to irreducible). Both walk catgraph's public `MultiwayEvolutionGraph`
+// API and wrap step numbers in irreducible's own interval types.
+pub use interval_bridge::{branch_intervals, branchial_to_parallel_intervals};
 
 // Local computation models
 pub use string_rewrite::{RewriteApplication, SrsRewriteRule, SRSState, StringRewriteSystem};

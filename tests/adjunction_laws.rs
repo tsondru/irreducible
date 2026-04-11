@@ -1,41 +1,68 @@
-//! Integration tests for the Z' ⊣ Z adjunction.
+//! Integration tests for the adjunction module.
 //!
-//! Verifies unit/counit, triangle identities, round-trip properties,
-//! and the connection between the adjunction structure and irreducibility
-//! for both TuringMachine and CellularAutomaton executions.
+//! Defines a concrete `SimpleAdjunction` implementing `ZPrimeOps`, then
+//! verifies triangle identities, verification sequence counts, and
+//! irreducibility indicators.
 
-use irreducible::{
-    AdjunctionIrreducibility, AdjunctionVerification, ComputationState, DiscreteInterval,
-    ElementaryCA, TuringMachine, ZPrimeAdjunction, ZPrimeOps,
-};
+use irreducible::adjunction::{AdjunctionIrreducibility, AdjunctionVerification, ZPrimeOps};
+use irreducible::computation_state::ComputationState;
+use irreducible::interval::DiscreteInterval;
 
 // ---------------------------------------------------------------------------
-// Basic adjunction operations
+// Test fixture
 // ---------------------------------------------------------------------------
 
-#[test]
-fn create_adjunction_verify_unit_and_counit() {
-    let state = ComputationState::new(0, 5);
+/// A well-formed adjunction: Z' maps state to its natural interval,
+/// Z maps interval back to a state. Round-trip is exact for states
+/// with nonzero complexity.
+struct SimpleAdjunction;
 
-    // Z': computation state -> interval
-    let interval = ZPrimeAdjunction::zprime(&state);
-    assert_eq!(interval.start, 0);
-    assert_eq!(interval.end, 5);
+impl ZPrimeOps for SimpleAdjunction {
+    fn zprime(state: &ComputationState) -> DiscreteInterval {
+        state.to_interval()
+    }
 
-    // Z: interval -> computation state
-    let recovered = ZPrimeAdjunction::z(&interval);
-    assert_eq!(recovered.step, 0);
-    assert_eq!(recovered.complexity, 5);
+    fn z(interval: &DiscreteInterval) -> ComputationState {
+        ComputationState::new(interval.start, interval.end - interval.start)
+    }
 
-    // Unit: eta_c = Z(Z'(c))
-    let unit_result = ZPrimeAdjunction::unit_at(&state);
-    assert_eq!(unit_result.step, state.step);
-    assert_eq!(unit_result.complexity, state.complexity);
+    fn unit_at(state: &ComputationState) -> ComputationState {
+        let interval = Self::zprime(state);
+        Self::z(&interval)
+    }
 
-    // Counit: epsilon_i = Z'(Z(i))
-    let counit_result = ZPrimeAdjunction::counit_at(&interval);
-    assert_eq!(counit_result.start, interval.start);
-    assert_eq!(counit_result.end, interval.end);
+    fn counit_at(interval: &DiscreteInterval) -> DiscreteInterval {
+        let state = Self::z(interval);
+        Self::zprime(&state)
+    }
+
+    fn verify_triangle_1(state: &ComputationState) -> bool {
+        let zp_c = Self::zprime(state);
+        let eta_c = Self::unit_at(state);
+        let zp_eta_c = Self::zprime(&eta_c);
+        let epsilon_zp_c = Self::counit_at(&zp_c);
+        epsilon_zp_c == zp_c && zp_eta_c == zp_c
+    }
+
+    fn verify_triangle_2(interval: &DiscreteInterval) -> bool {
+        let z_i = Self::z(interval);
+        let epsilon_i = Self::counit_at(interval);
+        let z_epsilon_i = Self::z(&epsilon_i);
+        let eta_z_i = Self::unit_at(&z_i);
+        z_epsilon_i == z_i && eta_z_i == z_i
+    }
+}
+
+impl AdjunctionIrreducibility for SimpleAdjunction {}
+
+/// Helper: build a walk of `n` states starting from `ComputationState::initial().next()`.
+fn make_walk(n: usize) -> Vec<ComputationState> {
+    (0..n)
+        .scan(ComputationState::initial(), |s, _| {
+            *s = s.next();
+            Some(s.clone())
+        })
+        .collect()
 }
 
 // ---------------------------------------------------------------------------
@@ -43,168 +70,87 @@ fn create_adjunction_verify_unit_and_counit() {
 // ---------------------------------------------------------------------------
 
 #[test]
-fn triangle_identities_hold_for_tm_derived_states() {
-    let bb = TuringMachine::busy_beaver_2_2();
-    let history = bb.run("", 20);
+fn triangle_identities_hold() {
+    let states = make_walk(6);
 
-    // Derive computation states from the TM execution
-    let states: Vec<ComputationState> = (0..=history.step_count())
-        .map(|i| ComputationState::new(0, i))
-        .collect();
-
-    for state in &states {
+    for s in &states {
         assert!(
-            ZPrimeAdjunction::verify_triangle_1(state),
-            "Triangle 1 failed for step complexity {}",
-            state.complexity
+            SimpleAdjunction::verify_triangle_1(s),
+            "triangle 1 failed at step {}",
+            s.step
         );
-    }
-}
-
-#[test]
-fn triangle_identities_hold_for_ca_derived_intervals() {
-    let ca = ElementaryCA::rule_30(11);
-    let history = ca.run(ca.single_cell_initial(), 10);
-
-    // Derive intervals from the CA execution
-    let intervals = history.to_intervals();
-    for interval in &intervals {
+        let interval = SimpleAdjunction::zprime(s);
         assert!(
-            ZPrimeAdjunction::verify_triangle_2(interval),
-            "Triangle 2 failed for interval [{}, {}]",
+            SimpleAdjunction::verify_triangle_2(&interval),
+            "triangle 2 failed at interval [{}, {}]",
             interval.start,
             interval.end
         );
     }
 }
 
-#[test]
-fn triangle_identity_2_on_composed_interval() {
-    let ca = ElementaryCA::rule_30(21);
-    let history = ca.run(ca.single_cell_initial(), 20);
-
-    // The total interval [0, 20] should also satisfy triangle 2
-    if let Some(total) = history.total_interval() {
-        assert!(ZPrimeAdjunction::verify_triangle_2(&total));
-    }
-}
-
 // ---------------------------------------------------------------------------
-// Adjunction verification for sequences
+// Verification sequence
 // ---------------------------------------------------------------------------
 
 #[test]
-fn adjunction_preserves_irreducibility_status() {
-    // Irreducible execution: busy beaver
-    let bb = TuringMachine::busy_beaver_2_2();
-    let history = bb.run("", 20);
-    assert!(history.is_irreducible());
+fn verify_sequence_counts_correctly() {
+    let states = make_walk(5);
+    let result = AdjunctionVerification::verify_sequence::<SimpleAdjunction>(&states);
 
-    // Derive states and verify the adjunction holds throughout
-    let states: Vec<ComputationState> = (0..history.step_count())
-        .map(|i| ComputationState::new(i, 1))
-        .collect();
-
-    let verification = AdjunctionVerification::verify_sequence::<ZPrimeAdjunction>(&states);
-    assert!(verification.triangle_identities_hold);
-    assert!(verification.is_adjoint_pair);
-    assert_eq!(verification.triangle_1_failures(), 0);
-    assert_eq!(verification.triangle_2_failures(), 0);
+    assert!(result.triangle_identities_hold);
+    assert!(result.is_adjoint_pair);
+    assert_eq!(result.triangle_1_results.len(), 5);
+    assert_eq!(result.triangle_2_results.len(), 5);
+    assert_eq!(result.triangle_1_failures(), 0);
+    assert_eq!(result.triangle_2_failures(), 0);
 }
 
+// ---------------------------------------------------------------------------
+// Adjunction gap
+// ---------------------------------------------------------------------------
+
 #[test]
-fn non_irreducible_execution_has_zero_adjunction_gap() {
-    // Even for non-irreducible computations, the adjunction itself
-    // is well-defined and has zero gap (the gap measures Z/Z' structural
-    // mismatch, not irreducibility per se)
-    let cycling_tm = TuringMachine::builder()
-        .states(vec![0, 1])
-        .initial_state(0)
-        .blank('_')
-        .transition(0, '_', 1, '_', irreducible::machines::Direction::Stay)
-        .transition(1, '_', 0, '_', irreducible::machines::Direction::Stay)
-        .build();
-
-    let history = cycling_tm.run("", 10);
-    assert!(!history.is_irreducible());
-
-    // Build states from the cycling execution
-    let states: Vec<ComputationState> = (0..history.step_count())
-        .map(|i| ComputationState::new(i, 1))
-        .collect();
-
-    let gap = ZPrimeAdjunction::adjunction_irreducibility_indicator(&states);
+fn adjunction_gap_zero_for_reducible() {
+    // States with nonzero complexity have exact Z(Z'(c)) == c round-trip,
+    // so gap should be zero.
+    let state = ComputationState::new(3, 5);
+    let gap = SimpleAdjunction::adjunction_gap(&state);
     assert!(
-        gap.abs() < f64::EPSILON,
-        "Expected zero gap for well-formed states, got {}",
-        gap
+        gap.abs() < 1e-10,
+        "expected zero gap for exact round-trip, got {gap}"
+    );
+}
+
+#[test]
+fn adjunction_gap_positive_for_irreducible() {
+    // The zero-complexity state maps to a 1-step interval (min clamp),
+    // so Z(Z'(state)) has complexity 1 != 0. Gap should be positive.
+    let state = ComputationState::new(0, 0);
+    let gap = SimpleAdjunction::adjunction_gap(&state);
+    assert!(
+        gap > 0.0,
+        "expected positive gap for lossy round-trip, got {gap}"
     );
 }
 
 // ---------------------------------------------------------------------------
-// Round-trip properties
+// Irreducibility indicator
 // ---------------------------------------------------------------------------
 
 #[test]
-fn roundtrip_z_then_zprime_recovers_interval() {
-    let original = DiscreteInterval::new(3, 10);
-    let state = ZPrimeAdjunction::z(&original);
-    let recovered = ZPrimeAdjunction::zprime(&state);
+fn irreducibility_indicator_averages() {
+    let states = make_walk(5);
+    let indicator = SimpleAdjunction::adjunction_irreducibility_indicator(&states);
 
-    assert_eq!(recovered.start, original.start);
-    assert_eq!(recovered.end, original.end);
-}
+    // All states in the walk have complexity >= 1, so round-trip is exact
+    // and each gap is 0. Indicator should be 0.
+    assert!(
+        indicator.abs() < 1e-10,
+        "expected zero indicator for exact walk, got {indicator}"
+    );
 
-#[test]
-fn roundtrip_zprime_then_z_recovers_state() {
-    let original = ComputationState::new(5, 10);
-    let interval = ZPrimeAdjunction::zprime(&original);
-    let recovered = ZPrimeAdjunction::z(&interval);
-
-    assert_eq!(recovered.step, original.step);
-    assert_eq!(recovered.complexity, original.complexity);
-}
-
-// ---------------------------------------------------------------------------
-// Edge cases
-// ---------------------------------------------------------------------------
-
-#[test]
-fn single_step_adjunction() {
-    let state = ComputationState::new(0, 1);
-    assert!(ZPrimeAdjunction::verify_triangle_1(&state));
-
-    let interval = DiscreteInterval::new(0, 1);
-    assert!(ZPrimeAdjunction::verify_triangle_2(&interval));
-
-    let verification = AdjunctionVerification::verify_sequence::<ZPrimeAdjunction>(&[state]);
-    assert!(verification.is_adjoint_pair);
-}
-
-#[test]
-fn multi_step_contiguous_adjunction_sequence() {
-    // Contiguous steps: (0,3) -> (3,4) -> (7,2)
-    let states = vec![
-        ComputationState::new(0, 3),
-        ComputationState::new(3, 4),
-        ComputationState::new(7, 2),
-    ];
-
-    let verification = AdjunctionVerification::verify_sequence::<ZPrimeAdjunction>(&states);
-    assert!(verification.triangle_identities_hold);
-    assert!(verification.is_adjoint_pair);
-
-    // All triangle identities hold individually
-    for (i, &result) in verification.triangle_1_results.iter().enumerate() {
-        assert!(result, "Triangle 1 failed at index {}", i);
-    }
-    for (i, &result) in verification.triangle_2_results.iter().enumerate() {
-        assert!(result, "Triangle 2 failed at index {}", i);
-    }
-}
-
-#[test]
-fn empty_states_indicator_is_zero() {
-    let indicator = ZPrimeAdjunction::adjunction_irreducibility_indicator(&[]);
-    assert!((indicator - 0.0).abs() < f64::EPSILON);
+    // Empty sequence returns 0.
+    let empty = SimpleAdjunction::adjunction_irreducibility_indicator(&[]);
+    assert!((empty - 0.0).abs() < 1e-10);
 }

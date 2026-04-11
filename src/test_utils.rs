@@ -21,7 +21,7 @@
 //! - [`standard_parallel_intervals`] - Standard parallel intervals for monoidal testing
 //!
 
-use catgraph::interval::DiscreteInterval;
+use crate::interval::DiscreteInterval;
 
 // ============================================================================
 // Display Testing Macro
@@ -110,16 +110,16 @@ macro_rules! assert_debug_contains {
 macro_rules! intervals {
     // Single interval
     [($start:expr, $end:expr)] => {{
-        catgraph::interval::ParallelIntervals::from_branch(
-            catgraph::interval::DiscreteInterval::new($start, $end)
+        crate::interval::ParallelIntervals::from_branch(
+            crate::interval::DiscreteInterval::new($start, $end)
         )
     }};
     // Multiple intervals (tensor product)
     [$(($start:expr, $end:expr)),+ $(,)?] => {{
         #[allow(unused_mut)]
-        let mut result = catgraph::interval::ParallelIntervals::new();
+        let mut result = crate::interval::ParallelIntervals::new();
         $(
-            result.add_branch(catgraph::interval::DiscreteInterval::new($start, $end));
+            result.add_branch(crate::interval::DiscreteInterval::new($start, $end));
         )+
         result
     }};

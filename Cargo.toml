@@ -3,15 +3,15 @@ resolver = "2"
 members = []
 
 [workspace.package]
-version = "0.3.0"
+version = "0.4.0"
 edition = "2024"
 license = "MIT"
 authors = ["tsondru", "Claude <noreply@anthropic.com>"]
 
 [workspace.dependencies]
 amari-calculus = { git = "https://github.com/justinelliottcobb/Amari", tag = "v0.19.1" }
-catgraph = { git = "https://github.com/tsondru/catgraph", tag = "v0.10.1" }
-catgraph-surreal = { git = "https://github.com/tsondru/catgraph", tag = "v0.10.1" }
+catgraph = { git = "https://github.com/tsondru/catgraph", tag = "v0.10.5" }
+catgraph-surreal = { git = "https://github.com/tsondru/catgraph-surreal", tag = "v0.7.2" }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 surrealdb = { version = "3.0.4", default-features = false, features = ["kv-mem"] }
@@ -48,3 +48,16 @@ tokio = { workspace = true, optional = true }
 
 [dev-dependencies]
 proptest = "1"
+
+# ---------------------------------------------------------------------------
+# Local development override
+# ---------------------------------------------------------------------------
+# During cross-repo refactors (Phase 1 Group 7 move), point catgraph at a local
+# checkout so both repos can be edited in lock-step before the upstream tag is
+# cut. Re-comment before pushing — released artifacts must reference the git tag.
+
+# [patch."https://github.com/tsondru/catgraph"]
+# catgraph = { path = "../catgraph/catgraph" }
+#
+# [patch."https://github.com/tsondru/catgraph-surreal"]
+# catgraph-surreal = { path = "../catgraph-surreal" }

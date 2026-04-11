@@ -5,10 +5,10 @@
 //!
 //! See Gorard's paper (Section 4.2) for the mathematical foundation.
 
-pub use catgraph::adjunction::{
+pub use crate::adjunction::{
     AdjunctionIrreducibility, AdjunctionVerification, ZPrimeOps,
 };
-use catgraph::{computation_state::ComputationState, interval::DiscreteInterval};
+use crate::{computation_state::ComputationState, interval::DiscreteInterval};
 
 /// The Z' ⊣ Z adjunction between computation and cobordism categories.
 ///
@@ -16,8 +16,8 @@ use catgraph::{computation_state::ComputationState, interval::DiscreteInterval};
 ///
 /// ```rust
 /// use irreducible::functor::{ZPrimeAdjunction, ZPrimeOps};
-/// use catgraph::computation_state::ComputationState;
-/// use catgraph::interval::DiscreteInterval;
+/// use irreducible::computation_state::ComputationState;
+/// use irreducible::interval::DiscreteInterval;
 ///
 /// // Map computation to interval (Z')
 /// let state = ComputationState::new(0, 5);

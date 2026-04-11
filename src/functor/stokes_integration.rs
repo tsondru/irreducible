@@ -4,9 +4,9 @@
 //! re-exported from [`catgraph::stokes`]. This module provides the
 //! irreducibility-specific `StokesIrreducibility` wrapper.
 
-pub use catgraph::stokes::{ConservationResult, StokesError, TemporalComplex};
+pub use crate::stokes::{ConservationResult, StokesError, TemporalComplex};
 
-use catgraph::interval::DiscreteInterval;
+use crate::interval::DiscreteInterval;
 
 use super::fong_spivak::{verify_cospan_chain_frobenius, FrobeniusVerificationResult};
 
