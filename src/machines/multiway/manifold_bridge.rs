@@ -15,7 +15,7 @@ use std::fmt;
 use amari_calculus::manifold::{MetricTensor, RiemannianManifold};
 use nalgebra::{DMatrix, SVector};
 
-use catgraph::multiway::{BranchialGraph, CurvatureFoliation, DiscreteCurvature};
+use catgraph_physics::multiway::{BranchialGraph, CurvatureFoliation, DiscreteCurvature};
 
 /// Strategy for embedding a branchial graph into a smooth manifold.
 ///
@@ -357,7 +357,7 @@ impl fmt::Display for ManifoldCurvature {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use catgraph::multiway::{BranchId, MultiwayNodeId};
+    use catgraph_physics::multiway::{BranchId, MultiwayNodeId};
 
     fn make_id(branch: usize, step: usize) -> MultiwayNodeId {
         MultiwayNodeId::new(BranchId(branch), step)

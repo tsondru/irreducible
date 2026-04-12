@@ -10,7 +10,8 @@ authors = ["tsondru", "Claude <noreply@anthropic.com>"]
 
 [workspace.dependencies]
 amari-calculus = { git = "https://github.com/justinelliottcobb/Amari", tag = "v0.19.1" }
-catgraph = { git = "https://github.com/tsondru/catgraph", tag = "v0.10.5" }
+catgraph = { git = "https://github.com/tsondru/catgraph", tag = "v0.10.6" }
+catgraph-physics = { git = "https://github.com/tsondru/catgraph", tag = "v0.10.6" }
 catgraph-surreal = { git = "https://github.com/tsondru/catgraph-surreal", tag = "v0.7.2" }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
@@ -38,6 +39,7 @@ persist = ["dep:catgraph-surreal", "dep:surrealdb", "dep:tokio"]
 [dependencies]
 amari-calculus = { workspace = true, optional = true }
 catgraph.workspace = true
+catgraph-physics.workspace = true
 nalgebra = { version = "0.34", optional = true }
 nalgebra-lapack = { version = "0.27", optional = true, default-features = false, features = ["lapack-openblas"] }
 serde.workspace = true
@@ -56,8 +58,13 @@ proptest = "1"
 # checkout so both repos can be edited in lock-step before the upstream tag is
 # cut. Re-comment before pushing — released artifacts must reference the git tag.
 
+# ---------------------------------------------------------------------------
+# Local development override (uncomment in lock-step cross-repo edits)
+# ---------------------------------------------------------------------------
+# When using rev= deps above, change both rev= values to path= instead:
 # [patch."https://github.com/tsondru/catgraph"]
 # catgraph = { path = "../catgraph/catgraph" }
+# catgraph-physics = { path = "../catgraph/catgraph-physics" }
 #
 # [patch."https://github.com/tsondru/catgraph-surreal"]
 # catgraph-surreal = { path = "../catgraph-surreal" }

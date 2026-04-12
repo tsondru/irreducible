@@ -33,7 +33,7 @@ use std::collections::HashMap;
 
 use crate::machines::{BuilderError, Configuration, Direction, State, Symbol};
 
-use catgraph::multiway::{run_multiway_bfs, MultiwayEvolutionGraph};
+use catgraph_physics::multiway::{run_multiway_bfs, MultiwayEvolutionGraph};
 
 /// Non-deterministic transition function type.
 ///

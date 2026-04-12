@@ -612,11 +612,37 @@ dependencies = [
 ]
 
 [[package]]
+name = "catgraph"
+version = "0.10.6"
+source = "git+https://github.com/tsondru/catgraph?tag=v0.10.6#d9772f689a390de308b68dc0aa49c8ccc76cf8f1"
+dependencies = [
+ "either",
+ "itertools 0.14.0",
+ "log",
+ "num",
+ "permutations",
+ "rand 0.10.0",
+ "rayon",
+ "rust_decimal",
+ "rustworkx-core",
+ "thiserror 2.0.18",
+ "union-find",
+]
+
+[[package]]
+name = "catgraph-physics"
+version = "0.1.0"
+source = "git+https://github.com/tsondru/catgraph?tag=v0.10.6#d9772f689a390de308b68dc0aa49c8ccc76cf8f1"
+dependencies = [
+ "catgraph 0.10.6",
+]
+
+[[package]]
 name = "catgraph-surreal"
 version = "0.7.2"
 source = "git+https://github.com/tsondru/catgraph-surreal?tag=v0.7.2#7ff1cbd063c535ab9a890a250e0364315ce88380"
 dependencies = [
- "catgraph",
+ "catgraph 0.10.5",
  "rust_decimal",
  "serde",
  "serde_json",
@@ -2267,7 +2293,8 @@ name = "irreducible"
 version = "0.4.1"
 dependencies = [
  "amari-calculus",
- "catgraph",
+ "catgraph 0.10.6",
+ "catgraph-physics",
  "catgraph-surreal",
  "nalgebra",
  "nalgebra-lapack",

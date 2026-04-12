@@ -17,8 +17,8 @@ mod interval_bridge;
 mod ntm;
 mod string_rewrite;
 
-// Re-export generic infrastructure from catgraph
-pub use catgraph::multiway::{
+// Re-export generic infrastructure from catgraph-physics
+pub use catgraph_physics::multiway::{
     run_multiway_bfs, BranchId, MergePoint, MultiwayCycle, MultiwayEdge, MultiwayEdgeKind,
     MultiwayEvolutionGraph, MultiwayNode, MultiwayNodeId, MultiwayStatistics,
     extract_branchial_foliation, find_all_merge_points,

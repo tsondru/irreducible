@@ -10,7 +10,7 @@
 
 use std::hash::Hash;
 
-use catgraph::multiway::{
+use catgraph_physics::multiway::{
     extract_branchial_foliation, MultiwayEvolutionGraph, MultiwayNodeId,
 };
 

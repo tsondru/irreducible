@@ -28,8 +28,8 @@ pub mod catgraph_bridge;
 #[cfg(feature = "persist")]
 pub mod persistence;
 
-// Re-export core types from catgraph
-pub use catgraph::hypergraph::{
+// Re-export core types from catgraph-physics
+pub use catgraph_physics::hypergraph::{
     Hyperedge, Hypergraph,
     RewriteRule, RewriteMatch, RewriteSpan,
     HypergraphEvolution, HypergraphNode, HypergraphStep,
