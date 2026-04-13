@@ -43,7 +43,7 @@ catgraph.workspace = true
 catgraph-physics.workspace = true
 nalgebra = { version = "0.34", optional = true }
 nalgebra-lapack = { version = "0.27", optional = true, default-features = false, features = ["lapack-openblas"] }
-nalgebra-sparse = { version = "0.10", optional = true }
+nalgebra-sparse = { version = "0.11", optional = true }
 serde.workspace = true
 serde_json.workspace = true
 catgraph-surreal = { workspace = true, optional = true }

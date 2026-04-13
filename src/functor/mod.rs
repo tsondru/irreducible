@@ -1,4 +1,4 @@
-//! The irreducibility functor Z': 𝒯 → ℬ.
+//! The irreducibility functor Z': T -> B.
 //!
 //! This module implements the core insight from Gorard's paper:
 //! computational irreducibility is equivalent to functoriality of the
@@ -6,13 +6,13 @@
 //!
 //! ## Key Concepts
 //!
-//! - **Category 𝒯**: The category of computations (objects are states, morphisms are transitions)
-//! - **Category ℬ**: The cobordism category (objects are time steps, morphisms are intervals)
+//! - **Category T**: The category of computations (objects are states, morphisms are transitions)
+//! - **Category B**: The cobordism category (objects are time steps, morphisms are intervals)
 //! - **Functor Z'**: Maps computations to their complexity intervals
 //! - **Functoriality**: Z'(g∘f) = Z'(g) ∘ Z'(f) means "no shortcuts exist"
 //!
 //! A computation is **irreducible** if Z' is functorial (composition-preserving).
-//! A computation is **reducible** if there exists a shortcut: Z'(g∘f) ≠ Z'(g) ∘ Z'(f).
+//! A computation is **reducible** if there exists a shortcut: Z'(g∘f) != Z'(g) ∘ Z'(f).
 
 pub mod adjunction;
 pub mod bifunctor;
@@ -20,20 +20,8 @@ pub mod fong_spivak;
 pub mod monoidal;
 pub mod stokes_integration;
 
-// Re-export monoidal functor types.
-//
-// The coherence helpers (`verify_*_coherence`, `CoherenceVerification`,
-// `DifferentialCoherence`) are `#[deprecated(since = "0.4.1")]` at their
-// definition site because they are tautological for the strict SMC
-// structure of `ParallelIntervals`. Consumers using these re-exports will
-// see the deprecation warnings on call. Real multiway-based coherence
-// lands in v0.4.3 (Phase 2.5).
-#[allow(deprecated)]
-pub use monoidal::{
-    verify_associator_coherence, verify_braiding_coherence, verify_left_unitor_coherence,
-    verify_right_unitor_coherence, CoherenceVerification, DifferentialCoherence,
-    MonoidalFunctorResult, TensorCheck,
-};
+// Re-export monoidal functor types (deprecated coherence types removed in v0.4.3).
+pub use monoidal::{MonoidalFunctorResult, TensorCheck};
 
 // Re-export adjunction types
 pub use adjunction::{
@@ -47,9 +35,7 @@ pub use bifunctor::{
 };
 
 // Re-export Stokes integration types
-pub use stokes_integration::{
-    ConservationResult, StokesError, StokesIrreducibility, TemporalComplex,
-};
+pub use stokes_integration::StokesIrreducibility;
 
 // Re-export Fong-Spivak types
 pub use fong_spivak::{
@@ -64,11 +50,11 @@ use crate::{
     interval::{DiscreteInterval, ParallelIntervals},
 };
 
-/// The irreducibility functor Z': 𝒯 → ℬ.
+/// The irreducibility functor Z': T -> B.
 ///
 /// This functor maps:
-/// - Objects (states) in 𝒯 to time steps in ℬ
-/// - Morphisms (transitions) in 𝒯 to discrete intervals in ℬ
+/// - Objects (states) in T to time steps in B
+/// - Morphisms (transitions) in T to discrete intervals in B
 ///
 /// The key property is functoriality: a computation is irreducible iff
 /// Z' preserves composition.
@@ -102,36 +88,20 @@ impl IrreducibilityFunctor {
     ///
     /// Returns `true` if the composition is irreducible (no shortcuts).
     /// Returns `false` if a shortcut exists (composition can be compressed).
-    ///
-    /// # Arguments
-    /// - `f_interval`: The interval Z'(f) for morphism f
-    /// - `g_interval`: The interval Z'(g) for morphism g
-    /// - `composed_interval`: The interval Z'(g∘f) for the composed morphism
-    ///
-    /// # Theory
-    ///
-    /// If the intervals are contiguous and their composition equals the
-    /// composed interval, the computation is irreducible. Otherwise,
-    /// there exists a shortcut (reducibility).
     #[must_use]
     pub fn verify_functoriality(
         f_interval: &DiscreteInterval,
         g_interval: &DiscreteInterval,
         composed_interval: &DiscreteInterval,
     ) -> bool {
-        // Try to compose f then g (sequential execution)
         if let Some(expected) = (*f_interval).then(*g_interval) {
             expected == *composed_interval
         } else {
-            // Intervals not contiguous = reducible (there's a gap/shortcut)
             false
         }
     }
 
     /// Check if a sequence of steps is irreducible.
-    ///
-    /// The sequence is irreducible if each consecutive pair of intervals
-    /// composes correctly (no gaps, no shortcuts).
     #[must_use]
     pub fn is_sequence_irreducible(intervals: &[DiscreteInterval]) -> bool {
         if intervals.is_empty() {
@@ -163,11 +133,6 @@ impl IrreducibilityFunctor {
     }
 
     /// Check multicomputational irreducibility for parallel branches.
-    ///
-    /// In multiway systems, we need to verify functoriality across all branches.
-    /// The system is irreducible if:
-    /// 1. Each branch is individually irreducible
-    /// 2. The tensor structure is preserved
     #[must_use]
     pub fn verify_multiway_functoriality(
         branch_sequences: &[Vec<DiscreteInterval>],
@@ -196,10 +161,6 @@ impl IrreducibilityFunctor {
     }
 
     /// Compute complexity ratio: actual / composed.
-    ///
-    /// A ratio of 1.0 indicates irreducibility.
-    /// A ratio < 1.0 indicates the composed path is shorter (shortcut exists).
-    /// A ratio > 1.0 indicates overhead in composition.
     #[allow(clippy::cast_possible_truncation, clippy::cast_precision_loss)]
     #[must_use]
     pub fn complexity_ratio(
@@ -217,11 +178,6 @@ impl IrreducibilityFunctor {
 }
 
 /// Result of checking multiway irreducibility across parallel branches.
-///
-/// Each branch is checked independently for interval contiguity;
-/// the system is fully irreducible only when every branch passes.
-/// [`total_parallel_complexity`](Self::total_parallel_complexity) aggregates
-/// the composed intervals into a [`ParallelIntervals`] tensor product.
 #[derive(Clone, Debug)]
 pub struct MultiwayIrreducibilityResult {
     /// Whether all branches are irreducible
@@ -251,9 +207,6 @@ impl MultiwayIrreducibilityResult {
 }
 
 /// Irreducibility verdict for a single branch in a multiway computation.
-///
-/// If `is_irreducible` is true, the branch's interval sequence under Z'
-/// is contiguous and composable into `total_interval`.
 #[derive(Clone, Debug)]
 pub struct BranchResult {
     /// Index of this branch
@@ -285,11 +238,9 @@ mod tests {
 
     #[test]
     fn test_verify_functoriality_irreducible() {
-        // f: 0→2, g: 2→5, composed: 0→5
         let f_interval = DiscreteInterval::new(0, 2);
         let g_interval = DiscreteInterval::new(2, 5);
         let composed = DiscreteInterval::new(0, 5);
-
         assert!(IrreducibilityFunctor::verify_functoriality(
             &f_interval,
             &g_interval,
@@ -299,11 +250,9 @@ mod tests {
 
     #[test]
     fn test_verify_functoriality_reducible_shortcut() {
-        // f: 0→2, g: 2→5, but composed is shorter: 0→4 (shortcut!)
         let f_interval = DiscreteInterval::new(0, 2);
         let g_interval = DiscreteInterval::new(2, 5);
-        let composed = DiscreteInterval::new(0, 4); // shortcut
-
+        let composed = DiscreteInterval::new(0, 4);
         assert!(!IrreducibilityFunctor::verify_functoriality(
             &f_interval,
             &g_interval,
@@ -313,11 +262,9 @@ mod tests {
 
     #[test]
     fn test_verify_functoriality_reducible_gap() {
-        // f: 0→2, g: 3→5 (gap at 2-3)
         let f_interval = DiscreteInterval::new(0, 2);
         let g_interval = DiscreteInterval::new(3, 5);
         let composed = DiscreteInterval::new(0, 5);
-
         assert!(!IrreducibilityFunctor::verify_functoriality(
             &f_interval,
             &g_interval,
@@ -339,7 +286,7 @@ mod tests {
     fn test_is_sequence_reducible() {
         let intervals = vec![
             DiscreteInterval::new(0, 2),
-            DiscreteInterval::new(3, 5), // gap
+            DiscreteInterval::new(3, 5),
             DiscreteInterval::new(5, 7),
         ];
         assert!(!IrreducibilityFunctor::is_sequence_irreducible(&intervals));
@@ -372,7 +319,7 @@ mod tests {
     fn test_complexity_ratio_shortcut() {
         let f = StepCount(3);
         let g = StepCount(5);
-        let composed = StepCount(6); // shortcut: only 6 instead of 8
+        let composed = StepCount(6);
         let ratio = IrreducibilityFunctor::complexity_ratio(&f, &g, &composed);
         assert!(ratio < 1.0);
         assert!((ratio - 0.75).abs() < f64::EPSILON);
@@ -401,11 +348,10 @@ mod tests {
         ];
         let branch2 = vec![
             DiscreteInterval::new(0, 3),
-            DiscreteInterval::new(4, 6), // gap!
+            DiscreteInterval::new(4, 6),
         ];
         let result = IrreducibilityFunctor::verify_multiway_functoriality(&[branch1, branch2]);
         assert!(!result.is_fully_irreducible);
         assert_eq!(result.reducible_branch_count(), 1);
     }
-
 }

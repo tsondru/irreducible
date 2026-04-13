@@ -4,14 +4,17 @@
 //! "A Functorial Perspective on (Multi)computational Irreducibility" (arXiv:2301.04690).
 //!
 //! The central insight is that *computational irreducibility is equivalent to functoriality*
-//! of a map Z': 𝒯 → ℬ from a category of computations to a cobordism category.
+//! of a map Z': T -> B from a category of computations to a cobordism category.
 //!
 //! ## Modules
 //!
 //! - [`types`] - Core type definitions (`ComputationDomain`, `ComputationContext`, `CausalEffect`)
 //! - Category theory types (`DiscreteInterval`, `Complexity`, `ComputationState`) re-exported from catgraph
-//! - [`functor`] - The irreducibility functor Z': 𝒯 → ℬ, adjunction, monoidal structure, Stokes
+//! - [`functor`] - The irreducibility functor Z': T -> B, adjunction, monoidal structure
 //! - [`machines`] - Computational machines (Turing machines, cellular automata, hypergraph rewriting)
+//! - [`multiway_coherence`] - Non-strict SMC coherence over multiway graphs
+//! - [`multiway_stokes`] - Discrete exterior calculus on 2D multiway complexes (feature `dec`)
+//! - [`temporal_cospan_chain`] - Cospan chain bridge for interval sequences
 //!
 //! ## Example: Analyzing Turing Machine Irreducibility
 //!
@@ -45,18 +48,17 @@ pub mod machines;
 pub mod types;
 
 // Category theory primitives — moved into irreducible as of v0.4.0
-// (previously re-exported from catgraph v0.9.0–v0.10.4).
 pub mod adjunction;
 pub mod bifunctor;
-pub mod coherence;
 pub mod complexity;
 pub mod computation_state;
 pub mod interval;
+pub mod trace;
+
+// Phase 2.5 modules — real coherence and exterior calculus on multiway substrate
 pub mod multiway_coherence;
 pub mod multiway_stokes;
-pub mod stokes;
 pub mod temporal_cospan_chain;
-pub mod trace;
 
 #[cfg(test)]
 pub mod test_utils;
@@ -75,7 +77,7 @@ pub use functor::{
 };
 
 // Monoidal functor exports
-pub use functor::{DifferentialCoherence, MonoidalFunctorResult, TensorCheck};
+pub use functor::{MonoidalFunctorResult, TensorCheck};
 
 // Bifunctor / tensor product exports
 pub use functor::{
@@ -83,8 +85,11 @@ pub use functor::{
     verify_unit_laws, IntervalTransform, TensorProduct,
 };
 
+// Temporal cospan chain exports
+pub use temporal_cospan_chain::{ConservationResult, StokesError, TemporalComplex};
+
 // Stokes integration exports
-pub use functor::{ConservationResult, StokesError, StokesIrreducibility, TemporalComplex};
+pub use functor::StokesIrreducibility;
 
 // Type exports
 pub use types::{CausalEffect, ComputationContext, ComputationDomain};
@@ -128,4 +133,10 @@ pub use functor::{
     name, unname, CospanAlgebra, CospanFrobeniusCheck, CospanToFrobeniusFunctor,
     FrobeniusVerificationResult, HypergraphCategory, HypergraphFunctor, NameAlgebra,
     PartitionAlgebra, RelabelingFunctor, verify_cospan_chain_frobenius,
+};
+
+// Multiway coherence exports
+pub use multiway_coherence::{
+    verify_all_coherence, verify_associator, verify_braiding, verify_unitor,
+    AssociatorWitness, BraidingWitness, CoherenceError, UnitorWitness,
 };

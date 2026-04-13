@@ -23,8 +23,6 @@
 //! - **Functor Z'**: Maps transitions to their complexity intervals
 //! - **Functoriality**: Z'(g∘f) = Z'(g) ∘ Z'(f) means "no shortcuts exist"
 
-#![allow(deprecated)]
-
 use irreducible::{
     // Core types
     DiscreteInterval, ParallelIntervals, IrreducibilityFunctor,
@@ -42,9 +40,10 @@ use irreducible::{
     // Adjunction
     functor::{
         ZPrimeAdjunction, ZPrimeOps, AdjunctionVerification,
-        CoherenceVerification, verify_associator_coherence, verify_braiding_coherence,
         StokesIrreducibility,
     },
+    // Multiway coherence
+    multiway_coherence::{verify_all_coherence, verify_associator, verify_braiding},
     ComputationState,
     // Hypergraph rewriting + catgraph bridge
     machines::hypergraph::{Hypergraph, HypergraphEvolution,
@@ -387,55 +386,49 @@ fn demo_monoidal_structure() {
 // ============================================================================
 
 fn demo_coherence() {
-    print_section("6. COHERENCE CONDITIONS");
+    print_section("6. COHERENCE CONDITIONS (Multiway)");
 
-    println!("  A symmetric monoidal category must satisfy coherence conditions.");
-    println!("  These ensure the tensor product ⊗ behaves consistently.");
+    println!("  Coherence is verified on actual multiway graphs (non-strict SMC).");
+    println!("  Confluence = causal commutativity = falsifiable property.");
     println!();
 
-    let intervals = vec![
-        ParallelIntervals::from_branch(DiscreteInterval::new(0, 3)),
-        ParallelIntervals::from_branch(DiscreteInterval::new(3, 7)),
-        ParallelIntervals::from_branch(DiscreteInterval::new(7, 12)),
-    ];
+    // Build a confluent 3-fork multiway graph
+    use catgraph_physics::multiway::MultiwayEvolutionGraph;
 
-    println!("  Test intervals: A=[0,3], B=[3,7], C=[7,12]");
+    let mut g: MultiwayEvolutionGraph<&str, &str> = MultiwayEvolutionGraph::new();
+    let root = g.add_root("s0");
+    let branches = g.add_fork(root, vec![
+        ("s1a", "e1", 0), ("s1b", "e2", 1), ("s1c", "e3", 2),
+    ]);
+    let merge = g.add_sequential_step(branches[0], "s2", "m1");
+    g.add_merge_edge(branches[1], merge, "m2");
+    g.add_merge_edge(branches[2], merge, "m3");
+
+    println!("  Graph: 3-way fork from s0, all branches merge to s2");
     println!();
 
     // Associator
-    println!("  1. ASSOCIATOR α: (A ⊗ B) ⊗ C ≅ A ⊗ (B ⊗ C)");
-    println!("     \"Grouping doesn't matter\"");
-    let assoc = verify_associator_coherence(&intervals[0], &intervals[1], &intervals[2]);
-    println!("     Verified: {assoc} ✓");
-    println!();
-
-    // Unitors
-    println!("  2. LEFT UNITOR λ: I ⊗ A ≅ A");
-    println!("     \"Identity element works on left\"");
-    let left = irreducible::functor::verify_left_unitor_coherence(&intervals[0]);
-    println!("     Verified: {left} ✓");
-    println!();
-
-    println!("  3. RIGHT UNITOR ρ: A ⊗ I ≅ A");
-    println!("     \"Identity element works on right\"");
-    let right = irreducible::functor::verify_right_unitor_coherence(&intervals[0]);
-    println!("     Verified: {right} ✓");
+    let forks = g.find_fork_points();
+    println!("  1. ASSOCIATOR (3+ children at fork, all pairs confluent):");
+    let assoc = verify_associator(&g, forks[0]);
+    match &assoc {
+        Ok(w) => println!("     Verified: {} pairs, {} diamonds", w.pairs_verified, w.diamonds_found),
+        Err(e) => println!("     FAILED: {e}"),
+    }
     println!();
 
     // Braiding
-    println!("  4. BRAIDING σ: A ⊗ B ≅ B ⊗ A");
-    println!("     \"Order doesn't matter (symmetric)\"");
-    let braid = verify_braiding_coherence(&intervals[0], &intervals[1]);
-    println!("     Verified: {braid} ✓");
+    let pairs = g.parallel_independent_events(forks[0]);
+    println!("  2. BRAIDING (parallel events commute):");
+    for (i, (a, b)) in pairs.iter().enumerate() {
+        let braid = verify_braiding(&g, *a, *b);
+        println!("     Pair {}: {}", i, if braid.is_ok() { "commutes" } else { "FAILS" });
+    }
     println!();
 
     // Full verification
-    let full = CoherenceVerification::verify_all(&intervals);
-    println!("  Comprehensive Verification:");
-    println!("  ────────────────────────────");
-    println!("    Associator tests: {} (all passed: {})", full.associator_tests, full.associator_coherent);
-    println!("    Braiding tests: {} (all passed: {})", full.braiding_tests, full.braiding_coherent);
-    println!("    Fully coherent: {} ✓", full.fully_coherent);
+    let errors = verify_all_coherence(&g);
+    println!("  Comprehensive: {} errors (fully coherent: {})", errors.len(), errors.is_empty());
     println!();
 }
 

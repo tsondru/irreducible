@@ -1,14 +1,16 @@
 //! Symmetric monoidal functor verification for multiway systems.
 //!
 //! A multiway system is **multicomputationally irreducible** if the functor
-//! Z': 𝒯 → ℬ is a **symmetric monoidal functor**, meaning it preserves:
+//! Z': T -> B is a **symmetric monoidal functor**, meaning it preserves:
 //!
-//! 1. **Sequential composition** ∘ (standard computational irreducibility)
-//! 2. **Parallel composition** ⊗ (multicomputational irreducibility)
+//! 1. **Sequential composition** (standard computational irreducibility)
+//! 2. **Parallel composition** (multicomputational irreducibility)
 //!
-//! The key check is: Z'(f ⊗ g) = Z'(f) ⊕ Z'(g)
+//! The key check is: Z'(f tensor g) = Z'(f) `direct_sum` Z'(g)
 //!
-//! Coherence verification types re-exported from [`catgraph::coherence`].
+//! Coherence verification uses [`multiway_coherence`](crate::multiway_coherence)
+//! on the actual multiway graph -- a real non-strict SMC where confluence is
+//! a falsifiable property.
 
 use std::hash::Hash;
 
@@ -19,27 +21,15 @@ use catgraph_physics::multiway::{
 
 use super::{BranchResult, IrreducibilityFunctor};
 
-// Re-export coherence types from local module.
-//
-// All re-exported items here are #[deprecated(since = "0.4.1")] at their
-// definition site — see `src/coherence.rs` module docs. Consumers reading
-// these re-exports will see the deprecation warnings on use. Real
-// multiway-based coherence lands in v0.4.3 (Phase 2.5).
-#[allow(deprecated)]
-pub use crate::coherence::{
-    verify_associator_coherence, verify_braiding_coherence, verify_left_unitor_coherence,
-    verify_right_unitor_coherence, CoherenceVerification, DifferentialCoherence,
-};
-
 /// Result of symmetric monoidal functor verification.
 ///
-/// Determines whether Z': 𝒯 → ℬ is a symmetric monoidal functor,
+/// Determines whether Z': T -> B is a symmetric monoidal functor,
 /// which is the criterion for multicomputational irreducibility.
 #[non_exhaustive]
 #[allow(clippy::struct_excessive_bools)]
 #[derive(Clone, Debug)]
 pub struct MonoidalFunctorResult {
-    /// Whether Z' preserves tensor products: Z'(f ⊗ g) = Z'(f) ⊕ Z'(g)
+    /// Whether Z' preserves tensor products: Z'(f tensor g) = Z'(f) `direct_sum` Z'(g)
     pub preserves_tensor: bool,
 
     /// Whether each individual branch is irreducible.
@@ -54,18 +44,18 @@ pub struct MonoidalFunctorResult {
     /// Overall multicomputational irreducibility.
     pub is_multicomputationally_irreducible: bool,
 
-    // === Coherence Conditions ===
+    // === Coherence Conditions (from multiway_coherence) ===
 
-    /// Associator coherence: α_{X,Y,Z}: (X ⊗ Y) ⊗ Z ≅ X ⊗ (Y ⊗ Z)
+    /// Associator coherence: all fork points with 3+ children are confluent.
     pub associator_coherent: bool,
 
-    /// Left unitor coherence: `λ_X`: I ⊗ X ≅ X
+    /// Left unitor coherence.
     pub left_unitor_coherent: bool,
 
-    /// Right unitor coherence: `ρ_X`: X ⊗ I ≅ X
+    /// Right unitor coherence.
     pub right_unitor_coherent: bool,
 
-    /// Braiding coherence: σ_{X,Y}: X ⊗ Y ≅ Y ⊗ X
+    /// Braiding coherence: all parallel independent events commute.
     pub braiding_coherent: bool,
 
     /// Reason for failure, if verification failed.
@@ -124,7 +114,6 @@ impl std::fmt::Display for MonoidalFunctorResult {
             writeln!(f, "  Tensor violations: {violations}")?;
         }
 
-        // Show coherence status
         writeln!(f, "  Associator coherent: {}", self.associator_coherent)?;
         writeln!(f, "  Left unitor coherent: {}", self.left_unitor_coherent)?;
         writeln!(f, "  Right unitor coherent: {}", self.right_unitor_coherent)?;
@@ -139,11 +128,6 @@ impl std::fmt::Display for MonoidalFunctorResult {
 }
 
 /// Result of tensor preservation check at a single time step.
-///
-/// Compares the expected parallel intervals (one per active branch) against
-/// the actual intervals extracted from the multiway graph. Preservation
-/// holds when the two are structurally equivalent (same branch count and
-/// interval cardinalities, regardless of absolute positions).
 #[derive(Clone, Debug)]
 pub struct TensorCheck {
     /// The time step.
@@ -187,18 +171,8 @@ impl IrreducibilityFunctor {
     ///
     /// Checks:
     /// 1. Each branch is individually irreducible (sequential composition)
-    /// 2. Tensor product is preserved: Z'(f ⊗ g) = Z'(f) ⊕ Z'(g)
-    ///
-    /// This is the criterion for **multicomputational irreducibility**.
-    ///
-    /// **Note (v0.4.1):** the coherence step in this check calls
-    /// [`CoherenceVerification::verify_all`], which is deprecated because
-    /// the underlying checks are tautological for [`ParallelIntervals`].
-    /// The coherence bit of the result therefore carries no information
-    /// and `is_multicomputationally_irreducible` collapses to
-    /// `branches_irreducible && preserves_tensor`. A real multiway-based
-    /// coherence check lands in v0.4.3 (Phase 2.5).
-    #[allow(deprecated)]
+    /// 2. Tensor product is preserved: Z'(f tensor g) = Z'(f) `direct_sum` Z'(g)
+    /// 3. Coherence conditions via real multiway confluence verification
     #[must_use]
     pub fn verify_symmetric_monoidal_functor<S: Clone + Hash, T: Clone>(
         graph: &MultiwayEvolutionGraph<S, T>,
@@ -211,22 +185,12 @@ impl IrreducibilityFunctor {
         let tensor_checks = Self::verify_tensor_preservation(graph);
         let preserves_tensor = tensor_checks.iter().all(|c| c.preserves);
 
-        // Step 3: Verify coherence conditions via catgraph
-        let parallel_intervals: Vec<ParallelIntervals> = branch_intervals
-            .iter()
-            .map(|branch| {
-                let mut pi = ParallelIntervals::new();
-                for interval in branch {
-                    pi.add_branch(*interval);
-                }
-                pi
-            })
-            .collect();
-        let coherence = CoherenceVerification::verify_all(&parallel_intervals);
+        // Step 3: Verify coherence via multiway_coherence (real non-strict SMC check)
+        let coherence_errors = crate::multiway_coherence::verify_all_coherence(graph);
+        let all_coherent = coherence_errors.is_empty();
 
-        // Overall result: symmetric monoidal functor requires all three
         let is_multicomputationally_irreducible =
-            multiway_result.is_fully_irreducible && preserves_tensor && coherence.fully_coherent;
+            multiway_result.is_fully_irreducible && preserves_tensor && all_coherent;
 
         MonoidalFunctorResult {
             preserves_tensor,
@@ -234,10 +198,10 @@ impl IrreducibilityFunctor {
             branch_results: multiway_result.branch_results,
             tensor_checks,
             is_multicomputationally_irreducible,
-            associator_coherent: coherence.associator_coherent,
-            left_unitor_coherent: coherence.left_unitor_coherent,
-            right_unitor_coherent: coherence.right_unitor_coherent,
-            braiding_coherent: coherence.braiding_coherent,
+            associator_coherent: all_coherent,
+            left_unitor_coherent: all_coherent,
+            right_unitor_coherent: all_coherent,
+            braiding_coherent: all_coherent,
             failure_reason: None,
         }
     }
@@ -292,11 +256,7 @@ impl IrreducibilityFunctor {
     }
 }
 
-// Extension methods (direct_sum, structurally_equivalent, exactly_equal)
-// moved to catgraph::interval::ParallelIntervals — available via re-export.
-
 #[cfg(test)]
-#[allow(deprecated)]
 mod tests {
     use super::*;
     use crate::machines::multiway::{MultiwayEvolutionGraph, StringRewriteSystem};
@@ -305,31 +265,25 @@ mod tests {
     fn test_parallel_intervals_direct_sum() {
         let p1 = crate::intervals![(0, 2)];
         let p2 = crate::intervals![(0, 3)];
-
         let sum = p1.direct_sum(p2);
         assert_eq!(sum.branch_count(), 2);
-        assert_eq!(sum.total_complexity(), 3 + 4); // 3 + 4 = 7
+        assert_eq!(sum.total_complexity(), 3 + 4);
     }
 
     #[test]
     fn test_parallel_intervals_structurally_equivalent() {
-        let p1 = crate::intervals![(0, 2), (0, 2)]; // Two branches of cardinality 3
-        let p2 = crate::intervals![(1, 3), (2, 4)]; // Two branches of cardinality 3
-
-        // Both have two intervals of cardinality 3
+        let p1 = crate::intervals![(0, 2), (0, 2)];
+        let p2 = crate::intervals![(1, 3), (2, 4)];
         assert!(p1.structurally_equivalent(&p2));
-
         let p3 = crate::intervals![(0, 1)];
-        assert!(!p1.structurally_equivalent(&p3)); // Different branch count
+        assert!(!p1.structurally_equivalent(&p3));
     }
 
     #[test]
     fn test_verify_simple_multiway() {
         let srs = StringRewriteSystem::swap_system();
         let evolution = srs.run_multiway("AB", 3, 10);
-
         let result = IrreducibilityFunctor::verify_symmetric_monoidal_functor(&evolution);
-
         assert!(result.tensor_checks.len() <= evolution.max_step());
     }
 
@@ -337,9 +291,7 @@ mod tests {
     fn test_verify_fibonacci_growth() {
         let srs = StringRewriteSystem::fibonacci_growth();
         let evolution = srs.run_multiway("A", 5, 100);
-
         let result = IrreducibilityFunctor::verify_symmetric_monoidal_functor(&evolution);
-
         let stats = evolution.statistics();
         if stats.fork_count == 0 {
             assert!(result.preserves_tensor);
@@ -350,9 +302,7 @@ mod tests {
     fn test_verify_branching_system() {
         let srs = StringRewriteSystem::new(vec![("A", "B"), ("A", "C")]);
         let evolution = srs.run_multiway("A", 3, 10);
-
         let result = IrreducibilityFunctor::verify_symmetric_monoidal_functor(&evolution);
-
         assert!(!result.branch_results.is_empty());
     }
 
@@ -370,13 +320,9 @@ mod tests {
             braiding_coherent: true,
             failure_reason: None,
         };
-
         let display = format!("{result}");
         assert!(display.contains("Multicomputationally irreducible: true"));
         assert!(display.contains("Associator coherent: true"));
-        assert!(display.contains("Left unitor coherent: true"));
-        assert!(display.contains("Right unitor coherent: true"));
-        assert!(display.contains("Braiding coherent: true"));
     }
 
     #[test]
@@ -393,7 +339,6 @@ mod tests {
     fn test_tensor_check_creation() {
         let expected = crate::intervals![(0, 1)];
         let actual = crate::intervals![(0, 1)];
-
         let check = TensorCheck::new(0, 1, expected, actual);
         assert!(check.preserves);
         assert_eq!(check.step, 0);
@@ -404,166 +349,9 @@ mod tests {
         let mut graph: MultiwayEvolutionGraph<i32, ()> = MultiwayEvolutionGraph::new();
         let root = graph.add_root(0);
         graph.add_sequential_step(root, 1, ());
-
         let result = IrreducibilityFunctor::verify_symmetric_monoidal_functor(&graph);
-
         assert!(result.branches_irreducible);
         assert!(result.preserves_tensor);
         assert!(result.is_multicomputationally_irreducible);
-    }
-
-    // ========================================
-    // Coherence Verification Tests (using macros)
-    // ========================================
-
-    crate::test_coherence_condition!(
-        associator,
-        test_associator_coherence,
-        crate::intervals![(0, 2)],
-        crate::intervals![(2, 5)],
-        crate::intervals![(5, 8)]
-    );
-
-    crate::test_coherence_condition!(
-        associator,
-        test_associator_with_multi_branch,
-        crate::intervals![(0, 2), (0, 3)],
-        crate::intervals![(2, 4)],
-        crate::intervals![(4, 7)]
-    );
-
-    crate::test_coherence_condition!(
-        left_unitor,
-        test_left_unitor_coherence,
-        crate::intervals![(0, 5)]
-    );
-
-    crate::test_coherence_condition!(
-        left_unitor,
-        test_left_unitor_multi_branch,
-        crate::intervals![(0, 2), (2, 4)]
-    );
-
-    crate::test_coherence_condition!(
-        right_unitor,
-        test_right_unitor_coherence,
-        crate::intervals![(0, 5)]
-    );
-
-    crate::test_coherence_condition!(
-        right_unitor,
-        test_right_unitor_multi_branch,
-        crate::intervals![(0, 2), (2, 4)]
-    );
-
-    crate::test_coherence_condition!(
-        braiding,
-        test_braiding_coherence,
-        crate::intervals![(0, 3)],
-        crate::intervals![(3, 7)]
-    );
-
-    crate::test_coherence_condition!(
-        braiding,
-        test_braiding_with_different_cardinalities,
-        crate::intervals![(0, 2)],
-        crate::intervals![(0, 5)]
-    );
-
-    crate::test_full_coherence!(
-        test_coherence_verification_all,
-        vec![
-            crate::intervals![(0, 2)],
-            crate::intervals![(2, 5)],
-            crate::intervals![(5, 10)],
-        ]
-    );
-
-    #[test]
-    fn test_coherence_verification_counts() {
-        let intervals = vec![
-            crate::intervals![(0, 2)],
-            crate::intervals![(2, 5)],
-            crate::intervals![(5, 10)],
-        ];
-
-        let result = CoherenceVerification::verify_all(&intervals);
-        assert_eq!(result.associator_tests, 27); // 3^3
-        assert_eq!(result.braiding_tests, 9); // 3^2
-    }
-
-    #[test]
-    fn test_coherence_verification_empty() {
-        let result = CoherenceVerification::verify_all(&[]);
-
-        assert!(result.fully_coherent);
-        assert_eq!(result.associator_tests, 0);
-        assert_eq!(result.braiding_tests, 0);
-    }
-
-    #[test]
-    fn test_coherence_verification_display() {
-        let intervals = vec![crate::intervals![(0, 2)], crate::intervals![(2, 4)]];
-
-        let result = CoherenceVerification::verify_all(&intervals);
-        let display = format!("{result}");
-
-        assert!(display.contains("Fully coherent: true"));
-        assert!(display.contains("Associator α: true"));
-        assert!(display.contains("Braiding σ: true"));
-    }
-
-    // ========================================
-    // Differential Coherence Tests (using macros)
-    // ========================================
-
-    crate::test_differential_coherence!(
-        test_differential_coherence_basic,
-        vec![
-            crate::intervals![(0, 2)],
-            crate::intervals![(2, 5)],
-            crate::intervals![(5, 10)],
-        ]
-    );
-
-    crate::test_differential_coherence!(
-        test_differential_coherence_empty,
-        vec![]
-    );
-
-    crate::test_differential_coherence!(
-        test_differential_coherence_single,
-        vec![crate::intervals![(0, 5)]]
-    );
-
-    #[test]
-    fn test_differential_coherence_display() {
-        let intervals = vec![crate::intervals![(0, 2)], crate::intervals![(2, 4)]];
-
-        let result = DifferentialCoherence::verify(&intervals);
-        let display = format!("{result}");
-
-        assert!(display.contains("Differentially coherent: true"));
-        assert!(display.contains("Coherence form closed: true"));
-        assert!(display.contains("Conservation ratio:"));
-        assert!(display.contains("Categorical curvature: flat"));
-    }
-
-    #[test]
-    fn test_differential_coherence_defect() {
-        let intervals = vec![crate::intervals![(0, 2)], crate::intervals![(2, 4)]];
-
-        let result = DifferentialCoherence::verify(&intervals);
-
-        assert!(result.coherence_defect() < 0.001);
-    }
-
-    #[test]
-    fn test_categorical_curvature_flat() {
-        let intervals = vec![crate::intervals![(0, 3)], crate::intervals![(3, 6)]];
-
-        let result = DifferentialCoherence::verify(&intervals);
-
-        assert!(!result.has_categorical_curvature());
     }
 }

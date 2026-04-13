@@ -103,3 +103,35 @@ fn verify_all_non_confluent_graph_has_errors() {
     let errors = verify_all_coherence(&g);
     assert!(!errors.is_empty(), "expected errors for non-confluent graph");
 }
+
+// ---------------------------------------------------------------------------
+// Monoidal functor verification (migrated from tests/monoidal_coherence.rs)
+// ---------------------------------------------------------------------------
+
+#[test]
+fn monoidal_functor_result_for_irreducible_srs() {
+    let srs = irreducible::StringRewriteSystem::new(vec![("AB", "BA"), ("A", "AA")]);
+    let evolution = srs.run_multiway("AB", 3, 50);
+    let result = irreducible::IrreducibilityFunctor::verify_symmetric_monoidal_functor(&evolution);
+    assert!(!result.branch_results.is_empty());
+    let display = format!("{result}");
+    assert!(display.contains("Monoidal Functor Verification"));
+}
+
+#[test]
+fn monoidal_functor_result_for_deterministic_srs() {
+    let srs = irreducible::StringRewriteSystem::new(vec![("AB", "CD")]);
+    let evolution = srs.run_multiway("AB", 3, 50);
+    let result = irreducible::IrreducibilityFunctor::verify_symmetric_monoidal_functor(&evolution);
+    assert_eq!(result.branch_results.len(), 1);
+}
+
+#[test]
+fn monoidal_functor_tensor_violation_count() {
+    let srs = irreducible::StringRewriteSystem::new(vec![("AB", "BA"), ("A", "AA")]);
+    let evolution = srs.run_multiway("AB", 3, 50);
+    let result = irreducible::IrreducibilityFunctor::verify_symmetric_monoidal_functor(&evolution);
+    if result.is_multicomputationally_irreducible {
+        assert_eq!(result.tensor_violation_count(), 0);
+    }
+}
