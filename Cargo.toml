@@ -34,6 +34,7 @@ categories = ["mathematics", "science", "algorithms"]
 default = []
 manifold-curvature = ["dep:amari-calculus", "dep:nalgebra"]
 lapack = ["dep:nalgebra-lapack", "manifold-curvature"]
+dec = ["dep:nalgebra", "dep:nalgebra-sparse"]
 persist = ["dep:catgraph-surreal", "dep:surrealdb", "dep:tokio"]
 
 [dependencies]
@@ -42,6 +43,7 @@ catgraph.workspace = true
 catgraph-physics.workspace = true
 nalgebra = { version = "0.34", optional = true }
 nalgebra-lapack = { version = "0.27", optional = true, default-features = false, features = ["lapack-openblas"] }
+nalgebra-sparse = { version = "0.10", optional = true }
 serde.workspace = true
 serde_json.workspace = true
 catgraph-surreal = { workspace = true, optional = true }

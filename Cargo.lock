@@ -2296,8 +2296,9 @@ dependencies = [
  "catgraph 0.10.6",
  "catgraph-physics",
  "catgraph-surreal",
- "nalgebra",
+ "nalgebra 0.34.2",
  "nalgebra-lapack",
+ "nalgebra-sparse",
  "proptest",
  "serde",
  "serde_json",
@@ -2602,6 +2603,22 @@ dependencies = [
 
 [[package]]
 name = "nalgebra"
+version = "0.33.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9d43ddcacf343185dfd6de2ee786d9e8b1c2301622afab66b6c73baf9882abfd"
+dependencies = [
+ "approx",
+ "matrixmultiply",
+ "nalgebra-macros 0.2.2",
+ "num-complex",
+ "num-rational",
+ "num-traits",
+ "simba",
+ "typenum",
+]
+
+[[package]]
+name = "nalgebra"
 version = "0.34.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "df76ea0ff5c7e6b88689085804d6132ded0ddb9de5ca5b8aeb9eeadc0508a70a"
@@ -2626,7 +2643,7 @@ dependencies = [
  "glam 0.31.1",
  "glam 0.32.1",
  "matrixmultiply",
- "nalgebra-macros",
+ "nalgebra-macros 0.3.0",
  "num-complex",
  "num-rational",
  "num-traits",
@@ -2644,11 +2661,22 @@ dependencies = [
  "blas-src",
  "lapack",
  "lapack-src",
- "nalgebra",
+ "nalgebra 0.34.2",
  "num-complex",
  "num-traits",
  "simba",
  "thiserror 1.0.69",
+]
+
+[[package]]
+name = "nalgebra-macros"
+version = "0.2.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "254a5372af8fc138e36684761d3c0cdb758a4410e938babcff1c860ce14ddbfc"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.117",
 ]
 
 [[package]]
@@ -2660,6 +2688,16 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.117",
+]
+
+[[package]]
+name = "nalgebra-sparse"
+version = "0.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1107e2587bc373090389bd5b54e05ac3184fd02d7c102decf5d76b8feb84b2d0"
+dependencies = [
+ "nalgebra 0.33.3",
+ "num-traits",
 ]
 
 [[package]]
