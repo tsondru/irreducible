@@ -6,24 +6,6 @@
 
 **Core insight**: Computational irreducibility is equivalent to functoriality of Z': T -> B, a map from a category of computations (T) to a cobordism category (B). A computation is irreducible iff Z' preserves composition -- no shortcuts exist.
 
-## Deprecation notice (v0.4.1, Phase 1.5a)
-
-The following APIs are `#[deprecated(since = "0.4.1")]` and will be removed in v0.4.3:
-
-- `coherence::CoherenceVerification::verify_all`
-- `coherence::DifferentialCoherence::{verify, has_categorical_curvature, coherence_defect}`
-- `coherence::{verify_associator_coherence, verify_left_unitor_coherence, verify_right_unitor_coherence, verify_braiding_coherence}`
-- `stokes::TemporalComplex::exterior_derivative`
-- `stokes::ConservationResult::is_closed`
-
-**Why:** these checks are mathematically correct but tautological. `ParallelIntervals` is a strict symmetric monoidal category (tensor = Vec concat, equivalence = sorted-multiset equality), so associator/unitor/braiding checks cannot fail. `TemporalComplex` is a 1D simplicial complex, so the exterior derivative on a 1-form lands in Ω² = {0} — uniquely zero. The APIs give users false confidence they're verifying non-trivial properties.
-
-**What replaces them:** irreducible v0.4.3 (Phase 2.5) rewrites coherence and stokes on top of `catgraph-physics` multiway substrate — a genuine non-strict SMC (confluence up to causal equivalence) with real 2-simplices (confluence diamonds). The full spec lives in `catgraph/.claude/refactor/phase-2.5-coherence-stokes-rewrite.md` in the catgraph workspace.
-
-**What you should do:** stop using the deprecated APIs in new code. Existing call sites keep working (compiler emits warnings) until the v0.4.3 removal.
-
-The cospan-chain bridge (`TemporalComplex::to_cospan_chain`, `compose_cospan_chain`) is **not deprecated** — it is correct and will survive the Phase 2.5 rewrite under a more honest module name.
-
 ## Workspace Structure
 
 ```
@@ -37,13 +19,16 @@ irreducible/                            # Workspace root
 │   │   ├── cobordism.rs                # Re-exports catgraph::interval (DiscreteInterval, ParallelIntervals)
 │   │   ├── complexity.rs               # Re-exports catgraph::complexity (Complexity, StepCount)
 │   │   └── computation_state.rs        # Re-exports catgraph::computation_state (ComputationState)
+│   ├── multiway_coherence.rs            # Non-strict SMC coherence over multiway graphs
+│   ├── multiway_stokes.rs               # Discrete exterior calculus on 2D multiway complex (feature: dec)
+│   ├── temporal_cospan_chain.rs          # Cospan chain bridge for interval sequences
 │   ├── functor/
 │   │   ├── mod.rs                      # IrreducibilityFunctor, MultiwayIrreducibilityResult
 │   │   ├── adjunction.rs              # ZPrimeAdjunction + re-exports catgraph::adjunction
-│   │   ├── monoidal.rs                # MonoidalFunctorResult + re-exports catgraph::coherence
+│   │   ├── monoidal.rs                # MonoidalFunctorResult, TensorCheck, monoidal functor verification
 │   │   ├── bifunctor.rs               # Re-exports catgraph::bifunctor (TensorProduct, etc.)
 │   │   ├── fong_spivak.rs             # Fong-Spivak re-exports + FrobeniusVerificationResult, verify_cospan_chain_frobenius
-│   │   └── stokes_integration.rs      # StokesIrreducibility + re-exports catgraph::stokes
+│   │   └── stokes_integration.rs      # StokesIrreducibility wrapper
 │   └── machines/
 │       ├── mod.rs                      # Machine re-exports, State type alias
 │       ├── turing.rs                   # TuringMachine, ExecutionHistory, TuringMachineBuilder
@@ -68,11 +53,11 @@ irreducible/                            # Workspace root
 │   ├── computation_types.rs           # TM/CA domain types, computation context
 │   ├── functoriality.rs              # Functor Z' composition preservation
 │   ├── hypergraph_rewriting.rs       # DPO rewriting, multiway evolution, gauge theory
-│   ├── monoidal_coherence.rs         # Tensor checks, associator/braiding coherence
+│   ├── multiway_coherence.rs         # Non-strict SMC coherence + monoidal functor tests
 │   ├── multiway_evolution.rs         # SRS, NTM, branchial analysis, curvature
+│   ├── multiway_stokes.rs            # DEC: closed forms, d²=0 (feature: dec)
 │   ├── persistence.rs                # SurrealDB persist roundtrips (feature-gated)
-│   ├── property_coherence.rs         # Coherence verification, differential coherence
-│   └── stokes_integration.rs         # Conservation laws, Stokes-cospan bridge
+│   └── temporal_cospan_chain.rs      # Cospan chain composability
 └── examples/
     ├── gorard_demo.rs                 # 9-part presentation demo
     ├── gorard_demo.md                 # Companion documentation
@@ -80,6 +65,8 @@ irreducible/                            # Workspace root
     ├── bifunctor_tensor.rs            # Tensor products, monoidal law verification
     ├── fong_spivak.rs                 # Fong-Spivak three-perspective agreement demo
     ├── lattice_gauge.rs               # Wilson loops, plaquette action, gauge theory
+    ├── multiway_coherence.rs             # Non-confluent fragment failing coherence
+    ├── multiway_stokes.rs                # Closed vs non-closed 1-forms (feature: dec)
     └── persist_evolution.rs           # EvolutionPersistence lifecycle (feature-gated)
 ```
 
@@ -87,8 +74,9 @@ irreducible/                            # Workspace root
 
 ```toml
 [workspace.dependencies]
-catgraph = { git = "https://github.com/tsondru/catgraph", tag = "v0.10.1" }  # Category theory (spans, cospans, adjunctions, coherence, hypergraph, multiway, Fong-Spivak)
-catgraph-surreal = { git = "https://github.com/tsondru/catgraph", tag = "v0.10.1" }  # optional (persist feature, HypergraphEvolutionStore)
+catgraph = { git = "https://github.com/tsondru/catgraph", tag = "v0.10.6" }  # Category theory (spans, cospans, adjunctions, coherence, hypergraph, multiway, Fong-Spivak)
+catgraph-physics = { git = "https://github.com/tsondru/catgraph", tag = "v0.10.6" }  # Multiway, hypergraph, curvature
+catgraph-surreal = { git = "https://github.com/tsondru/catgraph", tag = "v0.7.2" }  # optional (persist feature, HypergraphEvolutionStore)
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 surrealdb = { version = "3.0.4", default-features = false, features = ["kv-mem"] }  # optional
@@ -96,6 +84,7 @@ tokio = { version = "1", features = ["full"] }                    # optional
 amari-calculus = { git = "https://github.com/justinelliottcobb/Amari", tag = "v0.19.1" }  # optional (manifold-curvature feature)
 nalgebra = { version = "0.34", optional = true }                   # optional (manifold-curvature feature)
 nalgebra-lapack = { version = "0.27", features = ["lapack-openblas"] }  # optional (lapack feature)
+nalgebra-sparse = { version = "0.11", optional = true }  # optional (dec feature)
 ```
 
 **Note:** During active development, the catgraph dep uses `path = "/home/oryx/Documents/tsondru/catgraph"`. Switch to git tag for releases.
@@ -107,6 +96,7 @@ nalgebra-lapack = { version = "0.27", features = ["lapack-openblas"] }  # option
 | `persist` | SurrealDB persistence for evolution traces | `catgraph-surreal`, `surrealdb`, `tokio` |
 | `manifold-curvature` | Riemannian manifold curvature via amari-calculus | `amari-calculus`, `nalgebra` |
 | `lapack` | LAPACK-accelerated eigendecomposition for MDS embedding | `nalgebra-lapack` (implies `manifold-curvature`; requires `libopenblas-dev`) |
+| `dec` | Discrete exterior calculus on multiway complexes | `nalgebra`, `nalgebra-sparse` |
 
 Default features: none. Core library is purely computational (no I/O, no async).
 
@@ -145,13 +135,17 @@ Default features: none. Core library is purely computational (no I/O, no async).
 | `ZPrimeOps` | Adjunction operations trait | `functor/adjunction.rs` |
 | `AdjunctionVerification` | Triangle identity checks | `functor/adjunction.rs` |
 | `MonoidalFunctorResult` | Symmetric monoidal functor check (`#[non_exhaustive]`) | `functor/monoidal.rs` |
-| `CoherenceVerification` | Alpha, lambda, rho, sigma conditions | `functor/monoidal.rs` |
-| `DifferentialCoherence` | Categorical curvature | `functor/monoidal.rs` |
 | `TensorProduct` | Bifunctor trait for tensor | `functor/bifunctor.rs` |
 | `TensorCheck` | Per-step tensor verification | `functor/monoidal.rs` |
-| `TemporalComplex` | Simplicial complex for Stokes | `functor/stokes_integration.rs` |
+| `TemporalComplex` | Simplicial complex for Stokes | `temporal_cospan_chain.rs` |
 | `StokesIrreducibility` | Stokes conservation analysis | `functor/stokes_integration.rs` |
-| `ConservationResult` | Integration consistency result | `functor/stokes_integration.rs` |
+| `ConservationResult` | Integration consistency result | `temporal_cospan_chain.rs` |
+| `AssociatorWitness` | Confluence evidence from associator check | `multiway_coherence.rs` |
+| `BraidingWitness` | Commutation evidence | `multiway_coherence.rs` |
+| `CoherenceError` | Non-confluent / missing event / insufficient branches | `multiway_coherence.rs` |
+| `MultiwayComplex` | 2D simplicial complex from multiway graph (feature: dec) | `multiway_stokes.rs` |
+| `OneForm` | Coefficient vector on edges (feature: dec) | `multiway_stokes.rs` |
+| `TwoForm` | Coefficient vector on faces (feature: dec) | `multiway_stokes.rs` |
 
 ### Trace Analysis
 
@@ -217,7 +211,7 @@ Default features: none. Core library is purely computational (no I/O, no async).
 | `RewriteRule::to_span()` | `Span<u32>` | Rule as categorical span |
 | `RewriteRule::to_rewrite_span()` | `RewriteSpan` | Full span with kernel hypergraph |
 | `HypergraphEvolution::to_cospan_chain()` | `Vec<Cospan<u32>>` | Evolution as composable cospans |
-| `TemporalComplex::to_cospan_chain()` | `Vec<Cospan<()>>` | Stokes -> cospan bridge |
+| `TemporalComplex::to_cospan_chain()` | `Vec<Cospan<u32>>` | Interval sequence -> cospan bridge (`temporal_cospan_chain.rs`) |
 
 ## IrreducibilityTrace Trait
 
@@ -338,8 +332,7 @@ let invariant = evolution.is_causally_invariant();
 ### Stokes Integration
 
 ```rust
-use irreducible::functor::stokes_integration::{TemporalComplex, StokesIrreducibility};
-use irreducible::DiscreteInterval;
+use irreducible::{TemporalComplex, StokesIrreducibility, DiscreteInterval};
 
 let intervals = vec![
     DiscreteInterval::new(0, 2),
@@ -369,17 +362,20 @@ assert!(analysis.is_irreducible());
 ### Running Tests
 
 ```bash
-cargo test --workspace                    # 310 tests (152 unit + 149 integration + 9 doc), 0 ignored
-cargo test -p irreducible                 # Core library unit tests (152)
+cargo test --workspace                    # 369 tests, 0 ignored
+cargo test -p irreducible                 # Core library unit tests
 cargo test --test functoriality           # Single integration test file
-cargo test --workspace --features persist # 325 tests (+15 persistence)
+cargo test --workspace --features persist # +15 persistence tests
 cargo test --features manifold-curvature  # Manifold curvature tests (6 unit + 3 integration)
 cargo test --features lapack              # LAPACK-accelerated eigendecomposition (requires libopenblas-dev)
+cargo test --features dec                 # +8 DEC tests
 cargo run --example gorard_demo           # Run the 9-part demo
 cargo run --example builders              # Builder patterns
 cargo run --example bifunctor_tensor      # Tensor products, monoidal laws
 cargo run --example lattice_gauge         # Wilson loops, gauge theory
 cargo run --example fong_spivak           # Fong-Spivak three-perspective agreement
+cargo run --example multiway_coherence    # Non-confluent fragment failing coherence
+cargo run --example multiway_stokes --features dec  # Closed vs non-closed 1-forms
 cargo run --example persist_evolution --features persist  # SurrealDB persistence
 cargo clippy --workspace -- -W clippy::pedantic  # Lint (zero warnings)
 ```
@@ -388,8 +384,8 @@ cargo clippy --workspace -- -W clippy::pedantic  # Lint (zero warnings)
 
 | Category | Count | What it covers |
 |----------|-------|----------------|
-| Unit tests | 152 | functor, machines (TM, CA, SRS, NTM, trace), categories, types (hypergraph + multiway infra moved to catgraph) |
-| Integration tests | 149 | 12 files: adjunction, catgraph bridge, computation types, fong_spivak, functoriality, hypergraph, manifold curvature, monoidal, multiway, persistence, property coherence, Stokes |
+| Unit tests | ~190 | functor, machines (TM, CA, SRS, NTM, trace), categories, types, multiway coherence, DEC (hypergraph + multiway infra moved to catgraph) |
+| Integration tests | ~170 | 12 files: adjunction, catgraph bridge, computation types, fong_spivak, functoriality, hypergraph, manifold curvature, multiway coherence, multiway evolution, multiway stokes, persistence, temporal cospan chain |
 | Doc tests | 9 | Module-level and type-level examples (hypergraph + multiway doc tests moved to catgraph) |
 
 ### Test Patterns
@@ -453,9 +449,7 @@ let result = EXEC.run(move || {
 | Lambda calculus | Additional computation model with beta-reduction as morphisms |
 | Rule classification | Systematic irreducibility analysis of all 256 elementary CA rules |
 | deep_causality integration | Wire `CausalEffect<T>` into `deep_causality::PropagatingEffect` for causal computation; currently no production consumers but planned |
-| Higher-dimensional Stokes | Real `d: Ω¹ → Ω²` over a 2D multiway-diamond complex lands in v0.4.3 (Phase 2.5). Substrate: `nalgebra-sparse` `CooMatrix` → `CsrMatrix` for ∂₁/∂₂, `spmm_csr_dense` with `Op::Transpose` for `dω`, `CsrMatrix` Mul for `d²=0` verification. See `phase-2.5-coherence-stokes-rewrite.md` in the catgraph workspace. |
-| Non-strict monoidal coherence | Real associator/unitor/braiding verification lands in v0.4.3 (Phase 2.5) on `catgraph-physics` multiway — confluence up to causal equivalence gives a non-strict SMC where the axioms are falsifiable. Replaces the v0.4.1-deprecated tautological checks. |
-| Spectral coherence | nalgebra `SymmetricEigen` on densified `DMatrix` for Hodge Laplacian eigendecomposition at ≤1000 simplices, deferred until Phase 2.5 harmonic-forms work. Above ~5000 simplices, Lanczos / ARPACK required (no nalgebra iterative eigensolvers). |
+| Spectral coherence | nalgebra `SymmetricEigen` on densified `DMatrix` for Hodge Laplacian eigendecomposition at ≤1000 simplices. Above ~5000 simplices, Lanczos / ARPACK required (no nalgebra iterative eigensolvers). Deferred beyond Phase 2.5. |
 
 **Intentionally kept**: `CausalEffect<T>` in `types.rs` has zero internal consumers currently but is retained for the planned deep_causality integration. Do not flag as dead code.
 

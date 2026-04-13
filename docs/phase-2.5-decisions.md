@@ -1,5 +1,7 @@
 # Phase 2.5 Design Decisions
 
+**Status: DONE** -- implemented in irreducible v0.4.3 (2026-04-13).
+
 Captured 2026-04-13 before implementation. Upstream spec:
 `catgraph/.claude/refactor/phase-2.5-coherence-stokes-rewrite.md`
 
