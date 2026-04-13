@@ -53,6 +53,7 @@ pub mod complexity;
 pub mod computation_state;
 pub mod interval;
 pub mod multiway_coherence;
+pub mod multiway_stokes;
 pub mod stokes;
 pub mod temporal_cospan_chain;
 pub mod trace;
