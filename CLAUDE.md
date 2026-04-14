@@ -473,7 +473,7 @@ let result = EXEC.run(move || {
 | Area | Notes |
 |------|-------|
 | Fong-Spivak integration | Re-export and use catgraph v0.10.1 Fong-Spivak modules (`HypergraphCategory`, `CospanAlgebra`, `HypergraphFunctor`, `compact_closed`). See TODO.md for phased plan |
-| Non-Euclidean embedding | `BranchialEmbedding` with non-flat metric (spherical, hyperbolic) for non-trivial `ManifoldCurvature` (#9) |
+| Non-Euclidean embedding | `BranchialEmbedding` with non-flat metric (spherical, hyperbolic) for non-trivial `ManifoldCurvature` (#9). When this lands, pick among: (a) keep amari-calculus smooth-manifold API, (b) roll nalgebra-native Christoffel/Riemann kernels (~400 LOC), (c) switch to `deep_causality_topology` v0.5.1 Regge-style simplicial geometry (`Manifold<C,D>`, `ReggeGeometry::calculate_ricci_curvature`, `CurvatureTensor`, native DEC ops) — (c) also synergizes with the deep_causality integration row and could replace `multiway_stokes.rs` DEC. 2026-04-14 scan confirmed these are the only local options |
 | Visualization | Multiway graphs, branchial structure, curvature heatmaps |
 | Lambda calculus | Additional computation model with beta-reduction as morphisms |
 | Rule classification | Systematic irreducibility analysis of all 256 elementary CA rules |
