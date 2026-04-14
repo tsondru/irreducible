@@ -4,7 +4,7 @@ Computational irreducibility as functoriality in Rust, implementing Jonathan Gor
 
 **Core insight**: A computation is irreducible iff a certain functor Z': T -> B (from computations to cobordisms) preserves composition. No shortcuts exist when Z' is functorial.
 
-Uses [catgraph](https://github.com/tsondru/catgraph) v0.10.6 for the Fong-Spivak categorical infrastructure (cospans, spans, hypergraph DPO rewriting, multiway evolution, hypergraph categories, cospan-algebras, Thm 1.2 equivalence) and [catgraph-physics](https://github.com/tsondru/catgraph) v0.10.6 for multiway evolution graphs and confluence diamond detection. irreducible owns the computation-facing layer -- interval algebra, adjunctions, monoidal coherence, discrete exterior calculus, trace analysis -- plus the computation models (TM, CA, SRS, NTM).
+Uses [catgraph](https://github.com/tsondru/catgraph) v0.11.0 (slim F&S baseline) for the Fong-Spivak categorical infrastructure (cospans, spans, hypergraph categories, cospan-algebras, Thm 1.2 equivalence) and [catgraph-physics](https://github.com/tsondru/catgraph) v0.11.0 for hypergraph DPO rewriting, multiway evolution graphs, confluence diamond detection, and branchial spectral analysis. irreducible owns the computation-facing layer -- interval algebra, adjunctions, monoidal coherence, discrete exterior calculus, trace analysis -- plus the computation models (TM, CA, SRS, NTM).
 
 369 tests (+ 8 with `dec` feature), zero clippy warnings. Rust 2024 edition.
 
@@ -39,7 +39,7 @@ Uses [catgraph](https://github.com/tsondru/catgraph) v0.10.6 for the Fong-Spivak
 
 ## Fong-Spivak Feature Map
 
-Re-exports from catgraph v0.10.6 implementing [Fong & Spivak, *Hypergraph Categories*](https://arxiv.org/abs/1806.08304) SS2-3:
+Re-exports from catgraph v0.11.0 implementing [Fong & Spivak, *Hypergraph Categories*](https://arxiv.org/abs/1806.08304) SS2-3:
 
 | Paper Reference | Re-exported Type | Purpose |
 |-----------------|------------------|---------|
@@ -196,8 +196,8 @@ For 1D simplicial complexes, Stokes conservation reduces to contiguity + monoton
 
 ## Dependencies
 
-- [catgraph](https://github.com/tsondru/catgraph) v0.10.6 -- category theory infrastructure (cospans, spans, Fong-Spivak hypergraph categories, DPO rewriting)
-- [catgraph-physics](https://github.com/tsondru/catgraph) v0.10.6 -- multiway evolution, confluence diamonds, discrete curvature
+- [catgraph](https://github.com/tsondru/catgraph) v0.11.0 -- category theory infrastructure (cospans, spans, Fong-Spivak hypergraph categories) — slim baseline
+- [catgraph-physics](https://github.com/tsondru/catgraph) v0.11.0 -- hypergraph DPO rewriting, multiway evolution, confluence diamonds, discrete curvature, branchial spectral analysis
 - `serde` + `serde_json` -- serialization
 - Optional: `nalgebra` + `nalgebra-sparse` (DEC), `amari-calculus` (manifold curvature), `nalgebra-lapack` (LAPACK), `catgraph-surreal` + `surrealdb` + `tokio` (persistence)
 

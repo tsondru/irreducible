@@ -74,9 +74,9 @@ irreducible/                            # Workspace root
 
 ```toml
 [workspace.dependencies]
-catgraph = { git = "https://github.com/tsondru/catgraph", tag = "v0.10.6" }  # Category theory (spans, cospans, adjunctions, coherence, hypergraph, multiway, Fong-Spivak)
-catgraph-physics = { git = "https://github.com/tsondru/catgraph", tag = "v0.10.6" }  # Multiway, hypergraph, curvature
-catgraph-surreal = { git = "https://github.com/tsondru/catgraph", tag = "v0.7.2" }  # optional (persist feature, HypergraphEvolutionStore)
+catgraph = { git = "https://github.com/tsondru/catgraph", tag = "v0.11.0" }  # Category theory (spans, cospans, Fong-Spivak) — slim baseline
+catgraph-physics = { git = "https://github.com/tsondru/catgraph", tag = "v0.11.0" }  # Multiway, hypergraph, curvature, branchial spectral analysis
+catgraph-surreal = { git = "https://github.com/tsondru/catgraph-surreal", tag = "v0.9.0" }  # optional (persist feature, HypergraphEvolutionStore)
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 surrealdb = { version = "3.0.4", default-features = false, features = ["kv-mem"] }  # optional
@@ -444,7 +444,7 @@ let result = EXEC.run(move || {
 |------|-------|
 | Fong-Spivak integration | Re-export and use catgraph v0.10.1 Fong-Spivak modules (`HypergraphCategory`, `CospanAlgebra`, `HypergraphFunctor`, `compact_closed`). See TODO.md for phased plan |
 | Non-Euclidean embedding | `BranchialEmbedding` with non-flat metric (spherical, hyperbolic) for non-trivial `ManifoldCurvature` (#9) |
-| Petri net machine | `PetriNetMachine` wrapper implementing `IrreducibilityTrace` using catgraph's `PetriNet<Lambda>` |
+| Petri net machine | `PetriNetMachine` wrapper implementing `IrreducibilityTrace` using catgraph-applied's `PetriNet<Lambda>` (moved from catgraph core in Phase 3, 2026-04-14) |
 | Visualization | Multiway graphs, branchial structure, curvature heatmaps |
 | Lambda calculus | Additional computation model with beta-reduction as morphisms |
 | Rule classification | Systematic irreducibility analysis of all 256 elementary CA rules |
