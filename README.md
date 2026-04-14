@@ -6,7 +6,7 @@ Computational irreducibility as functoriality in Rust, implementing Jonathan Gor
 
 Uses [catgraph](https://github.com/tsondru/catgraph) v0.11.0 (slim F&S baseline) for the Fong-Spivak categorical infrastructure (cospans, spans, hypergraph categories, cospan-algebras, Thm 1.2 equivalence) and [catgraph-physics](https://github.com/tsondru/catgraph) v0.11.0 for hypergraph DPO rewriting, multiway evolution graphs, confluence diamond detection, and branchial spectral analysis. irreducible owns the computation-facing layer -- interval algebra, adjunctions, monoidal coherence, discrete exterior calculus, trace analysis -- plus the computation models (TM, CA, SRS, NTM).
 
-369 tests (+ 8 with `dec` feature), zero clippy warnings. Rust 2024 edition.
+385 tests (+ 14 with `dec`, + 14 with `manifold-curvature`, + 14 with `dc-geometry`), zero clippy warnings. Rust 2024 edition, MSRV 1.90.
 
 ## Component Index
 
@@ -32,7 +32,7 @@ Uses [catgraph](https://github.com/tsondru/catgraph) v0.11.0 (slim F&S baseline)
 | `machines/trace.rs` | `IrreducibilityTrace`, `TraceAnalysis` | Generic trace analysis, repeat detection |
 | `machines/multiway/string_rewrite.rs` | `StringRewriteSystem`, `SRSState` | Pattern-based multiway string rewriting |
 | `machines/multiway/ntm.rs` | `NondeterministicTM`, `NTMBuilder` | Non-deterministic Turing machines |
-| `machines/multiway/manifold_bridge.rs` | `ManifoldCurvature`, `BranchialEmbedding` | Riemannian curvature via MDS (feature-gated) |
+| `machines/multiway/manifold_bridge.rs` | `ManifoldCurvature`, `BranchialEmbedding` | Regge deficit-angle curvature on branchial complexes via dc_topology (feature-gated) |
 | `machines/hypergraph/catgraph_bridge.rs` | `MultiwayCospanExt`, `MultiwayCospanGraph` | Hypergraph evolution cospan analysis |
 | `machines/hypergraph/persistence.rs` | `EvolutionPersistence` | SurrealDB persistence (feature-gated) |
 | `types.rs` | `ComputationDomain`, `ComputationContext`, `CausalEffect` | Domain types for computation models |
@@ -117,8 +117,9 @@ assert!(functorial && stokes_ok && frobenius_ok); // all agree
 | Feature | Gates | Dependencies |
 |---------|-------|--------------|
 | *(none)* | Core library (TM, CA, SRS, NTM, functor, cobordism) | `catgraph`, `catgraph-physics`, `serde` |
-| `dec` | Discrete exterior calculus on multiway complexes | `nalgebra`, `nalgebra-sparse` |
-| `manifold-curvature` | Riemannian manifold curvature via MDS embedding | `amari-calculus`, `nalgebra` |
+| `dc-geometry` | dc_topology Regge + DEC substrate | `deep_causality_topology`, `deep_causality_tensor`, `deep_causality_sparse` |
+| `dec` | Discrete exterior calculus on multiway complexes | `dc-geometry`, `nalgebra` |
+| `manifold-curvature` | Regge deficit-angle curvature on branchial complexes | `dc-geometry`, `nalgebra` |
 | `lapack` | LAPACK-accelerated eigendecomposition for MDS | `nalgebra-lapack` (implies `manifold-curvature`; requires `libopenblas-dev`) |
 | `persist` | SurrealDB persistence for evolution traces | `catgraph-surreal`, `surrealdb`, `tokio` |
 
@@ -138,10 +139,13 @@ cargo run --example persist_evolution --features persist  # SurrealDB persistenc
 ## Testing
 
 ```bash
-cargo test --workspace                    # 369 tests, 0 ignored
-cargo test --features dec                 # +8 DEC tests
-cargo test --workspace --features persist # +15 persistence tests
-cargo clippy --workspace -- -W clippy::pedantic  # zero warnings
+cargo test --workspace                              # 385 tests, 0 ignored
+cargo test --features dc-geometry                   # +14 dc_topology smoke tests
+cargo test --features manifold-curvature            # +14 Regge curvature tests
+cargo test --features dec                           # +14 DEC tests
+cargo test --features persist                       # +15 persistence tests
+cargo test --features "dec manifold-curvature persist"  # 427 total
+cargo clippy --workspace -- -W clippy::pedantic     # zero warnings
 ```
 
 | Suite | Tests | What it covers |
@@ -199,7 +203,7 @@ For 1D simplicial complexes, Stokes conservation reduces to contiguity + monoton
 - [catgraph](https://github.com/tsondru/catgraph) v0.11.0 -- category theory infrastructure (cospans, spans, Fong-Spivak hypergraph categories) — slim baseline
 - [catgraph-physics](https://github.com/tsondru/catgraph) v0.11.0 -- hypergraph DPO rewriting, multiway evolution, confluence diamonds, discrete curvature, branchial spectral analysis
 - `serde` + `serde_json` -- serialization
-- Optional: `nalgebra` + `nalgebra-sparse` (DEC), `amari-calculus` (manifold curvature), `nalgebra-lapack` (LAPACK), `catgraph-surreal` + `surrealdb` + `tokio` (persistence)
+- Optional: `deep_causality_topology` + `deep_causality_tensor` + `deep_causality_sparse` (Regge curvature + DEC substrate), `nalgebra` (matrix ops), `nalgebra-lapack` (LAPACK), `catgraph-surreal` + `surrealdb` + `tokio` (persistence)
 
 ## References
 

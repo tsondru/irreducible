@@ -41,5 +41,5 @@ pub use ntm::{NTMBuilder, NTMTransitionData, NondeterministicTM};
 // Feature-gated manifold curvature
 #[cfg(feature = "manifold-curvature")]
 pub use manifold_bridge::{
-    BranchialEmbedding, ManifoldCurvature, ManifoldFoliation, ShortestPathMDS,
+    BranchialEmbedding, ManifoldCurvature, ManifoldFoliation, MetricTensor, ShortestPathMDS,
 };

@@ -77,14 +77,15 @@ irreducible/                            # Workspace root
 catgraph = { git = "https://github.com/tsondru/catgraph", tag = "v0.11.0" }  # Category theory (spans, cospans, Fong-Spivak) — slim baseline
 catgraph-physics = { git = "https://github.com/tsondru/catgraph", tag = "v0.11.0" }  # Multiway, hypergraph, curvature, branchial spectral analysis
 catgraph-surreal = { git = "https://github.com/tsondru/catgraph-surreal", tag = "v0.9.0" }  # optional (persist feature, HypergraphEvolutionStore)
+deep_causality_topology = "0.5.1"   # optional (dc-geometry feature) — Regge geometry + SimplicialComplex + DEC ops
+deep_causality_tensor = "0.4.2"     # optional (dc-geometry feature) — CausalTensor<D> return type for DEC ops
+deep_causality_sparse = "0.1.7"     # optional (dc-geometry feature) — CsrMatrix for Hodge operator storage
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 surrealdb = { version = "3.0.4", default-features = false, features = ["kv-mem"] }  # optional
 tokio = { version = "1", features = ["full"] }                    # optional
-amari-calculus = { git = "https://github.com/justinelliottcobb/Amari", tag = "v0.19.1" }  # optional (manifold-curvature feature)
-nalgebra = { version = "0.34", optional = true }                   # optional (manifold-curvature feature)
+nalgebra = { version = "0.34", optional = true }                   # optional (manifold-curvature + dec features)
 nalgebra-lapack = { version = "0.27", features = ["lapack-openblas"] }  # optional (lapack feature)
-nalgebra-sparse = { version = "0.11", optional = true }  # optional (dec feature)
 ```
 
 **Note:** During active development, the catgraph dep uses `path = "/home/oryx/Documents/tsondru/catgraph"`. Switch to git tag for releases.
@@ -93,10 +94,11 @@ nalgebra-sparse = { version = "0.11", optional = true }  # optional (dec feature
 
 | Feature | Gates | Dependencies |
 |---------|-------|--------------|
-| `persist` | SurrealDB persistence for evolution traces | `catgraph-surreal`, `surrealdb`, `tokio` |
-| `manifold-curvature` | Riemannian manifold curvature via amari-calculus | `amari-calculus`, `nalgebra` |
+| `dc-geometry` | dc_topology Regge + DEC substrate | `deep_causality_topology`, `deep_causality_tensor`, `deep_causality_sparse` |
+| `manifold-curvature` | Regge deficit-angle curvature on branchial complexes | `dc-geometry`, `nalgebra` |
+| `dec` | Discrete exterior calculus on multiway complexes | `dc-geometry`, `nalgebra` |
 | `lapack` | LAPACK-accelerated eigendecomposition for MDS embedding | `nalgebra-lapack` (implies `manifold-curvature`; requires `libopenblas-dev`) |
-| `dec` | Discrete exterior calculus on multiway complexes | `nalgebra`, `nalgebra-sparse` |
+| `persist` | SurrealDB persistence for evolution traces | `catgraph-surreal`, `surrealdb`, `tokio` |
 
 Default features: none. Core library is purely computational (no I/O, no async).
 
@@ -391,13 +393,15 @@ assert!(analysis.is_irreducible());
 ### Running Tests
 
 ```bash
-cargo test --workspace                    # 369 tests, 0 ignored
+cargo test --workspace                    # 385 tests, 0 ignored
 cargo test -p irreducible                 # Core library unit tests
 cargo test --test functoriality           # Single integration test file
-cargo test --workspace --features persist # +15 persistence tests
-cargo test --features manifold-curvature  # Manifold curvature tests (6 unit + 3 integration)
+cargo test --features dc-geometry         # +14 dc_topology smoke + bridge tests
+cargo test --features manifold-curvature  # +14 Regge curvature tests
+cargo test --features dec                 # +14 DEC tests
 cargo test --features lapack              # LAPACK-accelerated eigendecomposition (requires libopenblas-dev)
-cargo test --features dec                 # +8 DEC tests
+cargo test --workspace --features persist # +15 persistence tests
+cargo test --features "dec manifold-curvature persist"  # 427 total
 cargo run --example gorard_demo           # Run the 9-part demo
 cargo run --example builders              # Builder patterns
 cargo run --example bifunctor_tensor      # Tensor products, monoidal laws
@@ -428,7 +432,7 @@ cargo clippy --workspace -- -W clippy::pedantic  # Lint (zero warnings)
 
 ## Clippy Preferences
 
-Rust 2024 edition. Zero pedantic warnings. Patterns to follow:
+Rust 2024 edition, MSRV 1.90 (dc_topology requirement). Zero pedantic warnings. Patterns to follow:
 
 - `#[must_use]` on all value-returning methods
 - `matches!` macro instead of match expressions returning bool
@@ -473,7 +477,7 @@ let result = EXEC.run(move || {
 | Area | Notes |
 |------|-------|
 | Fong-Spivak integration | Re-export and use catgraph v0.10.1 Fong-Spivak modules (`HypergraphCategory`, `CospanAlgebra`, `HypergraphFunctor`, `compact_closed`). See TODO.md for phased plan |
-| Non-Euclidean embedding | `BranchialEmbedding` with non-flat metric (spherical, hyperbolic) for non-trivial `ManifoldCurvature` (#9). When this lands, pick among: (a) keep amari-calculus smooth-manifold API, (b) roll nalgebra-native Christoffel/Riemann kernels (~400 LOC), (c) switch to `deep_causality_topology` v0.5.1 Regge-style simplicial geometry (`Manifold<C,D>`, `ReggeGeometry::calculate_ricci_curvature`, `CurvatureTensor`, native DEC ops) — (c) also synergizes with the deep_causality integration row and could replace `multiway_stokes.rs` DEC. 2026-04-14 scan confirmed these are the only local options |
+| Non-Euclidean embedding (partial) | `BranchialEmbedding` with non-flat metric (spherical, hyperbolic) + confluence-diamond face extraction in `manifold_bridge.rs`. The discrete-Regge substrate is in place as of v0.6.0; what remains is (a) non-flat edge-length assignment for systematically nonzero curvature from the branchial graph structure alone (vs. exposed boundary vertices), and (b) swapping the fan triangulation in `manifold_bridge` for the confluence-diamond face extraction that `multiway_stokes` already uses. See `docs/decisions/2026-04-14-dc-topology-substrate.md` |
 | Visualization | Multiway graphs, branchial structure, curvature heatmaps |
 | Lambda calculus | Additional computation model with beta-reduction as morphisms |
 | Rule classification | Systematic irreducibility analysis of all 256 elementary CA rules |

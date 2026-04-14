@@ -3,17 +3,20 @@ resolver = "2"
 members = []
 
 [workspace.package]
-version = "0.5.0"
+version = "0.6.0"
 edition = "2024"
+rust-version = "1.90"
 license = "MIT"
 authors = ["tsondru", "Claude <noreply@anthropic.com>"]
 
 [workspace.dependencies]
-amari-calculus = { git = "https://github.com/justinelliottcobb/Amari", tag = "v0.19.1" }
 catgraph = { git = "https://github.com/tsondru/catgraph", tag = "v0.11.0" }
 catgraph-applied = { git = "https://github.com/tsondru/catgraph", tag = "v0.11.0" }
 catgraph-physics = { git = "https://github.com/tsondru/catgraph", tag = "v0.11.0" }
 catgraph-surreal = { git = "https://github.com/tsondru/catgraph-surreal", tag = "v0.9.0" }
+deep_causality_topology = "0.5.1"
+deep_causality_tensor = "0.4.2"
+deep_causality_sparse = "0.1.7"
 rust_decimal = "1"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
@@ -24,6 +27,7 @@ tokio = { version = "1", features = ["full"] }
 name = "irreducible"
 version.workspace = true
 edition.workspace = true
+rust-version.workspace = true
 license.workspace = true
 authors.workspace = true
 description = "Computational irreducibility library based on Gorard's functorial perspective"
@@ -34,20 +38,22 @@ categories = ["mathematics", "science", "algorithms"]
 
 [features]
 default = []
-manifold-curvature = ["dep:amari-calculus", "dep:nalgebra"]
+manifold-curvature = ["dc-geometry", "dep:nalgebra"]
 lapack = ["dep:nalgebra-lapack", "manifold-curvature"]
-dec = ["dep:nalgebra", "dep:nalgebra-sparse"]
+dec = ["dc-geometry", "dep:nalgebra"]
+dc-geometry = ["dep:deep_causality_topology", "dep:deep_causality_tensor", "dep:deep_causality_sparse"]
 persist = ["dep:catgraph-surreal", "dep:surrealdb", "dep:tokio"]
 
 [dependencies]
-amari-calculus = { workspace = true, optional = true }
 catgraph.workspace = true
 catgraph-applied.workspace = true
 catgraph-physics.workspace = true
 rust_decimal.workspace = true
 nalgebra = { version = "0.34", optional = true }
 nalgebra-lapack = { version = "0.27", optional = true, default-features = false, features = ["lapack-openblas"] }
-nalgebra-sparse = { version = "0.11", optional = true }
+deep_causality_topology = { workspace = true, optional = true }
+deep_causality_tensor = { workspace = true, optional = true }
+deep_causality_sparse = { workspace = true, optional = true }
 serde.workspace = true
 serde_json.workspace = true
 catgraph-surreal = { workspace = true, optional = true }

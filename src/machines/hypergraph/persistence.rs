@@ -1,7 +1,7 @@
-//! SurrealDB persistence for hypergraph evolution traces via catgraph-surreal V2.
+//! `SurrealDB` persistence for hypergraph evolution traces via catgraph-surreal V2.
 //!
 //! Requires the `persist` feature flag. Uses catgraph-surreal's hub-node
-//! reification to store spans, cospans, and full evolution graphs in SurrealDB.
+//! reification to store spans, cospans, and full evolution graphs in `SurrealDB`.
 
 use catgraph::cospan::Cospan;
 use catgraph::span::Span;
@@ -26,6 +26,7 @@ impl<'a> EvolutionPersistence<'a> {
     /// Creates a new persistence handle.
     ///
     /// Requires V2 schema to be initialized (`catgraph_surreal::init_schema_v2`).
+    #[must_use]
     pub fn new(db: &'a Surreal<Db>) -> Self {
         Self {
             store: HyperedgeStore::new(db),
@@ -36,6 +37,10 @@ impl<'a> EvolutionPersistence<'a> {
     ///
     /// Each step cospan is stored as a V2 hub-node decomposition with
     /// properties: `chain_name`, `step`, `total_steps`.
+    ///
+    /// # Errors
+    ///
+    /// Returns `PersistError` if any cospan step fails to decompose or store.
     pub async fn persist_cospan_chain(
         &self,
         evolution: &HypergraphEvolution,
@@ -66,6 +71,10 @@ impl<'a> EvolutionPersistence<'a> {
     /// Persists the full multiway cospan graph.
     ///
     /// Each edge cospan is stored with `parent_id` and `child_id` in properties.
+    ///
+    /// # Errors
+    ///
+    /// Returns `PersistError` if any edge cospan fails to decompose or store.
     pub async fn persist_multiway_graph(
         &self,
         evolution: &HypergraphEvolution,
@@ -93,6 +102,10 @@ impl<'a> EvolutionPersistence<'a> {
     }
 
     /// Persists a rewrite rule as a categorical span.
+    ///
+    /// # Errors
+    ///
+    /// Returns `PersistError` if the span fails to decompose or store.
     pub async fn persist_span(
         &self,
         rule: &RewriteRule,
@@ -114,6 +127,10 @@ impl<'a> EvolutionPersistence<'a> {
     }
 
     /// Reconstructs a cospan from a persisted hub record.
+    ///
+    /// # Errors
+    ///
+    /// Returns `PersistError` if the hub record is missing or malformed.
     pub async fn load_cospan(
         &self,
         hub_id: &RecordId,
@@ -122,6 +139,10 @@ impl<'a> EvolutionPersistence<'a> {
     }
 
     /// Reconstructs a rewrite rule span from a persisted hub record.
+    ///
+    /// # Errors
+    ///
+    /// Returns `PersistError` if the hub record is missing or malformed.
     pub async fn load_span(
         &self,
         hub_id: &RecordId,

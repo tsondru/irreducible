@@ -60,6 +60,12 @@ pub mod multiway_coherence;
 pub mod multiway_stokes;
 pub mod temporal_cospan_chain;
 
+// Phase 0 of the dc_topology substrate port (feature: dc-geometry).
+// Bridges multiway/branchial graphs to deep_causality_topology's simplicial
+// complex + Regge geometry. See `.claude/plans/2026-04-14-dc-topology-substrate.md`.
+#[cfg(feature = "dc-geometry")]
+pub mod geometry;
+
 #[cfg(test)]
 pub mod test_utils;
 
