@@ -61,6 +61,7 @@ mod cellular_automaton;
 mod configuration;
 pub mod multiway;
 pub mod hypergraph;
+pub mod petri;
 mod tape;
 pub mod trace;
 mod transition;
@@ -80,6 +81,11 @@ pub use cellular_automaton::{
     CACycle, CAExecutionHistory, CAIrreducibilityAnalysis, CATransition, ElementaryCA, Generation,
 };
 
+// Petri net exports
+pub use petri::{
+    PetriBuilder, PetriExecutionHistory, PetriNetMachine, PetriTransitionRecord,
+};
+
 // Trace analysis exports
 pub use trace::{
     analyze_trace, detect_repeats, IrreducibilityTrace, RepeatDetection, TraceAnalysis,
@@ -88,13 +94,21 @@ pub use trace::{
 /// State identifier for Turing machines.
 pub type State = u32;
 
-/// Error returned when a machine builder is missing required fields.
+/// Error returned when a machine builder is missing required fields or has
+/// malformed input.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum BuilderError {
     /// The `initial_state` field was not set.
     MissingInitialState,
     /// The `blank` symbol field was not set.
     MissingBlank,
+    /// A Petri-net arc referenced a place index beyond the declared place set.
+    PetriArcOutOfBounds {
+        /// The out-of-range place index that was referenced.
+        place: usize,
+        /// The number of places declared on the builder.
+        place_count: usize,
+    },
 }
 
 impl std::fmt::Display for BuilderError {
@@ -102,6 +116,10 @@ impl std::fmt::Display for BuilderError {
         match self {
             Self::MissingInitialState => write!(f, "builder requires initial_state to be set"),
             Self::MissingBlank => write!(f, "builder requires blank symbol to be set"),
+            Self::PetriArcOutOfBounds { place, place_count } => write!(
+                f,
+                "Petri arc references place {place} but only {place_count} place(s) declared",
+            ),
         }
     }
 }

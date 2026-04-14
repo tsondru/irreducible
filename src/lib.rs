@@ -103,6 +103,12 @@ pub use machines::{ExecutionHistory, IrreducibilityAnalysis, TuringMachine};
 // Cellular automaton exports (1D)
 pub use machines::{CAExecutionHistory, CAIrreducibilityAnalysis, ElementaryCA, Generation};
 
+// Petri net exports
+pub use machines::petri::{
+    run_multiway_reachability, Marking, PetriBuilder, PetriExecutionHistory, PetriNet,
+    PetriNetMachine, PetriTransition, PetriTransitionRecord,
+};
+
 // Trace analysis exports (local module)
 pub use trace::{
     analyze_trace, detect_repeats, IrreducibilityTrace, RepeatDetection, TraceAnalysis,

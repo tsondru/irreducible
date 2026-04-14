@@ -115,7 +115,11 @@ Default features: none. Core library is purely computational (no I/O, no async).
 | `StringRewriteSystem` | Pattern-based multiway | `machines/multiway/string_rewrite.rs` |
 | `SrsRewriteRule` | SRS pattern → replacement | `machines/multiway/string_rewrite.rs` |
 | `NondeterministicTM` | Non-deterministic TM | `machines/multiway/ntm.rs` |
-| `BuilderError` | Error from `try_build()` on TM/NTM builders | `machines/mod.rs` |
+| `PetriNetMachine` | Place/transition Petri net (linear trace) | `machines/petri/machine.rs` |
+| `PetriExecutionHistory` | Petri firing trace | `machines/petri/history.rs` |
+| `PetriBuilder` | Fluent Petri-net construction | `machines/petri/builder.rs` |
+| `run_multiway_reachability` | Non-deterministic Petri exploration | `machines/petri/multiway.rs` |
+| `BuilderError` | Error from `try_build()` on TM/NTM/Petri builders | `machines/mod.rs` |
 
 ### Category B (Cobordisms)
 
@@ -262,6 +266,31 @@ let analysis = analyze_trace(&history);
 println!("Rule 30 irreducible: {}", analysis.is_irreducible);
 ```
 
+### Petri Net Reachability
+
+```rust
+use irreducible::machines::petri::{PetriBuilder, Marking, run_multiway_reachability};
+use irreducible::trace::analyze_trace;
+use rust_decimal::Decimal;
+
+// Producer/consumer: R → D
+let machine = PetriBuilder::<char>::new()
+    .place('R').place('D')
+    .transition(vec![(0, Decimal::ONE)], vec![(1, Decimal::ONE)])
+    .build();
+
+// Linear trace: smallest-index-enabled firing rule
+let history = machine.run(Marking::from_vec(vec![(0, Decimal::from(3))]), 10);
+assert!(history.halted);
+assert!(analyze_trace(&history).is_irreducible);
+
+// Non-deterministic multiway reachability
+let evolution = run_multiway_reachability(&machine, Marking::from_vec(vec![(0, Decimal::from(3))]), 5, 64);
+
+// Cospan bridge for Z'
+let cospan = machine.transition_as_cospan(0);
+```
+
 ### Multiway SRS Evolution
 
 ```rust
@@ -376,6 +405,7 @@ cargo run --example lattice_gauge         # Wilson loops, gauge theory
 cargo run --example fong_spivak           # Fong-Spivak three-perspective agreement
 cargo run --example multiway_coherence    # Non-confluent fragment failing coherence
 cargo run --example multiway_stokes --features dec  # Closed vs non-closed 1-forms
+cargo run --example petri_reachability     # Petri-net linear + multiway + cospan
 cargo run --example persist_evolution --features persist  # SurrealDB persistence
 cargo clippy --workspace -- -W clippy::pedantic  # Lint (zero warnings)
 ```
@@ -444,7 +474,6 @@ let result = EXEC.run(move || {
 |------|-------|
 | Fong-Spivak integration | Re-export and use catgraph v0.10.1 Fong-Spivak modules (`HypergraphCategory`, `CospanAlgebra`, `HypergraphFunctor`, `compact_closed`). See TODO.md for phased plan |
 | Non-Euclidean embedding | `BranchialEmbedding` with non-flat metric (spherical, hyperbolic) for non-trivial `ManifoldCurvature` (#9) |
-| Petri net machine | `PetriNetMachine` wrapper implementing `IrreducibilityTrace` using catgraph-applied's `PetriNet<Lambda>` (moved from catgraph core in Phase 3, 2026-04-14) |
 | Visualization | Multiway graphs, branchial structure, curvature heatmaps |
 | Lambda calculus | Additional computation model with beta-reduction as morphisms |
 | Rule classification | Systematic irreducibility analysis of all 256 elementary CA rules |

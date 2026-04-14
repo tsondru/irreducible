@@ -3,7 +3,7 @@ resolver = "2"
 members = []
 
 [workspace.package]
-version = "0.4.4"
+version = "0.5.0"
 edition = "2024"
 license = "MIT"
 authors = ["tsondru", "Claude <noreply@anthropic.com>"]
@@ -11,8 +11,10 @@ authors = ["tsondru", "Claude <noreply@anthropic.com>"]
 [workspace.dependencies]
 amari-calculus = { git = "https://github.com/justinelliottcobb/Amari", tag = "v0.19.1" }
 catgraph = { git = "https://github.com/tsondru/catgraph", tag = "v0.11.0" }
+catgraph-applied = { git = "https://github.com/tsondru/catgraph", tag = "v0.11.0" }
 catgraph-physics = { git = "https://github.com/tsondru/catgraph", tag = "v0.11.0" }
 catgraph-surreal = { git = "https://github.com/tsondru/catgraph-surreal", tag = "v0.9.0" }
+rust_decimal = "1"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 surrealdb = { version = "3.0.4", default-features = false, features = ["kv-mem"] }
@@ -40,7 +42,9 @@ persist = ["dep:catgraph-surreal", "dep:surrealdb", "dep:tokio"]
 [dependencies]
 amari-calculus = { workspace = true, optional = true }
 catgraph.workspace = true
+catgraph-applied.workspace = true
 catgraph-physics.workspace = true
+rust_decimal.workspace = true
 nalgebra = { version = "0.34", optional = true }
 nalgebra-lapack = { version = "0.27", optional = true, default-features = false, features = ["lapack-openblas"] }
 nalgebra-sparse = { version = "0.11", optional = true }
