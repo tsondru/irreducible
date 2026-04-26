@@ -74,15 +74,16 @@ irreducible/                            # Workspace root
 
 ```toml
 [workspace.dependencies]
-catgraph = { git = "https://github.com/tsondru/catgraph", tag = "v0.11.0" }  # Category theory (spans, cospans, Fong-Spivak) — slim baseline
-catgraph-physics = { git = "https://github.com/tsondru/catgraph", tag = "v0.11.0" }  # Multiway, hypergraph, curvature, branchial spectral analysis
-catgraph-surreal = { git = "https://github.com/tsondru/catgraph-surreal", tag = "v0.9.0" }  # optional (persist feature, HypergraphEvolutionStore)
+catgraph = { git = "https://github.com/tsondru/catgraph", tag = "v0.12.0" }  # Category theory (spans, cospans, Fong-Spivak, Corel) — slim baseline
+catgraph-applied = { git = "https://github.com/tsondru/catgraph", tag = "v0.12.0" }  # Petri nets, wiring diagrams, props
+catgraph-physics = { git = "https://github.com/tsondru/catgraph", tag = "v0.12.0" }  # Multiway, hypergraph, curvature, branchial spectral analysis
+catgraph-surreal = { git = "https://github.com/tsondru/catgraph-surreal", tag = "v0.10.1" }  # optional (persist feature, Surreal<Any> stores)
 deep_causality_topology = "0.5.1"   # optional (dc-geometry feature) — Regge geometry + SimplicialComplex + DEC ops
 deep_causality_tensor = "0.4.2"     # optional (dc-geometry feature) — CausalTensor<D> return type for DEC ops
 deep_causality_sparse = "0.1.7"     # optional (dc-geometry feature) — CsrMatrix for Hodge operator storage
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-surrealdb = { version = "3.0.4", default-features = false, features = ["kv-mem"] }  # optional
+surrealdb = { version = "3.0.5", default-features = false }  # optional (kv-mem provided by catgraph-surreal/native-embedded)
 tokio = { version = "1", features = ["full"] }                    # optional
 nalgebra = { version = "0.34", optional = true }                   # optional (manifold-curvature + dec features)
 nalgebra-lapack = { version = "0.27", features = ["lapack-openblas"] }  # optional (lapack feature)

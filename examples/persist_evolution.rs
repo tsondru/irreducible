@@ -23,10 +23,10 @@ mod persist_demo {
         persistence::EvolutionPersistence, Hypergraph, HypergraphEvolution,
         RewriteRule as HypergraphRewriteRule,
     };
-    use surrealdb::engine::local::Mem;
+    use surrealdb::engine::any;
 
     pub async fn run() {
-        let db = surrealdb::Surreal::new::<Mem>(()).await.unwrap();
+        let db = any::connect("mem://").await.unwrap();
         db.use_ns("demo").use_db("demo").await.unwrap();
         catgraph_surreal::init_schema_v2(&db).await.unwrap();
 

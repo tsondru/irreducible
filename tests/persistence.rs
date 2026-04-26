@@ -8,12 +8,12 @@ use irreducible::machines::hypergraph::{
     persistence::EvolutionPersistence, Hypergraph, HypergraphEvolution,
     MultiwayCospanExt, RewriteRule as HypergraphRewriteRule,
 };
-use surrealdb::engine::local::{Db, Mem};
+use surrealdb::engine::any::{self, Any};
 use surrealdb::types::RecordId;
 use surrealdb::Surreal;
 
-async fn setup_db() -> Surreal<Db> {
-    let db = Surreal::new::<Mem>(()).await.unwrap();
+async fn setup_db() -> Surreal<Any> {
+    let db = any::connect("mem://").await.unwrap();
     db.use_ns("test").use_db("test").await.unwrap();
     catgraph_surreal::init_schema_v2(&db).await.unwrap();
     db
