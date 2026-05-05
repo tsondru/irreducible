@@ -33,7 +33,7 @@ irreducible/                            # Workspace root
 │       ├── mod.rs                      # Machine re-exports, State type alias
 │       ├── turing.rs                   # TuringMachine, ExecutionHistory, TuringMachineBuilder
 │       ├── cellular_automaton.rs       # ElementaryCA, Generation, CAExecutionHistory
-│       ├── trace.rs                    # IrreducibilityTrace trait, TraceAnalysis, RepeatDetection
+│       ├── trace.rs                    # StepTrace trait (IrreducibilityTrace deprecated alias), TraceAnalysis, RepeatDetection
 │       ├── configuration.rs            # Configuration (instantaneous TM description)
 │       ├── tape.rs                     # Tape, Symbol
 │       ├── transition.rs              # Direction, Transition
@@ -158,11 +158,13 @@ Default features: none. Core library is purely computational (no I/O, no async).
 
 | Type | Role | Location |
 |------|------|----------|
-| `IrreducibilityTrace` | Common trait for execution histories | `machines/trace.rs` |
-| `TraceAnalysis` | Generic analysis result (contiguity + repeats + ratio) | `machines/trace.rs` |
-| `RepeatDetection` | A repeated state (start_step, end_step, cycle_length) | `machines/trace.rs` |
-| `analyze_trace()` | Generic analysis function for any `IrreducibilityTrace` | `machines/trace.rs` |
-| `detect_repeats()` | Fingerprint-based cycle detection | `machines/trace.rs` |
+| `StepTrace` | Common trait for execution histories | `crate::trace` shim → `catgraph_physics::trace::StepTrace` |
+| `IrreducibilityTrace` | **Deprecated alias** (since v0.6.3) for `StepTrace`; sub-trait + blanket impl. Removed in v0.7.0. | `crate::trace::IrreducibilityTrace` |
+| `TraceAnalysis` | Generic analysis result (contiguity + repeats + ratio) | `crate::trace` shim |
+| `RepeatDetection` | A repeated state (start_step, end_step, cycle_length) | `crate::trace` shim |
+| `analyze_trace()` | Generic analysis function for any `StepTrace` | `crate::trace` shim |
+| `detect_repeats()` | Fingerprint-based cycle detection | `crate::trace` shim |
+| `is_irreducible()` | Wolfram-irreducibility judgment over a `StepTrace` (Gorard 2023). Note: approximation — flags shortcuts that manifest as state-fingerprint repeats inside this run; paper Def 1 is the stronger ∃ T* search over alternative TMs (see v0.7.0 plan). | `crate::trace` shim |
 
 ### Multiway Systems (re-exported from catgraph::multiway)
 
@@ -220,10 +222,12 @@ Default features: none. Core library is purely computational (no I/O, no async).
 | `HypergraphEvolution::to_cospan_chain()` | `Vec<Cospan<u32>>` | Evolution as composable cospans |
 | `TemporalComplex::to_cospan_chain()` | `Vec<Cospan<u32>>` | Interval sequence -> cospan bridge (`temporal_cospan_chain.rs`) |
 
-## IrreducibilityTrace Trait
+## StepTrace Trait (formerly `IrreducibilityTrace`, deprecated since v0.6.3)
+
+The `StepTrace` trait body lives in `catgraph_physics::trace`; irreducible re-exports it via `crate::trace::StepTrace` (and `irreducible::StepTrace` at the crate root). The body:
 
 ```rust
-pub trait IrreducibilityTrace {
+pub trait StepTrace {
     fn state_fingerprints(&self) -> Vec<u64>;
     fn to_intervals(&self) -> Vec<DiscreteInterval>;
     fn step_count(&self) -> usize;
@@ -231,7 +235,17 @@ pub trait IrreducibilityTrace {
 }
 ```
 
-Both `ExecutionHistory` (TM) and `CAExecutionHistory` (CA) implement this trait. Use the generic `analyze_trace(&impl IrreducibilityTrace) -> TraceAnalysis` function for unified irreducibility analysis across all machine types.
+`ExecutionHistory` (TM), `CAExecutionHistory` (CA), and `PetriExecutionHistory` (Petri) all implement `StepTrace`. Use the generic `analyze_trace(&impl StepTrace) -> TraceAnalysis` function for unified irreducibility analysis across all machine types.
+
+**Deprecated alias `IrreducibilityTrace`.** v0.6.3 introduced the rename and preserved the old name as a `#[deprecated]` *empty sub-trait + blanket impl*:
+
+```rust
+#[deprecated(since = "0.6.3", note = "renamed to `StepTrace`; will be removed in v0.7.0")]
+pub trait IrreducibilityTrace: StepTrace {}
+impl<T: StepTrace> IrreducibilityTrace for T {}
+```
+
+Bound positions like `fn f<T: IrreducibilityTrace>(...)` still compile (the blanket impl satisfies them) but emit a deprecation warning at the *bound site*. Do NOT add new methods to `IrreducibilityTrace` — it is empty by design and will be deleted in v0.7.0. Implement `StepTrace` directly.
 
 ## Irreducibility Detection
 
@@ -386,7 +400,7 @@ assert!(analysis.is_irreducible());
 | Multiway states (`S` in `run_multiway_bfs`) | `Clone + Hash` |
 | Multiway transitions (`T`) | `Clone` |
 | Monoidal functor verification | `S: Clone + Eq + Hash + Debug`, `T: Clone` |
-| `IrreducibilityTrace` implementors | Must provide `state_fingerprints() -> Vec<u64>` |
+| `StepTrace` implementors | Must provide `state_fingerprints() -> Vec<u64>`, `to_intervals()`, `step_count()`, `halted()` |
 | Catgraph bridge | Vertex IDs are `u32`, labels are `u32` or `()` |
 
 ## Testing

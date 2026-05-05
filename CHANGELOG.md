@@ -6,6 +6,113 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this c
 
 ## [Unreleased]
 
+## [0.6.4] - 2026-05-05
+
+Three-reviewer post-shipping patch on v0.6.3 (per workspace CLAUDE.md
+release rule 7 — `superpowers:code-reviewer` + `rust-v2:rust-dev-v2` +
+deep paper-fidelity audit against Gorard 2023, modeled on yesterday's
+catgraph-magnitude v0.2.1 deep-pass pattern). Audit doc landed at
+[`docs/GORARD23-AUDIT.md`](docs/GORARD23-AUDIT.md) (51 audited items —
+38 implementable: 20 DONE, 8 PARTIAL, 10 DEFERRED).
+
+This patch covers four mechanical, non-API-breaking findings. The
+larger paper-fidelity findings (P-I6 `Complexity::parallel = max` →
+additive, P-A1 `ZPrimeAdjunction` self-roundtrip drift, P-M2
+`Direction::Stay` → `Direction::Id` rename, plus seven smaller
+fidelity items) are folded into the v0.7.0 design phase and tracked
+in the audit doc.
+
+### Changed
+
+- **`CLAUDE.md` "Trace Analysis" + "IrreducibilityTrace Trait"
+  sections updated** to reflect the v0.6.3 sub-trait + blanket-impl
+  shape. The pre-v0.6.3 standalone-trait body remained in the doc
+  and would have led future agentic work or new contributors to
+  write `impl IrreducibilityTrace for T { fn step_count(...) ... }`
+  blocks that fail to compile (the trait now has no body to
+  implement — the blanket already satisfies it). Updated the
+  symbol table at line 161 + the directory tree at line 36 +
+  added an explicit "Do NOT add new methods to `IrreducibilityTrace`"
+  note. Reviewer C-I1.
+- **`src/trace.rs:21-30` rustdoc clarified**: the deprecation warning
+  on `IrreducibilityTrace` fires at the **bound site** (`fn f<T:
+  IrreducibilityTrace>(...)`), not at method-call sites — method
+  calls on `T: IrreducibilityTrace` resolve through the supertrait
+  to `StepTrace::method` and emit no warning. One deprecation hit
+  per bound is the intended trade-off of the sub-trait pattern over
+  duplicating method signatures. The pre-patch wording "fires the
+  `#[deprecated]` warning at consumer call sites" was inaccurate.
+  Reviewer R-I1.
+- **`src/trace.rs:30` blanket impl narrowed** from `impl<T: StepTrace
+  + ?Sized> IrreducibilityTrace for T {}` to `impl<T: StepTrace>
+  IrreducibilityTrace for T {}`. Upstream `StepTrace` is implicitly
+  `Sized`-bound, so the `?Sized` widening was harmless (the bound
+  was unsatisfiable for `!Sized` `T`) but asymmetric vs. upstream
+  and slightly misleading at the API surface. Matching narrowing
+  applied to `tests/shim_aliases.rs` test bounds. Reviewer R-I2.
+- **`tests/shim_aliases.rs:11-15` doc comment clarified**: replaced
+  the inaccurate "and vice versa via the blanket" with an explicit
+  bidirectional account (the blanket gives `StepTrace ⇒
+  IrreducibilityTrace`; the supertrait bound gives the reverse).
+  Reviewer M-1 from code-review.
+- **CHANGELOG v0.6.3 test-count notation corrected**: the line
+  "200 lib + 12 integration (incl. 1 new alias-round-trip) +
+  1 shim_aliases + 9 doctests" double-counted `shim_aliases.rs` and
+  understated the integration-test file count. Replaced with the
+  accurate "200 lib + 15 integration test files" wording. Reviewer
+  C-I2.
+
+### Added
+
+- **`docs/GORARD23-AUDIT.md`** — paper-coverage audit against
+  Gorard 2023 (arXiv:2301.04690v1). 248 lines. Mirrors the
+  catgraph-magnitude `BV25-AUDIT.md` structure: front matter +
+  status legend + summary table + per-section coverage + per-
+  definition/theorem/example coverage + acceptance gates +
+  out-of-scope + deferred + action items. Tracks 51 audited
+  items: 20 DONE, 8 PARTIAL, 10 DEFERRED, 11 N/A, 2 IN-CATGRAPH.
+
+### Deferred (to v0.7.0 design phase or v0.8.0+)
+
+The deep paper audit surfaced two architectural drifts and one
+sequence of smaller fidelity items. All are tracked in
+`docs/GORARD23-AUDIT.md`:
+
+- **P-I6 (Blocking, paper)** — `Complexity::parallel(self, other)`
+  in `src/complexity.rs:85` returns `max(self, other)` (wall-clock
+  time), but Gorard §3 Eqs 67-69 specify the **additive
+  multicomputational** model: `f⊗g` requires *at least* `n + m`
+  steps. **Decision (2026-05-05): patch to `+` in v0.7.0**, mirroring
+  the precedent already in `catgraph_physics::ParallelIntervals`
+  which exposes both `total_complexity` (sum, paper-faithful) and
+  `max_complexity` (wall-clock) with explicit rustdoc framing.
+  irreducible's `Complexity::parallel` will gain the dual-method
+  surface in v0.7.0.
+- **P-A1 (Architectural, paper)** — `ZPrimeAdjunction` triangle
+  identities verify a self-roundtrip (`to_interval ∘ z ∘ to_interval
+  = to_interval`), not the paper's `𝒯 ⇄ 𝓥ect` adjunction. The 11
+  passing tests in `tests/adjunction_laws.rs` exercise Vec-equality,
+  not adjointness. The paper's right adjoint Z is `𝓑ord^Riem → 𝓥ect`
+  (Atiyah-Segal propagator); irreducible's Z is `DiscreteInterval →
+  ComputationState` — a categorical pun. **Decision (2026-05-05):
+  build a real Z stub on rebozo's `causality:topology-lattice-gauge`
+  substrate in v0.8.0+**, aligning with paper §4. v0.7.0 doc-warns
+  the current `ZPrimeAdjunction` to flag the framing gap.
+- **P-M2 (paper)** — `Direction::Stay` should be `Direction::Id`
+  (paper Eqs 1, 8 explicitly write the third δ value as `id` to
+  emphasise the categorical identity-on-tape morphism). Display
+  emits `S` instead of `id`. v0.7.0 (breaking enum-variant rename).
+- **P-I1, P-I2, P-I5, P-M3 to P-M11** — smaller fidelity items
+  (`is_irreducible` paper-Def-1 approximation; `Z'(id_X)` singleton;
+  lax/strong/strict monoidal flavour; transition unit-laws; coproduct
+  universality; hexagon coherence; monomorphism check on
+  `RewriteSpan::l, r`; concurrent rewrite composition; rule 2506 +
+  rule 3506 + Fig 12 set-substitution paper-figure fixtures). All
+  v0.7.0 plan annotations.
+- **P-I3, P-I4** — cobordism endofunctor `∂` (Eqs 22-25, `∂² = ∅`)
+  + HALT unit object (paper §3 Eq 58: `I = HALT`) + ε coherence
+  (Eq 59). Substrate-level work; v0.8.0+.
+
 ## [0.6.3] - 2026-05-05
 
 H.1 cross-repo follow-up close-out: workspace umbrella pin bump from
@@ -88,9 +195,13 @@ commitment (lines 47-52). Tracked in catgraph workspace's
   `IrreducibilityTrace` sub-trait + blanket-impl is accepted in
   bound position over a real `StepTrace` implementor
   (`TuringMachine::ExecutionHistory`).
-- Net: **200 lib + 12 integration (incl. 1 new alias-round-trip) +
-  1 shim_aliases + 9 doctests = green, no deprecation warnings in
-  the irreducible source.**
+- Net: **200 lib + 15 integration test files (incl. the new
+  `shim_aliases.rs` file + 1 new `deprecated_stokes_error_alias_round_trips`
+  test inside `temporal_cospan_chain.rs`) + 9 doctests = green, no
+  deprecation warnings in the irreducible source.** Lib-internal
+  count drops from 233 → 200 because the 33 unit tests inside the
+  shimmed modules now live in catgraph-physics v0.3.0 alongside the
+  implementation.
 
 ### Cross-repo follow-up (DELIVERED + queued)
 
@@ -170,7 +281,8 @@ Phase 2.5 — coherence + Stokes rewrite.
 - `multiway_stokes` example (closed vs non-closed 1-forms, gated on `dec`).
 - Symmetric monoidal coherence formalization-by-construction over multiway graphs.
 
-[Unreleased]: https://github.com/tsondru/irreducible/compare/v0.6.3...HEAD
+[Unreleased]: https://github.com/tsondru/irreducible/compare/v0.6.4...HEAD
+[0.6.4]: https://github.com/tsondru/irreducible/releases/tag/v0.6.4
 [0.6.3]: https://github.com/tsondru/irreducible/releases/tag/v0.6.3
 [0.6.2]: https://github.com/tsondru/irreducible/releases/tag/v0.6.2
 [0.6.1]: https://github.com/tsondru/irreducible/releases/tag/v0.6.1

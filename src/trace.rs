@@ -18,8 +18,15 @@ pub use catgraph_physics::trace::{
 /// Implemented as a sub-trait with a blanket impl over [`StepTrace`] so
 /// that bound-position uses (`fn f<T: IrreducibilityTrace>(...)`) compile
 /// against any [`StepTrace`] implementor while still firing the
-/// `#[deprecated]` warning at consumer call sites — `pub use ... as ...`
+/// `#[deprecated]` warning **at the bound site** — `pub use ... as ...`
 /// re-exports do not propagate `#[deprecated]` in current rustc.
+///
+/// Note that the warning fires when the trait *name* appears (a generic
+/// bound, a `dyn IrreducibilityTrace`, a path), but **not** at method-call
+/// sites: a method call on a `T: IrreducibilityTrace` value resolves
+/// through the supertrait to `StepTrace::method` and emits no warning.
+/// One deprecation hit per bound is the intended trade-off of the
+/// sub-trait pattern over duplicating method signatures.
 #[deprecated(
     since = "0.6.3",
     note = "renamed to `StepTrace` in catgraph-physics v0.3.0; will be removed in irreducible v0.7.0"
@@ -27,4 +34,4 @@ pub use catgraph_physics::trace::{
 pub trait IrreducibilityTrace: StepTrace {}
 
 #[allow(deprecated)]
-impl<T: StepTrace + ?Sized> IrreducibilityTrace for T {}
+impl<T: StepTrace> IrreducibilityTrace for T {}

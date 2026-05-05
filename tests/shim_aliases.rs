@@ -8,22 +8,25 @@
 
 use irreducible::trace::{IrreducibilityTrace, StepTrace};
 
-/// `IrreducibilityTrace` is now a sub-trait of [`StepTrace`] with a
-/// blanket impl, so any [`StepTrace`] implementor automatically satisfies
-/// `IrreducibilityTrace` (and vice versa via the blanket). This test
-/// confirms the bound-position equivalence at compile time.
+/// `IrreducibilityTrace` is a sub-trait of [`StepTrace`] (`pub trait
+/// IrreducibilityTrace: StepTrace {}`) with a blanket impl `impl<T:
+/// StepTrace> IrreducibilityTrace for T`. The blanket gives the
+/// `StepTrace ⇒ IrreducibilityTrace` direction; the supertrait bound
+/// gives the `IrreducibilityTrace ⇒ StepTrace` direction. This test
+/// confirms a real `StepTrace` implementor (`TuringMachine`'s
+/// `ExecutionHistory`) satisfies both bounds at compile time.
 #[test]
 fn irreducibility_trace_is_blanket_over_step_trace() {
-    fn takes_step<T: StepTrace + ?Sized>(_: &T) -> usize {
+    fn takes_step<T: StepTrace>(_: &T) -> usize {
         1
     }
-    fn takes_irr<T: IrreducibilityTrace + ?Sized>(_: &T) -> usize {
+    fn takes_irr<T: IrreducibilityTrace>(_: &T) -> usize {
         2
     }
 
     // Use a real implementor — TuringMachine's ExecutionHistory implements
-    // StepTrace via the catgraph_physics-side trait surface, and so
-    // automatically satisfies IrreducibilityTrace through the blanket.
+    // StepTrace, so it automatically satisfies IrreducibilityTrace through
+    // the blanket impl.
     let bb = irreducible::TuringMachine::busy_beaver_2_2();
     let history = bb.run("", 20);
 
