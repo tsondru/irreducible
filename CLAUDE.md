@@ -74,10 +74,10 @@ irreducible/                            # Workspace root
 
 ```toml
 [workspace.dependencies]
-catgraph = { git = "https://github.com/tsondru/catgraph", tag = "v0.12.0" }  # Category theory (spans, cospans, Fong-Spivak, Corel) — slim baseline
-catgraph-applied = { git = "https://github.com/tsondru/catgraph", tag = "v0.12.0" }  # Petri nets, wiring diagrams, props
-catgraph-physics = { git = "https://github.com/tsondru/catgraph", tag = "v0.12.0" }  # Multiway, hypergraph, curvature, branchial spectral analysis
-catgraph-surreal = { git = "https://github.com/tsondru/catgraph-surreal", tag = "v0.10.1" }  # optional (persist feature, Surreal<Any> stores)
+catgraph = { git = "https://github.com/tsondru/catgraph", tag = "v0.13.0" }  # Category theory (spans, cospans, Fong-Spivak, Corel) — slim baseline
+catgraph-applied = { git = "https://github.com/tsondru/catgraph", tag = "v0.13.0" }  # Petri nets, wiring diagrams, props
+catgraph-physics = { git = "https://github.com/tsondru/catgraph", tag = "v0.13.0" }  # Multiway, hypergraph, curvature, branchial spectral analysis, interval / temporal_cospan_chain / trace
+catgraph-surreal = { git = "https://github.com/tsondru/catgraph-surreal", tag = "v0.11.1" }  # optional (persist feature, Surreal<Any> stores)
 deep_causality_topology = "0.5.1"   # optional (dc-geometry feature) — Regge geometry + SimplicialComplex + DEC ops
 deep_causality_tensor = "0.4.2"     # optional (dc-geometry feature) — CausalTensor<D> return type for DEC ops
 deep_causality_sparse = "0.1.7"     # optional (dc-geometry feature) — CsrMatrix for Hodge operator storage
@@ -196,7 +196,7 @@ Default features: none. Core library is purely computational (no I/O, no async).
 | `MultiwayCospanGraph` | Full evolution as cospan graph | `machines/hypergraph/catgraph_bridge.rs` (local) |
 | `MultiwayCospanExt` | Extension trait for multiway cospan methods | `machines/hypergraph/catgraph_bridge.rs` (local) |
 
-### Fong-Spivak Categorical Infrastructure (catgraph v0.10.0+)
+### Fong-Spivak Categorical Infrastructure (catgraph v0.10.0+ upstream; consumed via current pin v0.13.0)
 
 | Type / Trait | Role | Source |
 |--------------|------|--------|
@@ -211,7 +211,7 @@ Default features: none. Core library is purely computational (no I/O, no async).
 | `cup` / `cap` | Multi-type cup/cap | `catgraph::compact_closed` |
 | `name` / `unname` | Name bijection `H(X,Y) ≅ H(I, X⊗Y)` (Prop 3.2) | `catgraph::compact_closed` |
 
-**Integration status:** These modules are available in catgraph v0.10.1 but not yet re-exported or used by irreducible. See TODO.md for integration plan.
+**Integration status:** These modules are available in catgraph (currently pinned at umbrella `v0.13.0` = catgraph v0.12.2) but not yet re-exported or used by irreducible. See TODO.md for integration plan.
 
 ### Catgraph Bridge API
 
@@ -491,7 +491,7 @@ let result = EXEC.run(move || {
 
 | Area | Notes |
 |------|-------|
-| Fong-Spivak integration | Re-export and use catgraph v0.10.1 Fong-Spivak modules (`HypergraphCategory`, `CospanAlgebra`, `HypergraphFunctor`, `compact_closed`). See TODO.md for phased plan |
+| Fong-Spivak integration | Re-export and use catgraph Fong-Spivak modules (`HypergraphCategory`, `CospanAlgebra`, `HypergraphFunctor`, `compact_closed`); currently consumed via the `v0.13.0` umbrella pin = catgraph v0.12.2. See TODO.md for phased plan |
 | Non-Euclidean embedding (partial) | `BranchialEmbedding` with non-flat metric (spherical, hyperbolic) + confluence-diamond face extraction in `manifold_bridge.rs`. The discrete-Regge substrate is in place as of v0.6.0; what remains is (a) non-flat edge-length assignment for systematically nonzero curvature from the branchial graph structure alone (vs. exposed boundary vertices), and (b) swapping the fan triangulation in `manifold_bridge` for the confluence-diamond face extraction that `multiway_stokes` already uses. See `docs/decisions/2026-04-14-dc-topology-substrate.md` |
 | Visualization | Multiway graphs, branchial structure, curvature heatmaps |
 | Lambda calculus | Additional computation model with beta-reduction as morphisms |

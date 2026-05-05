@@ -9,7 +9,10 @@
 //! ## Modules
 //!
 //! - [`types`] - Core type definitions (`ComputationDomain`, `ComputationContext`, `CausalEffect`)
-//! - Category theory types (`DiscreteInterval`, `Complexity`, `ComputationState`) re-exported from catgraph
+//! - Category theory types (`Complexity`, `ComputationState`) — local; (`DiscreteInterval`,
+//!   `ParallelIntervals`, `TemporalComplex`, `StepTrace`) — re-exported from `catgraph_physics`
+//!   via the local `crate::interval` / `crate::temporal_cospan_chain` / `crate::trace` shim
+//!   modules introduced in v0.6.3 (shim modules + deprecated aliases removed in v0.7.0).
 //! - [`functor`] - The irreducibility functor Z': T -> B, adjunction, monoidal structure
 //! - [`machines`] - Computational machines (Turing machines, cellular automata, hypergraph rewriting)
 //! - [`multiway_coherence`] - Non-strict SMC coherence over multiway graphs

@@ -1,7 +1,7 @@
 # Gorard 2023 Coverage Audit (irreducible v0.6.3)
 
 > **Paper:** Jonathan Gorard, *A Functorial Perspective on (Multi)computational Irreducibility* ([arXiv:2301.04690v1](https://arxiv.org/abs/2301.04690), 13 Oct 2022, dated Jan 2023; in-tree at `docs/2301.04690v1.pdf`).
-> **Library:** `irreducible` v0.6.3 at SHA `e099cb9` (workspace umbrella `catgraph` v0.13.0 / SHA `4f8bda8`).
+> **Library:** `irreducible` v0.6.5+ (audit doc landed in v0.6.4 at SHA `6b3d656`; tracking maintained as the crate evolves) — workspace umbrella `catgraph` v0.13.0 / SHA `4f8bda8`.
 > **Method:** read all 60 pages of the paper end-to-end (intro + §2 + §3 + §4 + §5 + references); cross-walked every numbered equation, definition, theorem, figure caption, and named concept against the irreducible source tree (`src/**`, `tests/**`, `examples/**`). Coverage attribution honours the v0.6.3 shim: implementations that physically live in `catgraph_physics::{interval,temporal_cospan_chain,trace}` are attributed to the irreducible surface (consumers see them as `irreducible::*`).
 > **Update cadence:** maintained alongside the crate version. Add a row whenever a new paper item is implemented; flip status (e.g. ⏭️ → ✅) when an action item closes.
 >
@@ -185,7 +185,7 @@ Quantitative checks the v0.6.3 surface should pass against paper claims. Modeled
 | 6 | Non-strict associator/braiding/unitor coherence on confluent multiway graph | ✅ | tests/multiway_coherence.rs (10 tests) | §3 Eqs 40–55 lifted to multiway substrate. |
 | 7 | Non-confluent fragment fails coherence | ✅ | examples/multiway_coherence.rs | §3 (negative falsifiability of monoidal hypothesis). |
 | 8 | Frobenius decomposition preserves composition on cospan chain (irreducible's three-perspective agreement) | ✅ | tests/fong_spivak.rs | F&S §2-3 (consumed via catgraph). |
-| 9 | NTM with subadditive parallel composition (paper-Fig-10 fixture) detects multicomputational *reducibility* | ❌ | (no test) | §3 Eqs 67–69. Missing because `Complexity::parallel = max` discards the subadditivity signal. **Blocking for "this crate verifies multicomputational irreducibility per the paper".** Action item I-6. |
+| 9 | NTM with subadditive parallel composition (paper-Fig-10 fixture) detects multicomputational *reducibility* | ❌ | (no test) | §3 Eqs 67–69. Missing because `Complexity::parallel = max` discards the subadditivity signal. **Blocking for "this crate verifies multicomputational irreducibility per the paper".** [Action item I-6](#7-action-items) — scheduled for **v0.7.0** (path (a): patch `Complexity::parallel` to `+`, single paper-faithful model, breaking; ratified 2026-05-05). |
 | 10 | Hypergraph DPO + Wilson-loop holonomy detects causal invariance | ✅ 🔗 | tests/hypergraph_rewriting.rs (21 tests) | §3 (DPO) + §5 future-work-via-anticipation. |
 | 11 | DEC `d² = 0` on confluence-diamond 2-complex (feature `dec`) | ✅ | tests/multiway_stokes.rs | §5 Stokes-perspective interpretation; goes beyond paper-explicit content. |
 

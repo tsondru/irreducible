@@ -3,7 +3,7 @@ resolver = "2"
 members = []
 
 [workspace.package]
-version = "0.6.4"
+version = "0.6.5"
 edition = "2024"
 rust-version = "1.90"
 license = "MIT"
@@ -64,18 +64,23 @@ tokio = { workspace = true, optional = true }
 proptest = "1"
 
 # ---------------------------------------------------------------------------
-# Local development override
-# ---------------------------------------------------------------------------
-# During cross-repo refactors (Phase 1 Group 7 move), point catgraph at a local
-# checkout so both repos can be edited in lock-step before the upstream tag is
-# cut. Re-comment before pushing — released artifacts must reference the git tag.
-
-# ---------------------------------------------------------------------------
 # Local development override (uncomment in lock-step cross-repo edits)
 # ---------------------------------------------------------------------------
-# When using rev= deps above, change both rev= values to path= instead:
+# Point the catgraph deps at a local checkout so the catgraph workspace + this
+# crate can be edited in lock-step before an upstream umbrella tag is cut.
+# Re-comment + revert to git tags before pushing — released artifacts must
+# reference the workspace umbrella git tag.
+#
+# IMPORTANT (H.4 dual-SHA prevention): all THREE catgraph deps must be patched
+# together — patching only catgraph + catgraph-physics while leaving
+# catgraph-applied resolving from the git tag would split the source identity
+# of the catgraph URL (path-patched vs git-tagged) and reproduce the H.4
+# boundary-type mismatch on `Cospan<u32>` / `Span<u32>`. Same single-tag-string
+# convention as in the live `[workspace.dependencies]` block above.
+#
 # [patch."https://github.com/tsondru/catgraph"]
 # catgraph = { path = "../catgraph/catgraph" }
+# catgraph-applied = { path = "../catgraph/catgraph-applied" }
 # catgraph-physics = { path = "../catgraph/catgraph-physics" }
 #
 # [patch."https://github.com/tsondru/catgraph-surreal"]

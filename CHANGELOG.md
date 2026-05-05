@@ -6,6 +6,72 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this c
 
 ## [Unreleased]
 
+## [0.6.5] - 2026-05-05
+
+Top-up post-shipping reviewer pass on v0.6.3 + v0.6.4. Workspace
+CLAUDE.md release rule 7 specifies the canonical triumvirate
+`superpowers:code-reviewer` + `rust-v2:rust-dev-v2` +
+`rust-v2:rust-practical`; the prior pass had two silent substitutions
+(`feature-dev:code-reviewer` instead of `superpowers:code-reviewer` —
+not the same agent — and `general-purpose` deep-paper audit
+substituted for `rust-v2:rust-practical` instead of being added
+alongside it). The user re-dispatched the missing two reviewers; this
+v0.6.5 patch carries their findings. Workspace CLAUDE.md release
+rule 7 was simultaneously tightened to lock the canonical triumvirate
+and forbid silent substitution.
+
+Four mechanical findings, all doc / Cargo.toml-comment level. No
+code or behavioral change.
+
+### Changed
+
+- **`CLAUDE.md` `[workspace.dependencies]` block updated** from the
+  pre-v0.6.3 pin strings (`v0.12.0` for the catgraph triple,
+  `v0.10.1` for catgraph-surreal) to the live pins (`v0.13.0` /
+  `v0.11.1`). The previous pre-v0.6.3 strings would have led
+  agentic work or new contributors writing follow-up cross-repo
+  deps to use the wrong pin. Also updated the "Fong-Spivak
+  Categorical Infrastructure" section header + the integration-status
+  paragraph (line 214) + the deferred-work table (line 494) to
+  reference the umbrella convention rather than a stale
+  point-release tag. Reviewers N-I1 + I-2.
+- **`Cargo.toml` commented `[patch.*]` block completed**. The block
+  listed `catgraph` and `catgraph-physics` as the path-patch targets
+  but **omitted `catgraph-applied`** even though it is a
+  non-optional `[dependencies]` entry pulling from the same git URL.
+  Anyone uncommenting the block for cross-repo dev would
+  accidentally split the catgraph source identity (path-patched
+  `catgraph` + git-tagged `catgraph-applied` from the same URL =
+  H.4 dual-SHA). Added the missing line + an explicit
+  `IMPORTANT (H.4 dual-SHA prevention)` comment block citing the
+  workspace H.4 precedent. Reviewer rust-v2:rust-practical I-1.
+- **`docs/GORARD23-AUDIT.md` header version updated** from
+  `v0.6.3 / e099cb9` to a version-neutral framing covering the doc's
+  ongoing maintenance. The audit doc was *committed* at v0.6.4 SHA
+  `6b3d656` but the header still claimed v0.6.3, creating a
+  release-marker drift. Reviewer N-I2.
+- **`docs/GORARD23-AUDIT.md` Acceptance Gate 9 (NTM
+  subadditive-parallel-composition test) cross-references action
+  item I-6** with the v0.7.0 ratified-decision link. Previously
+  Gate 9 said "Blocking" with no scheduled-fix pointer. Reviewer N-M1.
+- **`src/lib.rs:12` rustdoc** clarified that `Complexity` +
+  `ComputationState` remain local types, while `DiscreteInterval`,
+  `ParallelIntervals`, `TemporalComplex`, and `StepTrace` are
+  re-exported from `catgraph_physics` via the v0.6.3 shim modules
+  (which v0.7.0 will drop). Previously the line said all three were
+  "re-exported from catgraph", which was true pre-shim but is now
+  misleading. Reviewer N-M2.
+
+### Architectural follow-up (v0.7.0 plan annotation)
+
+- **A-1 (rust-v2:rust-practical)**: v0.7.0's release procedure
+  should add an explicit pre-tagging gate "verify catgraph-surreal's
+  umbrella tag matches the irreducible catgraph pin" — when v0.7.0
+  drops the shim files, if catgraph-surreal has not yet bumped to
+  the umbrella tag of that release, the H.4 dual-SHA pattern can
+  recur. Tracked in `tsondru-notes/irreducible/current-plan.md`
+  v0.7.0 design phase section.
+
 ## [0.6.4] - 2026-05-05
 
 Three-reviewer post-shipping patch on v0.6.3 (per workspace CLAUDE.md
@@ -285,7 +351,8 @@ Phase 2.5 — coherence + Stokes rewrite.
 - `multiway_stokes` example (closed vs non-closed 1-forms, gated on `dec`).
 - Symmetric monoidal coherence formalization-by-construction over multiway graphs.
 
-[Unreleased]: https://github.com/tsondru/irreducible/compare/v0.6.4...HEAD
+[Unreleased]: https://github.com/tsondru/irreducible/compare/v0.6.5...HEAD
+[0.6.5]: https://github.com/tsondru/irreducible/releases/tag/v0.6.5
 [0.6.4]: https://github.com/tsondru/irreducible/releases/tag/v0.6.4
 [0.6.3]: https://github.com/tsondru/irreducible/releases/tag/v0.6.3
 [0.6.2]: https://github.com/tsondru/irreducible/releases/tag/v0.6.2
