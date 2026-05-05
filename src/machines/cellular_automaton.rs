@@ -26,7 +26,7 @@
 //! Rule 30 with a single initial cell is conjectured to be irreducible
 //! (no known shortcut exists to compute generation n without computing 1..n-1).
 
-use super::trace::{self, IrreducibilityTrace};
+use super::trace::{self, StepTrace};
 use crate::interval::DiscreteInterval;
 use std::collections::hash_map::DefaultHasher;
 use std::fmt;
@@ -309,7 +309,7 @@ impl ElementaryCA {
 /// Complete execution history of a cellular automaton run.
 ///
 /// Stores the rule number, grid width, initial and final generations,
-/// and all intermediate transitions. Implements [`IrreducibilityTrace`]
+/// and all intermediate transitions. Implements [`StepTrace`]
 /// for generic irreducibility analysis via [`analyze_trace`](super::trace::analyze_trace).
 #[derive(Clone, Debug)]
 pub struct CAExecutionHistory {
@@ -325,7 +325,7 @@ pub struct CAExecutionHistory {
     pub final_gen: Generation,
 }
 
-impl IrreducibilityTrace for CAExecutionHistory {
+impl StepTrace for CAExecutionHistory {
     fn state_fingerprints(&self) -> Vec<u64> {
         let mut fps = Vec::with_capacity(self.transitions.len() + 1);
         fps.push(self.initial.fingerprint());
@@ -354,13 +354,13 @@ impl CAExecutionHistory {
     /// Get the number of steps executed.
     #[must_use]
     pub fn step_count(&self) -> usize {
-        IrreducibilityTrace::step_count(self)
+        StepTrace::step_count(self)
     }
 
     /// Convert to a sequence of discrete intervals.
     #[must_use]
     pub fn to_intervals(&self) -> Vec<DiscreteInterval> {
-        IrreducibilityTrace::to_intervals(self)
+        StepTrace::to_intervals(self)
     }
 
     /// Get the total interval.
@@ -424,7 +424,7 @@ impl CAExecutionHistory {
     /// Find cycles (repeated generations) in the execution.
     #[must_use]
     pub fn find_cycles(&self) -> Vec<CACycle> {
-        let fps = IrreducibilityTrace::state_fingerprints(self);
+        let fps = StepTrace::state_fingerprints(self);
         let repeats = trace::detect_repeats(fps.iter().copied().enumerate());
         repeats
             .into_iter()

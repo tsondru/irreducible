@@ -4,7 +4,7 @@ Computational irreducibility as functoriality in Rust, implementing Jonathan Gor
 
 **Core insight**: A computation is irreducible iff a certain functor Z': T -> B (from computations to cobordisms) preserves composition. No shortcuts exist when Z' is functorial.
 
-Uses [catgraph](https://github.com/tsondru/catgraph) v0.12.0 (slim F&S baseline) for the Fong-Spivak categorical infrastructure (cospans, spans, hypergraph categories, cospan-algebras, Thm 1.2 equivalence) and [catgraph-physics](https://github.com/tsondru/catgraph) v0.12.0 for hypergraph DPO rewriting, multiway evolution graphs, confluence diamond detection, and branchial spectral analysis. irreducible owns the computation-facing layer -- interval algebra, adjunctions, monoidal coherence, discrete exterior calculus, trace analysis -- plus the computation models (TM, CA, SRS, NTM, Petri nets).
+Uses [catgraph](https://github.com/tsondru/catgraph) v0.13.0 (slim F&S baseline) for the Fong-Spivak categorical infrastructure (cospans, spans, hypergraph categories, cospan-algebras, Thm 1.2 equivalence) and [catgraph-physics](https://github.com/tsondru/catgraph) v0.13.0 for hypergraph DPO rewriting, multiway evolution graphs, confluence diamond detection, and branchial spectral analysis. irreducible owns the computation-facing layer -- interval algebra, adjunctions, monoidal coherence, discrete exterior calculus, trace analysis -- plus the computation models (TM, CA, SRS, NTM, Petri nets).
 
 385 tests (+ 14 with `dec`, + 14 with `manifold-curvature`, + 14 with `dc-geometry`), zero clippy warnings. Rust 2024 edition, MSRV 1.90.
 
@@ -12,15 +12,15 @@ Uses [catgraph](https://github.com/tsondru/catgraph) v0.12.0 (slim F&S baseline)
 
 | Module | Component | Purpose |
 |--------|-----------|---------|
-| `interval.rs` | `DiscreteInterval`, `ParallelIntervals` | Discrete interval algebra for the cobordism category B |
+| `interval.rs` | `DiscreteInterval`, `ParallelIntervals` | Discrete interval algebra for the cobordism category B (re-export shim into `catgraph_physics::interval` as of v0.6.3) |
 | `complexity.rs` | `Complexity`, `StepCount` | Sequential/parallel complexity composition |
 | `computation_state.rs` | `ComputationState` | State lifecycle + interval-map bridge |
 | `adjunction.rs` | `ZPrimeOps`, `AdjunctionIrreducibility`, `AdjunctionVerification` | Abstract Z' ⊣ Z adjunction traits |
 | `bifunctor.rs` | `TensorProduct`, `IntervalTransform` | Bifunctor laws (associativity, unit, symmetry) |
 | `multiway_coherence.rs` | `AssociatorWitness`, `BraidingWitness`, `CoherenceError` | Non-strict SMC coherence over multiway graphs |
 | `multiway_stokes.rs` | `MultiwayComplex`, `OneForm`, `TwoForm` | Discrete exterior calculus on 2D multiway complexes (feature: `dec`) |
-| `temporal_cospan_chain.rs` | `TemporalComplex`, `ConservationResult`, `StokesError` | Cospan chain bridge for interval sequences |
-| `trace.rs` | `IrreducibilityTrace`, `analyze_trace`, `RepeatDetection` | Generic trace analysis, repeat detection |
+| `temporal_cospan_chain.rs` | `TemporalComplex`, `ConservationResult`, `TemporalComplexError` (`StokesError` deprecated alias) | Cospan chain bridge for interval sequences (re-export shim into `catgraph_physics::temporal_cospan_chain` as of v0.6.3) |
+| `trace.rs` | `StepTrace`, `analyze_trace`, `RepeatDetection`, `is_irreducible` (`IrreducibilityTrace` deprecated alias) | Generic trace analysis, repeat detection (re-export shim into `catgraph_physics::trace` as of v0.6.3) |
 | `functor/mod.rs` | `IrreducibilityFunctor`, `MultiwayIrreducibilityResult` | Functor Z': T -> B, multiway branch analysis |
 | `functor/adjunction.rs` | `ZPrimeAdjunction`, `AdjunctionVerification` | Concrete Z' ⊣ Z adjunction for computation states |
 | `functor/monoidal.rs` | `MonoidalFunctorResult`, `TensorCheck` | Symmetric monoidal functor verification |
@@ -29,7 +29,7 @@ Uses [catgraph](https://github.com/tsondru/catgraph) v0.12.0 (slim F&S baseline)
 | `functor/stokes_integration.rs` | `StokesIrreducibility` | Stokes conservation analysis wrapper |
 | `machines/turing.rs` | `TuringMachine`, `ExecutionHistory` | Deterministic Turing machines |
 | `machines/cellular_automaton.rs` | `ElementaryCA`, `Generation` | 1D elementary cellular automata (256 rules) |
-| `machines/trace.rs` | `IrreducibilityTrace`, `TraceAnalysis` | Generic trace analysis, repeat detection |
+| `machines/trace.rs` | `StepTrace`, `TraceAnalysis` (`IrreducibilityTrace` deprecated alias) | Generic trace analysis, repeat detection (proxy re-export of `crate::trace` shim) |
 | `machines/multiway/string_rewrite.rs` | `StringRewriteSystem`, `SRSState` | Pattern-based multiway string rewriting |
 | `machines/multiway/ntm.rs` | `NondeterministicTM`, `NTMBuilder` | Non-deterministic Turing machines |
 | `machines/multiway/manifold_bridge.rs` | `ManifoldCurvature`, `BranchialEmbedding` | Regge deficit-angle curvature on branchial complexes via dc_topology (feature-gated) |
@@ -40,7 +40,7 @@ Uses [catgraph](https://github.com/tsondru/catgraph) v0.12.0 (slim F&S baseline)
 
 ## Fong-Spivak Feature Map
 
-Re-exports from catgraph v0.12.0 implementing [Fong & Spivak, *Hypergraph Categories*](https://arxiv.org/abs/1806.08304) SS2-3:
+Re-exports from catgraph v0.13.0 implementing [Fong & Spivak, *Hypergraph Categories*](https://arxiv.org/abs/1806.08304) SS2-3:
 
 | Paper Reference | Re-exported Type | Purpose |
 |-----------------|------------------|---------|
@@ -201,8 +201,8 @@ For 1D simplicial complexes, Stokes conservation reduces to contiguity + monoton
 
 ## Dependencies
 
-- [catgraph](https://github.com/tsondru/catgraph) v0.12.0 -- category theory infrastructure (cospans, spans, Fong-Spivak hypergraph categories) — slim baseline
-- [catgraph-physics](https://github.com/tsondru/catgraph) v0.12.0 -- hypergraph DPO rewriting, multiway evolution, confluence diamonds, discrete curvature, branchial spectral analysis
+- [catgraph](https://github.com/tsondru/catgraph) v0.13.0 -- category theory infrastructure (cospans, spans, Fong-Spivak hypergraph categories) — slim baseline
+- [catgraph-physics](https://github.com/tsondru/catgraph) v0.13.0 -- hypergraph DPO rewriting, multiway evolution, confluence diamonds, discrete curvature, branchial spectral analysis
 - `serde` + `serde_json` -- serialization
 - Optional: `deep_causality_topology` + `deep_causality_tensor` + `deep_causality_sparse` (Regge curvature + DEC substrate), `nalgebra` (matrix ops), `nalgebra-lapack` (LAPACK), `catgraph-surreal` + `surrealdb` + `tokio` (persistence)
 

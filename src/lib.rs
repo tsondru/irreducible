@@ -91,8 +91,12 @@ pub use functor::{
     verify_unit_laws, IntervalTransform, TensorProduct,
 };
 
-// Temporal cospan chain exports
-pub use temporal_cospan_chain::{ConservationResult, StokesError, TemporalComplex};
+// Temporal cospan chain exports (shim into catgraph_physics::temporal_cospan_chain;
+// `StokesError` is the deprecated alias for `TemporalComplexError`, dropped in v0.7.0).
+#[allow(deprecated)]
+pub use temporal_cospan_chain::{
+    ConservationResult, StokesError, TemporalComplex, TemporalComplexError,
+};
 
 // Stokes integration exports
 pub use functor::StokesIrreducibility;
@@ -115,9 +119,12 @@ pub use machines::petri::{
     PetriNetMachine, PetriTransition, PetriTransitionRecord,
 };
 
-// Trace analysis exports (local module)
+// Trace analysis exports (shim into catgraph_physics::trace;
+// `IrreducibilityTrace` is the deprecated alias for `StepTrace`, dropped in v0.7.0).
+#[allow(deprecated)]
 pub use trace::{
-    analyze_trace, detect_repeats, IrreducibilityTrace, RepeatDetection, TraceAnalysis,
+    analyze_trace, detect_repeats, is_irreducible, IrreducibilityTrace, RepeatDetection,
+    StepTrace, TraceAnalysis,
 };
 
 // Multiway system exports

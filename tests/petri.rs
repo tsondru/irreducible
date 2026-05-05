@@ -126,7 +126,7 @@ fn step_limit_with_more_enabled() {
 }
 
 /// Inline extension trait so we can assert on firing-step count without
-/// shadowing the `IrreducibilityTrace::step_count` method name.
+/// shadowing the `StepTrace::step_count` method name.
 trait StepCount {
     fn step_count_trace(&self) -> usize;
 }

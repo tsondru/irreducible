@@ -1,4 +1,4 @@
-//! Execution history for [`super::PetriNetMachine`] and `IrreducibilityTrace` impl.
+//! Execution history for [`super::PetriNetMachine`] and `StepTrace` impl.
 //!
 //! A [`PetriExecutionHistory`] records one [`PetriTransitionRecord`] per firing
 //! step, along with the initial and final [`Marking`]. Because markings are
@@ -12,7 +12,7 @@ use std::hash::{Hash, Hasher};
 use catgraph_applied::petri_net::Marking;
 
 use crate::interval::DiscreteInterval;
-use crate::trace::{self, IrreducibilityTrace};
+use crate::trace::{self, StepTrace};
 
 /// A single firing step in a Petri-net execution.
 ///
@@ -76,7 +76,7 @@ fn marking_fingerprint(marking: &Marking) -> u64 {
     hasher.finish()
 }
 
-impl IrreducibilityTrace for PetriExecutionHistory {
+impl StepTrace for PetriExecutionHistory {
     fn state_fingerprints(&self) -> Vec<u64> {
         let mut fps = Vec::with_capacity(self.transitions.len() + 1);
         fps.push(marking_fingerprint(&self.initial));

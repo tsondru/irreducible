@@ -1,7 +1,7 @@
 //! [`PetriNetMachine`]: linear-trace wrapper around [`PetriNet`].
 //!
 //! The machine is intentionally thin — it owns a [`PetriNet`] and provides
-//! deterministic stepping semantics suitable for [`crate::trace::IrreducibilityTrace`].
+//! deterministic stepping semantics suitable for [`crate::trace::StepTrace`].
 //! For branching exploration, use [`super::run_multiway_reachability`].
 
 use std::fmt::Debug;
@@ -18,7 +18,7 @@ use super::history::{PetriExecutionHistory, PetriTransitionRecord};
 ///
 /// At each step, the enabled transition with the **smallest index** is fired.
 /// This is a non-obvious design choice: it produces a single deterministic
-/// trajectory suitable for [`crate::trace::IrreducibilityTrace`], matching
+/// trajectory suitable for [`crate::trace::StepTrace`], matching
 /// the TM/CA shape. If you want to explore every enabled firing (true
 /// non-determinism), use [`super::run_multiway_reachability`] instead.
 ///
@@ -184,7 +184,7 @@ mod tests {
         assert_eq!(machine.net().transition_count(), 1);
     }
 
-    /// Helper so `step_count` doesn't clash with the `IrreducibilityTrace` method.
+    /// Helper so `step_count` doesn't clash with the `StepTrace` method.
     trait StepCount {
         fn step_count_trace(&self) -> usize;
     }

@@ -6,6 +6,105 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this c
 
 ## [Unreleased]
 
+## [0.6.3] - 2026-05-05
+
+H.1 cross-repo follow-up close-out: workspace umbrella pin bump from
+catgraph `v0.12.0` to `v0.13.0` (SHA `4f8bda8`) + re-export shim
+conversion of `interval`, `temporal_cospan_chain`, `trace` into thin
+`pub use catgraph_physics::*;` shims, ending the cross-repo drift
+between irreducible and catgraph-physics.
+
+Per the `catgraph-physics v0.3.0` CHANGELOG cross-repo follow-up
+commitment (lines 47-52). Tracked in catgraph workspace's
+`.claude/plans/2026-04-28-pre-phase-6b-hardening.md` H.1.
+
+### Changed
+
+- **Workspace umbrella pin bumped to `v0.13.0`.** The three catgraph
+  git deps (`catgraph` / `catgraph-applied` / `catgraph-physics`)
+  repinned from tag `v0.12.0` to `v0.13.0`. v0.13.0 is the additive
+  umbrella co-release adding `catgraph-dl v0.2.0`; the three crates
+  this crate depends on are unchanged at the source level
+  (catgraph v0.12.2, catgraph-applied v0.5.4, catgraph-physics v0.3.0).
+- **`catgraph-surreal` pin bumped from `v0.10.1` to `v0.11.1`.**
+  v0.11.1 was cut alongside this release as the +1 H.4-pattern
+  crate-tag — it is the same code as v0.11.0 plus a single-line
+  catgraph-deps tag-string bump from `v0.12.0` to `v0.13.0` so all
+  four pins in this crate's resolved graph collapse to one catgraph
+  source identity. Without that bump, the v0.13.0 umbrella + a
+  `v0.10.1`-or-v0.11.0 catgraph-surreal in the same graph produce
+  two cargo source identities for catgraph and the canonical H.4
+  boundary-type mismatch on `Cospan<u32>` / `Span<u32>`.
+- **`src/interval.rs` reduced to a re-export shim** (387 LOC →
+  8 LOC) pointing at `catgraph_physics::interval::{DiscreteInterval,
+  ParallelIntervals}`. No type renames; consumer paths
+  `irreducible::interval::*` and `irreducible::DiscreteInterval` /
+  `irreducible::ParallelIntervals` are unchanged.
+- **`src/temporal_cospan_chain.rs` reduced to a re-export shim**
+  (342 LOC → 23 LOC) pointing at
+  `catgraph_physics::temporal_cospan_chain::{ConservationResult,
+  TemporalComplex, TemporalComplexError}`.
+- **`src/trace.rs` reduced to a re-export shim** (320 LOC → 30 LOC)
+  pointing at `catgraph_physics::trace::{analyze_trace, detect_repeats,
+  is_irreducible, RepeatDetection, StepTrace, TraceAnalysis}`.
+- **Internal call sites migrated** to the new names (`StepTrace`,
+  `TemporalComplexError`) in `src/machines/{turing,
+  cellular_automaton,petri/*,trace,mod}.rs` and `src/functor/
+  stokes_integration.rs`. Paths still go through the local shim
+  modules (`crate::trace::StepTrace`); the deprecated aliases serve
+  external consumers only.
+
+### Deprecated
+
+- `irreducible::temporal_cospan_chain::StokesError` — renamed to
+  `TemporalComplexError` in `catgraph-physics` v0.3.0. The old name
+  is preserved as a `#[deprecated]` type alias for the v0.6.x cycle
+  and will be removed in v0.7.0. (Implemented as `pub type
+  StokesError = TemporalComplexError;` rather than `pub use ... as
+  StokesError;` because `#[deprecated]` on a `pub use` re-export
+  does not propagate the warning to consumer call sites in current
+  rustc — the type-alias form does.)
+- `irreducible::trace::IrreducibilityTrace` — renamed to `StepTrace`
+  in `catgraph-physics` v0.3.0. The old name is preserved as a
+  `#[deprecated]` sub-trait with a blanket impl over `StepTrace`,
+  so any `StepTrace` implementor automatically satisfies
+  `IrreducibilityTrace` (and bound positions
+  `fn f<T: IrreducibilityTrace>` still compile, but emit the
+  deprecation warning).
+
+### Test count
+
+- Lib-internal tests dropped from 233 to 200 (the 33 unit tests
+  inside the three shimmed modules now live in catgraph-physics
+  v0.3.0 alongside the implementation).
+- Integration tests (`tests/interval_laws.rs`, `tests/
+  temporal_cospan_chain.rs`) **stay** — they are now smoke tests
+  for the shim contract.
+- `tests/temporal_cospan_chain.rs` migrated to use the new
+  `TemporalComplexError` name in most assertions; one
+  `#[allow(deprecated)]` test (`deprecated_stokes_error_alias_round_trips`)
+  exercises the alias to confirm the round-trip.
+- New `tests/shim_aliases.rs` (1 test) confirms the
+  `IrreducibilityTrace` sub-trait + blanket-impl is accepted in
+  bound position over a real `StepTrace` implementor
+  (`TuringMachine::ExecutionHistory`).
+- Net: **200 lib + 12 integration (incl. 1 new alias-round-trip) +
+  1 shim_aliases + 9 doctests = green, no deprecation warnings in
+  the irreducible source.**
+
+### Cross-repo follow-up (DELIVERED + queued)
+
+- DELIVERED: `catgraph-physics v0.3.0` CHANGELOG lines 47-52
+  promised this re-export shim conversion at irreducible v0.6.3.
+- DELIVERED: `catgraph-surreal v0.11.1` (single-line tag bump,
+  same SHA as v0.11.0 plus one Cargo.toml line) — needed to clear
+  the dual-SHA boundary-type mismatch.
+- QUEUED for `irreducible v0.7.0`: drop the three shim files
+  entirely + remove the two deprecated aliases (`StokesError`,
+  `IrreducibilityTrace`) + delete `tests/shim_aliases.rs`. Per
+  `catgraph-physics v0.3.0` CHANGELOG: "irreducible v0.7.0 (later):
+  drop the deprecated local modules entirely."
+
 ## [0.6.2] - 2026-04-26
 
 ### Changed
@@ -71,7 +170,8 @@ Phase 2.5 — coherence + Stokes rewrite.
 - `multiway_stokes` example (closed vs non-closed 1-forms, gated on `dec`).
 - Symmetric monoidal coherence formalization-by-construction over multiway graphs.
 
-[Unreleased]: https://github.com/tsondru/irreducible/compare/v0.6.2...HEAD
+[Unreleased]: https://github.com/tsondru/irreducible/compare/v0.6.3...HEAD
+[0.6.3]: https://github.com/tsondru/irreducible/releases/tag/v0.6.3
 [0.6.2]: https://github.com/tsondru/irreducible/releases/tag/v0.6.2
 [0.6.1]: https://github.com/tsondru/irreducible/releases/tag/v0.6.1
 [0.6.0]: https://github.com/tsondru/irreducible/releases/tag/v0.6.0

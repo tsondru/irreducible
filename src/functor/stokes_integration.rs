@@ -1,10 +1,10 @@
 //! Stokes integration for computational irreducibility analysis.
 //!
-//! Core types (`TemporalComplex`, `ConservationResult`, `StokesError`)
+//! Core types (`TemporalComplex`, `ConservationResult`, `TemporalComplexError`)
 //! re-exported from the [`temporal_cospan_chain`](crate::temporal_cospan_chain) module.
 //! This module provides the irreducibility-specific `StokesIrreducibility` wrapper.
 
-pub use crate::temporal_cospan_chain::{ConservationResult, StokesError, TemporalComplex};
+pub use crate::temporal_cospan_chain::{ConservationResult, TemporalComplexError, TemporalComplex};
 
 use crate::interval::DiscreteInterval;
 
@@ -31,8 +31,8 @@ impl StokesIrreducibility {
     ///
     /// # Errors
     ///
-    /// Returns `StokesError::EmptyIntervals` if the interval slice is empty.
-    pub fn analyze(intervals: &[DiscreteInterval]) -> Result<Self, StokesError> {
+    /// Returns `TemporalComplexError::EmptyIntervals` if the interval slice is empty.
+    pub fn analyze(intervals: &[DiscreteInterval]) -> Result<Self, TemporalComplexError> {
         let complex = TemporalComplex::from_intervals(intervals)?;
         let conservation = complex.verify_conservation();
         let form = complex.intervals_to_form();
@@ -101,7 +101,7 @@ mod tests {
     #[test]
     fn test_empty_intervals_error() {
         let result = TemporalComplex::from_intervals(&[]);
-        assert!(matches!(result, Err(StokesError::EmptyIntervals)));
+        assert!(matches!(result, Err(TemporalComplexError::EmptyIntervals)));
     }
 
     #[test]

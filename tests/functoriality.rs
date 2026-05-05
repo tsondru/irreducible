@@ -6,7 +6,7 @@
 
 use irreducible::{
     analyze_trace, DiscreteInterval, ElementaryCA, Generation, IrreducibilityFunctor,
-    IrreducibilityTrace, StokesIrreducibility, TuringMachine,
+    StepTrace, StokesIrreducibility, TuringMachine,
 };
 
 // ---------------------------------------------------------------------------
@@ -178,7 +178,7 @@ fn long_run_rule_30_remains_irreducible() {
 #[test]
 fn tm_and_ca_both_implement_irreducibility_trace() {
     // Verify both types implement the same trait at compile time
-    fn assert_trace<T: IrreducibilityTrace>(trace: &T) -> usize {
+    fn assert_trace<T: StepTrace>(trace: &T) -> usize {
         trace.step_count()
     }
 

@@ -8,7 +8,7 @@
 //! Well-known instances: [`TuringMachine::busy_beaver_2_2`] (irreducible, 6 steps),
 //! [`TuringMachine::binary_incrementer`], [`TuringMachine::infinite_left_mover`] (reducible).
 
-use super::trace::{self, IrreducibilityTrace};
+use super::trace::{self, StepTrace};
 use super::{BuilderError, Configuration, Direction, State, Symbol, Transition};
 use crate::interval::DiscreteInterval;
 use std::collections::HashMap;
@@ -386,7 +386,7 @@ pub struct ExecutionHistory {
     pub halted: bool,
 }
 
-impl IrreducibilityTrace for ExecutionHistory {
+impl StepTrace for ExecutionHistory {
     fn state_fingerprints(&self) -> Vec<u64> {
         let mut fps = Vec::with_capacity(self.transitions.len() + 1);
         fps.push(self.initial.fingerprint());
@@ -413,7 +413,7 @@ impl ExecutionHistory {
     /// Get the number of steps executed.
     #[must_use]
     pub fn step_count(&self) -> usize {
-        IrreducibilityTrace::step_count(self)
+        StepTrace::step_count(self)
     }
 
     /// Convert the execution to a sequence of discrete intervals.
@@ -421,7 +421,7 @@ impl ExecutionHistory {
     /// This is the image of the transitions under the functor Z'.
     #[must_use]
     pub fn to_intervals(&self) -> Vec<DiscreteInterval> {
-        IrreducibilityTrace::to_intervals(self)
+        StepTrace::to_intervals(self)
     }
 
     /// Get the total interval [0, n] for n steps.
@@ -478,7 +478,7 @@ impl ExecutionHistory {
     /// to the second, skipping the intermediate steps.
     #[must_use]
     pub fn find_shortcuts(&self) -> Vec<Shortcut> {
-        let fps = IrreducibilityTrace::state_fingerprints(self);
+        let fps = StepTrace::state_fingerprints(self);
         let repeats = trace::detect_repeats(fps.iter().copied().enumerate());
         repeats
             .into_iter()
