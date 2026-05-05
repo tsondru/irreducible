@@ -10,10 +10,10 @@ license = "MIT"
 authors = ["tsondru", "Claude <noreply@anthropic.com>"]
 
 [workspace.dependencies]
-catgraph = { git = "https://github.com/tsondru/catgraph", tag = "v0.12.0" }
-catgraph-applied = { git = "https://github.com/tsondru/catgraph", tag = "v0.12.0" }
-catgraph-physics = { git = "https://github.com/tsondru/catgraph", tag = "v0.12.0" }
-catgraph-surreal = { git = "https://github.com/tsondru/catgraph-surreal", tag = "v0.10.1" }
+catgraph = { git = "https://github.com/tsondru/catgraph", tag = "v0.13.0" }
+catgraph-applied = { git = "https://github.com/tsondru/catgraph", tag = "v0.13.0" }
+catgraph-physics = { git = "https://github.com/tsondru/catgraph", tag = "v0.13.0" }
+catgraph-surreal = { git = "https://github.com/tsondru/catgraph-surreal", tag = "v0.11.1" }
 deep_causality_topology = "0.5.1"
 deep_causality_tensor = "0.4.2"
 deep_causality_sparse = "0.1.7"
