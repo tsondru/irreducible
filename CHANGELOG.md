@@ -82,12 +82,16 @@ sequence of smaller fidelity items. All are tracked in
   in `src/complexity.rs:85` returns `max(self, other)` (wall-clock
   time), but Gorard §3 Eqs 67-69 specify the **additive
   multicomputational** model: `f⊗g` requires *at least* `n + m`
-  steps. **Decision (2026-05-05): patch to `+` in v0.7.0**, mirroring
-  the precedent already in `catgraph_physics::ParallelIntervals`
-  which exposes both `total_complexity` (sum, paper-faithful) and
-  `max_complexity` (wall-clock) with explicit rustdoc framing.
-  irreducible's `Complexity::parallel` will gain the dual-method
-  surface in v0.7.0.
+  steps. **Decision (2026-05-05): patch to `+` in v0.7.0** —
+  paper-faithful **single model**, breaking change for any consumer
+  relying on the wall-clock semantics. `Complexity` is a single
+  scalar representing the abstract complexity of `f⊗g`; the
+  paper-faithful answer is the sum. (Note: `catgraph_physics::
+  ParallelIntervals` exposes both `total_complexity` (sum) and
+  `max_complexity` (max) as separate methods because it models
+  *multi-branch* parallel computations where wall-clock is a
+  meaningfully separate quantity. The dual surface is right for
+  `ParallelIntervals` but not for `Complexity`.)
 - **P-A1 (Architectural, paper)** — `ZPrimeAdjunction` triangle
   identities verify a self-roundtrip (`to_interval ∘ z ∘ to_interval
   = to_interval`), not the paper's `𝒯 ⇄ 𝓥ect` adjunction. The 11
