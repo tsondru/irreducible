@@ -69,8 +69,7 @@ code or behavioral change.
   umbrella tag matches the irreducible catgraph pin" — when v0.7.0
   drops the shim files, if catgraph-surreal has not yet bumped to
   the umbrella tag of that release, the H.4 dual-SHA pattern can
-  recur. Tracked in `tsondru-notes/irreducible/current-plan.md`
-  v0.7.0 design phase section.
+  recur. Tracked in the v0.7.0 design phase.
 
 ## [0.6.4] - 2026-05-05
 
@@ -192,8 +191,7 @@ conversion of `interval`, `temporal_cospan_chain`, `trace` into thin
 between irreducible and catgraph-physics.
 
 Per the `catgraph-physics v0.3.0` CHANGELOG cross-repo follow-up
-commitment (lines 47-52). Tracked in catgraph workspace's
-`.claude/plans/2026-04-28-pre-phase-6b-hardening.md` H.1.
+commitment.
 
 ### Changed
 
@@ -305,7 +303,7 @@ Internal-docs cleanup release; no code changes.
 
 ### Changed
 
-- Moved internal design docs to `.claude/docs/` so the published crate root only carries user-facing material.
+- Moved internal design docs out of the published crate root so it only carries user-facing material.
 - README component index updated with the Petri-net row that landed in v0.5.0.
 
 ## [0.6.0] - 2026-04-14
