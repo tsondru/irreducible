@@ -8,9 +8,9 @@ use catgraph::cospan::Cospan;
 use catgraph::frobenius::FrobeniusMorphism;
 use irreducible::machines::hypergraph::{Hypergraph, HypergraphEvolution, RewriteRule};
 use irreducible::{
-    cap_single, cup_single, verify_cospan_chain_frobenius, CospanAlgebra, CospanToFrobeniusFunctor,
-    DiscreteInterval, ElementaryCA, HypergraphCategory, HypergraphFunctor, PartitionAlgebra,
-    RelabelingFunctor, StokesIrreducibility, TemporalComplex, TuringMachine,
+    CospanAlgebra, CospanToFrobeniusFunctor, DiscreteInterval, ElementaryCA, HypergraphCategory,
+    HypergraphFunctor, PartitionAlgebra, RelabelingFunctor, StokesIrreducibility, TemporalComplex,
+    TuringMachine, cap_single, cup_single, verify_cospan_chain_frobenius,
 };
 
 // ---------------------------------------------------------------------------
@@ -46,7 +46,10 @@ fn relabeling_functor_preserves_structure() {
 
     // Middle elements should be shifted by 10
     for &label in mapped.middle() {
-        assert!(label >= 10, "label {label} should be >= 10 after relabeling");
+        assert!(
+            label >= 10,
+            "label {label} should be >= 10 after relabeling"
+        );
     }
 
     // Codomain should be relabeled: [0] -> [10]

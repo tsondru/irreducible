@@ -2,7 +2,7 @@
 
 use catgraph_physics::multiway::MultiwayEvolutionGraph;
 use irreducible::multiway_coherence::{
-    verify_all_coherence, verify_associator, verify_braiding, verify_unitor, CoherenceError,
+    CoherenceError, verify_all_coherence, verify_associator, verify_braiding, verify_unitor,
 };
 
 /// Build a multiway graph with a 3-way fork and full confluence.
@@ -101,7 +101,10 @@ fn verify_all_confluent_graph_no_errors() {
 fn verify_all_non_confluent_graph_has_errors() {
     let g = non_confluent_3fork();
     let errors = verify_all_coherence(&g);
-    assert!(!errors.is_empty(), "expected errors for non-confluent graph");
+    assert!(
+        !errors.is_empty(),
+        "expected errors for non-confluent graph"
+    );
 }
 
 // ---------------------------------------------------------------------------

@@ -4,7 +4,7 @@
 //! bridge round-trip, deadlock detection, and step-limit exhaustion.
 
 use irreducible::machines::petri::{
-    run_multiway_reachability, Marking, PetriBuilder, PetriNet, PetriNetMachine, PetriTransition,
+    Marking, PetriBuilder, PetriNet, PetriNetMachine, PetriTransition, run_multiway_reachability,
 };
 use irreducible::trace::analyze_trace;
 use rust_decimal::Decimal;

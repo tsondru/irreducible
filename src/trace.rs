@@ -4,7 +4,7 @@
 //! `catgraph_physics::trace` at your earliest convenience.
 
 pub use catgraph_physics::trace::{
-    analyze_trace, detect_repeats, is_irreducible, RepeatDetection, StepTrace, TraceAnalysis,
+    RepeatDetection, StepTrace, TraceAnalysis, analyze_trace, detect_repeats, is_irreducible,
 };
 
 /// Deprecated alias for [`StepTrace`].

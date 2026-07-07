@@ -30,17 +30,13 @@ pub mod persistence;
 
 // Re-export core types from catgraph-physics
 pub use catgraph_physics::hypergraph::{
-    Hyperedge, Hypergraph,
-    RewriteRule, RewriteMatch, RewriteSpan,
-    HypergraphEvolution, HypergraphNode, HypergraphStep,
-    CausalInvarianceResult, WilsonLoop,
-    GaugeGroup, HypergraphRewriteGroup, HypergraphLattice,
-    plaquette_action, total_action,
+    CausalInvarianceResult, GaugeGroup, Hyperedge, Hypergraph, HypergraphEvolution,
+    HypergraphLattice, HypergraphNode, HypergraphRewriteGroup, HypergraphStep, RewriteMatch,
+    RewriteRule, RewriteSpan, WilsonLoop, plaquette_action, total_action,
 };
 
 // Local types (multiway cospan wrappers) and extension trait
 pub use catgraph_bridge::{
-    MultiwayCospan, MultiwayCospanGraph,
-    CospanInvarianceResult, CospanMergeDetail,
-    MultiwayCospanExt,
+    CospanInvarianceResult, CospanMergeDetail, MultiwayCospan, MultiwayCospanExt,
+    MultiwayCospanGraph,
 };

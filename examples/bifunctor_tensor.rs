@@ -5,8 +5,8 @@
 //! Run: `cargo run --example bifunctor_tensor`
 
 use irreducible::{
-    DiscreteInterval, ParallelIntervals, TensorProduct,
-    verify_associativity, verify_symmetry, verify_unit_laws,
+    DiscreteInterval, ParallelIntervals, TensorProduct, verify_associativity, verify_symmetry,
+    verify_unit_laws,
 };
 
 fn main() {

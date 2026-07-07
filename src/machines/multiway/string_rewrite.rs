@@ -26,7 +26,7 @@
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 
-use catgraph_physics::multiway::{run_multiway_bfs, MultiwayEvolutionGraph};
+use catgraph_physics::multiway::{MultiwayEvolutionGraph, run_multiway_bfs};
 
 /// A single rewrite rule: pattern → replacement.
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
@@ -62,7 +62,8 @@ impl SrsRewriteRule {
             return None;
         }
 
-        let mut result = String::with_capacity(s.len() - self.pattern.len() + self.replacement.len());
+        let mut result =
+            String::with_capacity(s.len() - self.pattern.len() + self.replacement.len());
         result.push_str(&s[..position]);
         result.push_str(&self.replacement);
         result.push_str(&s[position + self.pattern.len()..]);
@@ -156,9 +157,10 @@ impl StringRewriteSystem {
             .and_then(|new_str| {
                 // Check max length
                 if let Some(max_len) = self.max_string_length
-                    && new_str.len() > max_len {
-                        return None;
-                    }
+                    && new_str.len() > max_len
+                {
+                    return None;
+                }
                 Some(SRSState(new_str))
             })
     }
@@ -187,14 +189,13 @@ impl StringRewriteSystem {
                 self.find_all_matches(state)
                     .into_iter()
                     .filter_map(|(rule_idx, position)| {
-                        self.apply_rule(state, rule_idx, position)
-                            .map(|new_state| {
-                                let transition = RewriteApplication {
-                                    rule_index: rule_idx,
-                                    position,
-                                };
-                                (new_state, transition, rule_idx)
-                            })
+                        self.apply_rule(state, rule_idx, position).map(|new_state| {
+                            let transition = RewriteApplication {
+                                rule_index: rule_idx,
+                                position,
+                            };
+                            (new_state, transition, rule_idx)
+                        })
                     })
                     .collect()
             },
@@ -318,7 +319,10 @@ impl RewriteApplication {
     /// Create a new rewrite application record.
     #[must_use]
     pub fn new(rule_index: usize, position: usize) -> Self {
-        Self { rule_index, position }
+        Self {
+            rule_index,
+            position,
+        }
     }
 }
 

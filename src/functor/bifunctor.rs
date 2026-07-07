@@ -8,6 +8,6 @@
 //! Re-exported from [`catgraph::bifunctor`].
 
 pub use crate::bifunctor::{
-    tensor_bimap, tensor_first, tensor_second, verify_associativity, verify_symmetry,
-    verify_unit_laws, IntervalTransform, TensorProduct,
+    IntervalTransform, TensorProduct, tensor_bimap, tensor_first, tensor_second,
+    verify_associativity, verify_symmetry, verify_unit_laws,
 };

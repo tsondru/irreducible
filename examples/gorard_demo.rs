@@ -24,30 +24,26 @@
 //! - **Functoriality**: Z'(g∘f) = Z'(g) ∘ Z'(f) means "no shortcuts exist"
 
 use irreducible::{
+    ComputationState,
     // Core types
-    DiscreteInterval, ParallelIntervals, IrreducibilityFunctor,
-    // Turing Machine
-    TuringMachine,
+    DiscreteInterval,
     // Cellular Automata
     ElementaryCA,
+    IrreducibilityFunctor,
+    NondeterministicTM,
+    ParallelIntervals,
     // Multiway systems
-    StringRewriteSystem, NondeterministicTM,
-    // Multiway analysis
-    machines::multiway::{
-        extract_branchial_foliation, BranchialSummary,
-        OllivierFoliation,
-    },
+    StringRewriteSystem,
+    // Turing Machine
+    TuringMachine,
     // Adjunction
-    functor::{
-        ZPrimeAdjunction, ZPrimeOps, AdjunctionVerification,
-        StokesIrreducibility,
-    },
+    functor::{AdjunctionVerification, StokesIrreducibility, ZPrimeAdjunction, ZPrimeOps},
+    // Hypergraph rewriting + catgraph bridge
+    machines::hypergraph::{Hypergraph, HypergraphEvolution, RewriteRule as HypergraphRewriteRule},
+    // Multiway analysis
+    machines::multiway::{BranchialSummary, OllivierFoliation, extract_branchial_foliation},
     // Multiway coherence
     multiway_coherence::{verify_all_coherence, verify_associator, verify_braiding},
-    ComputationState,
-    // Hypergraph rewriting + catgraph bridge
-    machines::hypergraph::{Hypergraph, HypergraphEvolution,
-        RewriteRule as HypergraphRewriteRule},
 };
 
 fn main() {
@@ -120,7 +116,10 @@ fn demo_basic_insight() {
     println!("    Z'(T₁) ∘ Z'(T₂) = [0,1] ∘ [1,2] = [0,2]  ✓ contiguous");
     println!("    [0,2] ∘ Z'(T₃) = [0,2] ∘ [2,3] = [0,3]   ✓ contiguous");
     println!();
-    println!("    Total: {} → No gaps, no shortcuts!", format_interval(&composed_123));
+    println!(
+        "    Total: {} → No gaps, no shortcuts!",
+        format_interval(&composed_123)
+    );
     println!("    This is IRREDUCIBLE: must compute all steps.");
     println!();
 
@@ -166,7 +165,12 @@ fn demo_turing_machine() {
     println!();
     let intervals = history.to_intervals();
     for (i, interval) in intervals.iter().take(6).enumerate() {
-        println!("    T{} → Z'(T{}) = {}", i + 1, i + 1, format_interval(interval));
+        println!(
+            "    T{} → Z'(T{}) = {}",
+            i + 1,
+            i + 1,
+            format_interval(interval)
+        );
     }
     println!();
 
@@ -174,7 +178,10 @@ fn demo_turing_machine() {
     let analysis = history.analyze_irreducibility();
     println!("  Irreducibility Analysis:");
     println!("  ─────────────────────────");
-    println!("    Intervals contiguous: {}", analysis.is_sequence_contiguous);
+    println!(
+        "    Intervals contiguous: {}",
+        analysis.is_sequence_contiguous
+    );
     println!("    Cycles detected: {}", analysis.shortcuts.len());
     if let Some(ref interval) = analysis.total_interval {
         println!("    Total interval: {}", format_interval(interval));
@@ -195,9 +202,15 @@ fn demo_turing_machine() {
     let cycling_history = cycling.run("111", 20);
     let cycling_analysis = cycling_history.analyze_irreducibility();
 
-    println!("    Steps: {} (stopped at limit)", cycling_history.step_count());
+    println!(
+        "    Steps: {} (stopped at limit)",
+        cycling_history.step_count()
+    );
     println!("    Halted: {}", cycling_history.halted);
-    println!("    Shortcuts (cycles): {}", cycling_analysis.shortcuts.len());
+    println!(
+        "    Shortcuts (cycles): {}",
+        cycling_analysis.shortcuts.len()
+    );
     println!();
     if !cycling_analysis.shortcuts.is_empty() {
         println!("  ✗ REDUCIBLE: State repetition detected — we can predict the pattern!");
@@ -228,7 +241,14 @@ fn demo_cellular_automata() {
     println!();
     println!("    Generations: {}", analysis30.step_count);
     println!("    Cycles found: {}", analysis30.cycles.len());
-    println!("    Irreducible: {}", if analysis30.is_irreducible { "YES ✓" } else { "no" });
+    println!(
+        "    Irreducible: {}",
+        if analysis30.is_irreducible {
+            "YES ✓"
+        } else {
+            "no"
+        }
+    );
     println!();
 
     // Rule 0: Trivially reducible (all cells die)
@@ -242,8 +262,18 @@ fn demo_cellular_automata() {
     print_ca_evolution(&history0, 5);
     println!();
     println!("    Generations: {}", analysis0.step_count);
-    println!("    Cycles found: {} (fixed point repeats)", analysis0.cycles.len());
-    println!("    Irreducible: {}", if analysis0.is_irreducible { "yes" } else { "NO ✗" });
+    println!(
+        "    Cycles found: {} (fixed point repeats)",
+        analysis0.cycles.len()
+    );
+    println!(
+        "    Irreducible: {}",
+        if analysis0.is_irreducible {
+            "yes"
+        } else {
+            "NO ✗"
+        }
+    );
     println!();
     println!("  Rule 0 is REDUCIBLE: once all cells die, we know all future states!");
     println!();
@@ -277,7 +307,10 @@ fn demo_adjunction() {
     let state = ComputationState::new(0, 5);
     let interval = ZPrimeAdjunction::zprime(&state);
 
-    println!("    Computation state: step={}, complexity={}", state.step, state.complexity);
+    println!(
+        "    Computation state: step={}, complexity={}",
+        state.step, state.complexity
+    );
     println!("    Z'(state) = {}", format_interval(&interval));
     println!();
 
@@ -285,8 +318,10 @@ fn demo_adjunction() {
     let state2 = ZPrimeAdjunction::z(&interval2);
 
     println!("    Interval: {}", format_interval(&interval2));
-    println!("    Z(interval) = ComputationState(step={}, complexity={})",
-             state2.step, state2.complexity);
+    println!(
+        "    Z(interval) = ComputationState(step={}, complexity={})",
+        state2.step, state2.complexity
+    );
     println!();
 
     // Roundtrip
@@ -296,11 +331,20 @@ fn demo_adjunction() {
     let to_interval = ZPrimeAdjunction::zprime(&original_state);
     let back_to_state = ZPrimeAdjunction::z(&to_interval);
 
-    println!("    Original:  state(step={}, complexity={})", original_state.step, original_state.complexity);
+    println!(
+        "    Original:  state(step={}, complexity={})",
+        original_state.step, original_state.complexity
+    );
     println!("    → Z'() →   {}", format_interval(&to_interval));
-    println!("    → Z()  →   state(step={}, complexity={})", back_to_state.step, back_to_state.complexity);
-    println!("    Preserved: {} ✓", original_state.step == back_to_state.step &&
-                                    original_state.complexity == back_to_state.complexity);
+    println!(
+        "    → Z()  →   state(step={}, complexity={})",
+        back_to_state.step, back_to_state.complexity
+    );
+    println!(
+        "    Preserved: {} ✓",
+        original_state.step == back_to_state.step
+            && original_state.complexity == back_to_state.complexity
+    );
     println!();
 
     // Triangle identities
@@ -317,14 +361,21 @@ fn demo_adjunction() {
 
     let verification = AdjunctionVerification::verify_sequence::<ZPrimeAdjunction>(&states);
 
-    println!("    Triangle 1 (ε ∘ Z'η = id): {} tests, all passed: {}",
-             verification.triangle_1_results.len(),
-             verification.triangle_1_results.iter().all(|&b| b));
-    println!("    Triangle 2 (Zε ∘ η = id): {} tests, all passed: {}",
-             verification.triangle_2_results.len(),
-             verification.triangle_2_results.iter().all(|&b| b));
+    println!(
+        "    Triangle 1 (ε ∘ Z'η = id): {} tests, all passed: {}",
+        verification.triangle_1_results.len(),
+        verification.triangle_1_results.iter().all(|&b| b)
+    );
+    println!(
+        "    Triangle 2 (Zε ∘ η = id): {} tests, all passed: {}",
+        verification.triangle_2_results.len(),
+        verification.triangle_2_results.iter().all(|&b| b)
+    );
     println!();
-    println!("    Adjoint pair verified: {} ✓", verification.is_adjoint_pair);
+    println!(
+        "    Adjoint pair verified: {} ✓",
+        verification.is_adjoint_pair
+    );
     println!();
 }
 
@@ -373,11 +424,35 @@ fn demo_monoidal_structure() {
     let result = IrreducibilityFunctor::verify_symmetric_monoidal_functor(&evolution);
 
     println!("    String Rewriting System: A → B | A → C");
-    println!("    Steps: {}, Branches: {}", evolution.max_step(), result.branch_results.len());
-    println!("    Tensor preserved: {}", if result.preserves_tensor { "YES ✓" } else { "no ✗" });
-    println!("    All branches irreducible: {}", if result.branches_irreducible { "YES ✓" } else { "no ✗" });
-    println!("    Multicomputationally irreducible: {}",
-             if result.is_multicomputationally_irreducible { "YES ✓" } else { "no ✗" });
+    println!(
+        "    Steps: {}, Branches: {}",
+        evolution.max_step(),
+        result.branch_results.len()
+    );
+    println!(
+        "    Tensor preserved: {}",
+        if result.preserves_tensor {
+            "YES ✓"
+        } else {
+            "no ✗"
+        }
+    );
+    println!(
+        "    All branches irreducible: {}",
+        if result.branches_irreducible {
+            "YES ✓"
+        } else {
+            "no ✗"
+        }
+    );
+    println!(
+        "    Multicomputationally irreducible: {}",
+        if result.is_multicomputationally_irreducible {
+            "YES ✓"
+        } else {
+            "no ✗"
+        }
+    );
     println!();
 }
 
@@ -397,9 +472,10 @@ fn demo_coherence() {
 
     let mut g: MultiwayEvolutionGraph<&str, &str> = MultiwayEvolutionGraph::new();
     let root = g.add_root("s0");
-    let branches = g.add_fork(root, vec![
-        ("s1a", "e1", 0), ("s1b", "e2", 1), ("s1c", "e3", 2),
-    ]);
+    let branches = g.add_fork(
+        root,
+        vec![("s1a", "e1", 0), ("s1b", "e2", 1), ("s1c", "e3", 2)],
+    );
     let merge = g.add_sequential_step(branches[0], "s2", "m1");
     g.add_merge_edge(branches[1], merge, "m2");
     g.add_merge_edge(branches[2], merge, "m3");
@@ -412,7 +488,10 @@ fn demo_coherence() {
     println!("  1. ASSOCIATOR (3+ children at fork, all pairs confluent):");
     let assoc = verify_associator(&g, forks[0]);
     match &assoc {
-        Ok(w) => println!("     Verified: {} pairs, {} diamonds", w.pairs_verified, w.diamonds_found),
+        Ok(w) => println!(
+            "     Verified: {} pairs, {} diamonds",
+            w.pairs_verified, w.diamonds_found
+        ),
         Err(e) => println!("     FAILED: {e}"),
     }
     println!();
@@ -422,13 +501,21 @@ fn demo_coherence() {
     println!("  2. BRAIDING (parallel events commute):");
     for (i, (a, b)) in pairs.iter().enumerate() {
         let braid = verify_braiding(&g, *a, *b);
-        println!("     Pair {}: {}", i, if braid.is_ok() { "commutes" } else { "FAILS" });
+        println!(
+            "     Pair {}: {}",
+            i,
+            if braid.is_ok() { "commutes" } else { "FAILS" }
+        );
     }
     println!();
 
     // Full verification
     let errors = verify_all_coherence(&g);
-    println!("  Comprehensive: {} errors (fully coherent: {})", errors.len(), errors.is_empty());
+    println!(
+        "  Comprehensive: {} errors (fully coherent: {})",
+        errors.len(),
+        errors.is_empty()
+    );
     println!();
 }
 
@@ -450,16 +537,29 @@ fn demo_stokes_integration() {
     println!();
 
     let rules: Vec<(&str, HypergraphRewriteRule)> = vec![
-        ("A→BB  {{0,1,2}} → {{0,1},{1,2}}", HypergraphRewriteRule::wolfram_a_to_bb()),
-        ("split {{0,1}} → {{0,2},{2,1}}", HypergraphRewriteRule::edge_split()),
-        ("collapse {{0,1},{1,2}} → {{0,2}}", HypergraphRewriteRule::collapse()),
+        (
+            "A→BB  {{0,1,2}} → {{0,1},{1,2}}",
+            HypergraphRewriteRule::wolfram_a_to_bb(),
+        ),
+        (
+            "split {{0,1}} → {{0,2},{2,1}}",
+            HypergraphRewriteRule::edge_split(),
+        ),
+        (
+            "collapse {{0,1},{1,2}} → {{0,2}}",
+            HypergraphRewriteRule::collapse(),
+        ),
     ];
 
     for (desc, rule) in &rules {
         let span = rule.to_span();
         println!("    {desc}:");
-        println!("      |L| = {}, |R| = {}, |K| = {} (preserved)",
-                 span.left().len(), span.right().len(), span.middle_pairs().len());
+        println!(
+            "      |L| = {}, |R| = {}, |K| = {} (preserved)",
+            span.left().len(),
+            span.right().len(),
+            span.middle_pairs().len()
+        );
         println!("      Kernel pairs: {:?}", span.middle_pairs());
         println!();
     }
@@ -481,19 +581,24 @@ fn demo_stokes_integration() {
     println!();
 
     for (i, cospan) in cospans.iter().enumerate() {
-        println!("    Step {}: |left| = {}, |apex| = {}, |right| = {}",
-                 i + 1,
-                 cospan.left_to_middle().len(),
-                 cospan.middle().len(),
-                 cospan.right_to_middle().len());
+        println!(
+            "    Step {}: |left| = {}, |apex| = {}, |right| = {}",
+            i + 1,
+            cospan.left_to_middle().len(),
+            cospan.middle().len(),
+            cospan.right_to_middle().len()
+        );
     }
     println!();
 
     // Verify composability
-    let composable = cospans.windows(2).all(|w| {
-        w[0].right_to_middle().len() == w[1].left_to_middle().len()
-    });
-    println!("    Chain composable: {} (boundaries match)", if composable { "YES" } else { "NO" });
+    let composable = cospans
+        .windows(2)
+        .all(|w| w[0].right_to_middle().len() == w[1].left_to_middle().len());
+    println!(
+        "    Chain composable: {} (boundaries match)",
+        if composable { "YES" } else { "NO" }
+    );
     println!();
 
     // Part C: Stokes conservation → cospan composability
@@ -513,8 +618,14 @@ fn demo_stokes_integration() {
             let stokes_cospans = analysis.to_cospan_chain();
 
             println!("    Intervals: {} contiguous steps", intervals.len());
-            println!("    Stokes conserved: {}", analysis.conservation.is_conserved);
-            println!("    Cospan chain: {} composable cospans", stokes_cospans.len());
+            println!(
+                "    Stokes conserved: {}",
+                analysis.conservation.is_conserved
+            );
+            println!(
+                "    Cospan chain: {} composable cospans",
+                stokes_cospans.len()
+            );
             println!();
             println!("    Key insight: For dim-1 complexes, dω = 0 always.");
             println!("    Conservation reduces to contiguity + monotonicity,");
@@ -533,17 +644,26 @@ fn demo_stokes_integration() {
     let multi_evolution = HypergraphEvolution::run_multiway(
         &initial_multi,
         &[HypergraphRewriteRule::wolfram_a_to_bb()],
-        3, 50,
+        3,
+        50,
     );
 
     let invariance = multi_evolution.analyze_causal_invariance();
     let stats = multi_evolution.statistics();
 
-    println!("    Multiway evolution: {} nodes, {} branches, {} merges",
-             stats.total_nodes, stats.branch_count, stats.merge_count);
+    println!(
+        "    Multiway evolution: {} nodes, {} branches, {} merges",
+        stats.total_nodes, stats.branch_count, stats.merge_count
+    );
     println!("    Wilson loops analyzed: {}", invariance.loops_analyzed);
-    println!("    Causally invariant: {}",
-             if invariance.is_invariant { "YES (holonomy ≈ 1)" } else { "NO (non-trivial loops)" });
+    println!(
+        "    Causally invariant: {}",
+        if invariance.is_invariant {
+            "YES (holonomy ≈ 1)"
+        } else {
+            "NO (non-trivial loops)"
+        }
+    );
     println!();
     println!("    When all Wilson loops have holonomy = 1, different rewrite");
     println!("    orderings produce equivalent cospan chains — the categorical");
@@ -574,25 +694,34 @@ fn demo_hypergraph_rewriting() {
     let rule = HypergraphRewriteRule::wolfram_a_to_bb();
     let span = rule.to_span();
     println!("    Rule as categorical span L <- K -> R:");
-    println!("      Left (L):  {} elements  (pattern to match)", span.left().len());
-    println!("      Right (R): {} elements  (replacement)", span.right().len());
-    println!("      Kernel (K): {} pairs     (preserved structure)", span.middle_pairs().len());
+    println!(
+        "      Left (L):  {} elements  (pattern to match)",
+        span.left().len()
+    );
+    println!(
+        "      Right (R): {} elements  (replacement)",
+        span.right().len()
+    );
+    println!(
+        "      Kernel (K): {} pairs     (preserved structure)",
+        span.middle_pairs().len()
+    );
     println!();
 
     let initial = Hypergraph::from_edges(vec![vec![0, 1, 2]]);
-    let evolution = HypergraphEvolution::run(
-        &initial,
-        &[rule],
-        4,
-    );
+    let evolution = HypergraphEvolution::run(&initial, &[rule], 4);
 
     println!("    Deterministic evolution (4 steps):");
     for step in 0..=evolution.max_step() {
         let node_ids = evolution.nodes_at_step(step);
         for &id in &node_ids {
             if let Some(node) = evolution.get_node(id) {
-                println!("      Step {}: {} vertices, {} hyperedges",
-                         step, node.state.vertex_count(), node.state.edge_count());
+                println!(
+                    "      Step {}: {} vertices, {} hyperedges",
+                    step,
+                    node.state.vertex_count(),
+                    node.state.edge_count()
+                );
             }
         }
     }
@@ -606,16 +735,21 @@ fn demo_hypergraph_rewriting() {
     let cospan_chain = evolution.to_cospan_chain();
     println!("    Each step G_i -> G_{{i+1}} yields a cospan in B:");
     for (i, cospan) in cospan_chain.iter().enumerate() {
-        println!("      Step {i}: left={}, middle={}, right={}",
-                 cospan.left_to_middle().len(),
-                 cospan.middle().len(),
-                 cospan.right_to_middle().len());
+        println!(
+            "      Step {i}: left={}, middle={}, right={}",
+            cospan.left_to_middle().len(),
+            cospan.middle().len(),
+            cospan.right_to_middle().len()
+        );
     }
     println!();
 
     match evolution.compose_cospan_chain() {
         Ok(composed) => {
-            println!("    Composed cospan (all steps): middle={} elements", composed.middle().len());
+            println!(
+                "    Composed cospan (all steps): middle={} elements",
+                composed.middle().len()
+            );
             println!("    Chain is composable: boundaries match at every step.");
         }
         Err(e) => println!("    Composition failed: {e}"),
@@ -630,8 +764,12 @@ fn demo_hypergraph_rewriting() {
     let initial_multi = Hypergraph::from_edges(vec![vec![0, 1, 2], vec![1, 2, 3]]);
     let multi_evolution = HypergraphEvolution::run_multiway(
         &initial_multi,
-        &[HypergraphRewriteRule::wolfram_a_to_bb(), HypergraphRewriteRule::edge_split()],
-        3, 30,
+        &[
+            HypergraphRewriteRule::wolfram_a_to_bb(),
+            HypergraphRewriteRule::edge_split(),
+        ],
+        3,
+        30,
     );
 
     let stats = multi_evolution.statistics();
@@ -645,8 +783,10 @@ fn demo_hypergraph_rewriting() {
     let invariance = multi_evolution.analyze_causal_invariance();
     println!("    Causal invariance (Wilson loop holonomy):");
     println!("      Loops analyzed:    {}", invariance.loops_analyzed);
-    println!("      Causally invariant: {}",
-             if invariance.is_invariant { "YES" } else { "NO" });
+    println!(
+        "      Causally invariant: {}",
+        if invariance.is_invariant { "YES" } else { "NO" }
+    );
     println!();
     println!("    When causally invariant, different rule application orders");
     println!("    produce equivalent cospan chains — gauge invariance in the");
@@ -675,10 +815,7 @@ fn demo_multiway_branching() {
     println!("  ─────────────────────────────────────────────");
     println!();
 
-    let srs = StringRewriteSystem::new(vec![
-        ("AB", "BA"),
-        ("A", "AA"),
-    ]);
+    let srs = StringRewriteSystem::new(vec![("AB", "BA"), ("A", "AA")]);
     let evolution = srs.run_multiway("AB", 4, 30);
     let stats = evolution.statistics();
 
@@ -689,9 +826,7 @@ fn demo_multiway_branching() {
     // Level-by-level visualization
     for step in 0..=stats.max_depth.min(4) {
         let nodes = evolution.nodes_at_step(step);
-        let states: Vec<String> = nodes.iter()
-            .map(|n| format!("{}", n.state))
-            .collect();
+        let states: Vec<String> = nodes.iter().map(|n| format!("{}", n.state)).collect();
 
         let prefix = if step == 0 { "    root" } else { "        " };
         let branch_marker = if nodes.len() > 1 {
@@ -699,14 +834,23 @@ fn demo_multiway_branching() {
         } else {
             String::new()
         };
-        println!("{prefix} Step {step}: {}{branch_marker}", states.join("  |  "));
+        println!(
+            "{prefix} Step {step}: {}{branch_marker}",
+            states.join("  |  ")
+        );
     }
     println!();
 
     println!("    Statistics:");
     println!("      Total nodes: {}", stats.total_nodes);
-    println!("      Fork points: {} (non-deterministic choices)", stats.fork_count);
-    println!("      Merge points: {} (confluent paths)", stats.merge_count);
+    println!(
+        "      Fork points: {} (non-deterministic choices)",
+        stats.fork_count
+    );
+    println!(
+        "      Merge points: {} (confluent paths)",
+        stats.merge_count
+    );
     println!("      Max depth: {}", stats.max_depth);
     println!("      Leaf nodes: {} (terminal states)", stats.leaf_count);
     println!();
@@ -725,7 +869,9 @@ fn demo_multiway_branching() {
 
     for step in 0..=ntm_stats.max_depth.min(3) {
         let nodes = ntm_evolution.nodes_at_step(step);
-        let is_fork = ntm_evolution.find_fork_points().iter()
+        let is_fork = ntm_evolution
+            .find_fork_points()
+            .iter()
             .any(|fp| fp.step == step);
         let marker = if is_fork { " <-- FORK" } else { "" };
         println!("      Step {step}: {} state(s){marker}", nodes.len());
@@ -737,11 +883,7 @@ fn demo_multiway_branching() {
     println!("  ──────────────────────────────────────────────");
     println!();
 
-    let srs2 = StringRewriteSystem::new(vec![
-        ("A", "AB"),
-        ("A", "BA"),
-        ("B", "A"),
-    ]);
+    let srs2 = StringRewriteSystem::new(vec![("A", "AB"), ("A", "BA"), ("B", "A")]);
     let evolution2 = srs2.run_multiway("A", 5, 50);
     let foliation = extract_branchial_foliation(&evolution2);
     let summary = BranchialSummary::from_foliation(&foliation);
@@ -755,15 +897,25 @@ fn demo_multiway_branching() {
     for (step, bg) in foliation.iter().enumerate() {
         let components = bg.connected_components();
         let bar = "|".repeat(bg.node_count().min(30));
-        println!("      {step:>4}  {:>5}  {:>5}  {:>10}  {bar}",
-                 bg.node_count(), bg.edge_count(), components);
+        println!(
+            "      {step:>4}  {:>5}  {:>5}  {:>10}  {bar}",
+            bg.node_count(),
+            bg.edge_count(),
+            components
+        );
     }
     println!();
 
     println!("    Summary:");
-    println!("      Max parallel branches: {}", summary.max_parallel_branches);
+    println!(
+        "      Max parallel branches: {}",
+        summary.max_parallel_branches
+    );
     println!("      Average branching: {:.2}", summary.average_branches);
-    println!("      Total branchial edges: {}", summary.total_branchial_edges);
+    println!(
+        "      Total branchial edges: {}",
+        summary.total_branchial_edges
+    );
     println!();
 
     // Part D: Curvature
@@ -790,8 +942,10 @@ fn demo_multiway_branching() {
     let avg = curvature_foliation.average_irreducibility();
     let flat = curvature_foliation.is_globally_flat();
     println!("    Average irreducibility indicator: {avg:.4}");
-    println!("    Globally flat: {} (uniform branching = simpler structure)",
-             if flat { "YES" } else { "NO" });
+    println!(
+        "    Globally flat: {} (uniform branching = simpler structure)",
+        if flat { "YES" } else { "NO" }
+    );
     println!();
 }
 
@@ -849,7 +1003,13 @@ fn print_header(title: &str) {
     let width = 70;
     println!("╔{}╗", "═".repeat(width));
     let padding = (width - title.len()) / 2;
-    println!("║{}{}{:>width$}║", " ".repeat(padding), title, "", width = width - padding - title.len());
+    println!(
+        "║{}{}{:>width$}║",
+        " ".repeat(padding),
+        title,
+        "",
+        width = width - padding - title.len()
+    );
     println!("╚{}╝", "═".repeat(width));
 }
 
@@ -899,7 +1059,12 @@ fn print_interval_sequence(intervals: &[DiscreteInterval]) {
         }
 
         let line_str: String = line.iter().collect();
-        println!("    T{}: {}  {}", i + 1, line_str.trim_end(), format_interval(interval));
+        println!(
+            "    T{}: {}  {}",
+            i + 1,
+            line_str.trim_end(),
+            format_interval(interval)
+        );
     }
     println!();
 }
@@ -916,13 +1081,22 @@ fn print_ca_evolution(history: &irreducible::CAExecutionHistory, max_rows: usize
         let end = (mid + half_width + 1).min(width);
 
         let display: String = (start..end)
-            .map(|x| if generation.get(x.cast_signed()) { '█' } else { '·' })
+            .map(|x| {
+                if generation.get(x.cast_signed()) {
+                    '█'
+                } else {
+                    '·'
+                }
+            })
             .collect();
 
         println!("    {i:>3}: {display}");
     }
 
     if generations.len() > max_rows {
-        println!("    ... ({} more generations)", generations.len() - max_rows);
+        println!(
+            "    ... ({} more generations)",
+            generations.len() - max_rows
+        );
     }
 }

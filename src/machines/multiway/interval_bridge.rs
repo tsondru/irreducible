@@ -11,7 +11,7 @@
 use std::hash::Hash;
 
 use catgraph_physics::multiway::{
-    extract_branchial_foliation, MultiwayEvolutionGraph, MultiwayNodeId,
+    MultiwayEvolutionGraph, MultiwayNodeId, extract_branchial_foliation,
 };
 
 use crate::interval::{DiscreteInterval, ParallelIntervals};

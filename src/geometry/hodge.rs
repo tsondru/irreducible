@@ -64,9 +64,7 @@ const DUAL_LEN_INTERIOR: f64 = 2.0 * INRADIUS;
 #[must_use]
 pub fn unit_hodge_0(complex: &SimplicialComplex<f64>) -> CsrMatrix<f64> {
     let skeletons = complex.skeletons();
-    let v_count = skeletons
-        .first()
-        .map_or(0, |skel| skel.simplices().len());
+    let v_count = skeletons.first().map_or(0, |skel| skel.simplices().len());
 
     let mut per_vertex_weight = vec![0.0_f64; v_count];
     if let Some(tri_skel) = skeletons.get(2) {
@@ -105,9 +103,7 @@ pub fn unit_hodge_0(complex: &SimplicialComplex<f64>) -> CsrMatrix<f64> {
 #[must_use]
 pub fn unit_hodge_1(complex: &SimplicialComplex<f64>) -> CsrMatrix<f64> {
     let skeletons = complex.skeletons();
-    let e_count = skeletons
-        .get(1)
-        .map_or(0, |skel| skel.simplices().len());
+    let e_count = skeletons.get(1).map_or(0, |skel| skel.simplices().len());
 
     let mut incident_tri_count = vec![0_usize; e_count];
     if let (Some(edge_skel), Some(tri_skel)) = (skeletons.get(1), skeletons.get(2)) {
@@ -148,9 +144,7 @@ pub fn unit_hodge_1(complex: &SimplicialComplex<f64>) -> CsrMatrix<f64> {
 #[must_use]
 pub fn unit_hodge_2(complex: &SimplicialComplex<f64>) -> CsrMatrix<f64> {
     let skeletons = complex.skeletons();
-    let f_count = skeletons
-        .get(2)
-        .map_or(0, |skel| skel.simplices().len());
+    let f_count = skeletons.get(2).map_or(0, |skel| skel.simplices().len());
 
     let inv_area = 1.0 / AREA_UNIT_EQUILATERAL;
     let triplets: Vec<(usize, usize, f64)> = (0..f_count).map(|i| (i, i, inv_area)).collect();

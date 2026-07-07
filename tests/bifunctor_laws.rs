@@ -5,8 +5,8 @@
 //! on `ParallelIntervals`.
 
 use irreducible::bifunctor::{
-    tensor_bimap, tensor_first, tensor_second, verify_associativity, verify_symmetry,
-    verify_unit_laws, IntervalTransform, TensorProduct,
+    IntervalTransform, TensorProduct, tensor_bimap, tensor_first, tensor_second,
+    verify_associativity, verify_symmetry, verify_unit_laws,
 };
 use irreducible::interval::{DiscreteInterval, ParallelIntervals};
 
@@ -64,8 +64,7 @@ fn tensor_bimap_independence() {
     let left = make_parallel(&[(0, 5)]);
     let right = make_parallel(&[(10, 15)]);
 
-    let (new_left, new_right) =
-        tensor_bimap(left, right, |p| p.shift_all(100), |p| p.scale_all(3));
+    let (new_left, new_right) = tensor_bimap(left, right, |p| p.shift_all(100), |p| p.scale_all(3));
 
     // Left was shifted by 100.
     assert_eq!(new_left.branches[0].start, 100);

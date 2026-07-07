@@ -20,8 +20,8 @@ async fn main() {
 #[cfg(feature = "persist")]
 mod persist_demo {
     use irreducible::machines::hypergraph::{
-        persistence::EvolutionPersistence, Hypergraph, HypergraphEvolution,
-        RewriteRule as HypergraphRewriteRule,
+        Hypergraph, HypergraphEvolution, RewriteRule as HypergraphRewriteRule,
+        persistence::EvolutionPersistence,
     };
     use surrealdb::engine::any;
 

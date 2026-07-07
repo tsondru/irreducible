@@ -12,7 +12,7 @@
 use std::fmt::Debug;
 
 use catgraph_applied::petri_net::Marking;
-use catgraph_physics::multiway::{run_multiway_bfs, MultiwayEvolutionGraph};
+use catgraph_physics::multiway::{MultiwayEvolutionGraph, run_multiway_bfs};
 
 use super::history::PetriTransitionRecord;
 use super::machine::PetriNetMachine;
@@ -56,8 +56,8 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use super::super::PetriBuilder;
+    use super::*;
     use rust_decimal::Decimal;
 
     /// Smoke test: a net with no enabled transitions returns a graph whose root

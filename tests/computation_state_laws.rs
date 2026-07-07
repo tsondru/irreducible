@@ -96,11 +96,11 @@ fn multi_step_walk() {
 
     for _ in 0..10 {
         state = state.next();
-        assert!(
-            state.step > prev_step,
-            "step must be strictly increasing"
+        assert!(state.step > prev_step, "step must be strictly increasing");
+        assert_eq!(
+            state.step, state.complexity,
+            "next() keeps step == complexity"
         );
-        assert_eq!(state.step, state.complexity, "next() keeps step == complexity");
         prev_step = state.step;
     }
 

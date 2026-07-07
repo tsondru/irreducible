@@ -73,25 +73,23 @@ pub mod geometry;
 pub mod test_utils;
 
 // Category theory exports (now local modules)
-pub use interval::{DiscreteInterval, ParallelIntervals};
 pub use complexity::{Complexity, StepCount};
 pub use computation_state::ComputationState;
+pub use interval::{DiscreteInterval, ParallelIntervals};
 
 // Functor exports
 pub use functor::IrreducibilityFunctor;
 
 // Adjunction exports
-pub use functor::{
-    AdjunctionIrreducibility, AdjunctionVerification, ZPrimeAdjunction, ZPrimeOps,
-};
+pub use functor::{AdjunctionIrreducibility, AdjunctionVerification, ZPrimeAdjunction, ZPrimeOps};
 
 // Monoidal functor exports
 pub use functor::{MonoidalFunctorResult, TensorCheck};
 
 // Bifunctor / tensor product exports
 pub use functor::{
-    tensor_bimap, tensor_first, tensor_second, verify_associativity, verify_symmetry,
-    verify_unit_laws, IntervalTransform, TensorProduct,
+    IntervalTransform, TensorProduct, tensor_bimap, tensor_first, tensor_second,
+    verify_associativity, verify_symmetry, verify_unit_laws,
 };
 
 // Temporal cospan chain exports (shim into catgraph_physics::temporal_cospan_chain;
@@ -118,47 +116,45 @@ pub use machines::{CAExecutionHistory, CAIrreducibilityAnalysis, ElementaryCA, G
 
 // Petri net exports
 pub use machines::petri::{
-    run_multiway_reachability, Marking, PetriBuilder, PetriExecutionHistory, PetriNet,
-    PetriNetMachine, PetriTransition, PetriTransitionRecord,
+    Marking, PetriBuilder, PetriExecutionHistory, PetriNet, PetriNetMachine, PetriTransition,
+    PetriTransitionRecord, run_multiway_reachability,
 };
 
 // Trace analysis exports (shim into catgraph_physics::trace;
 // `IrreducibilityTrace` is the deprecated alias for `StepTrace`, dropped in v0.7.0).
 #[allow(deprecated)]
 pub use trace::{
-    analyze_trace, detect_repeats, is_irreducible, IrreducibilityTrace, RepeatDetection,
-    StepTrace, TraceAnalysis,
+    IrreducibilityTrace, RepeatDetection, StepTrace, TraceAnalysis, analyze_trace, detect_repeats,
+    is_irreducible,
 };
 
 // Multiway system exports
 pub use machines::multiway::{
-    BranchId, MergePoint, MultiwayCycle, MultiwayEdge, MultiwayEdgeKind, MultiwayEvolutionGraph,
-    MultiwayNode, MultiwayNodeId, MultiwayStatistics,
+    BranchId, BranchialGraph, BranchialStepStats, BranchialSummary, CurvatureFoliation,
+    DiscreteCurvature, MergePoint, MultiwayCycle, MultiwayEdge, MultiwayEdgeKind,
+    MultiwayEvolutionGraph, MultiwayNode, MultiwayNodeId, MultiwayStatistics, NTMBuilder,
+    NTMTransitionData, NondeterministicTM, OllivierFoliation, OllivierRicciCurvature,
+    RewriteApplication, SRSState, SrsRewriteRule, StringRewriteSystem,
     branchial_to_parallel_intervals, extract_branchial_foliation, find_all_merge_points,
-    BranchialGraph, BranchialStepStats, BranchialSummary,
-    CurvatureFoliation, DiscreteCurvature,
-    OllivierFoliation, OllivierRicciCurvature,
-    RewriteApplication, SrsRewriteRule, SRSState, StringRewriteSystem,
-    NTMBuilder, NTMTransitionData, NondeterministicTM,
 };
 
 // Hypergraph rewriting exports
 pub use machines::hypergraph::{
-    Hyperedge, Hypergraph, HypergraphEvolution, HypergraphNode, HypergraphStep,
-    CausalInvarianceResult, WilsonLoop, RewriteSpan,
-    HypergraphRewriteGroup, HypergraphLattice, plaquette_action, total_action,
+    CausalInvarianceResult, Hyperedge, Hypergraph, HypergraphEvolution, HypergraphLattice,
+    HypergraphNode, HypergraphRewriteGroup, HypergraphStep, RewriteSpan, WilsonLoop,
+    plaquette_action, total_action,
 };
 
 // Fong-Spivak categorical infrastructure (re-exported from catgraph)
 pub use functor::{
-    cap, cap_single, cap_tensor, compose_names, cospan_to_frobenius, cup, cup_single, cup_tensor,
-    name, unname, CospanAlgebra, CospanFrobeniusCheck, CospanToFrobeniusFunctor,
-    FrobeniusVerificationResult, HypergraphCategory, HypergraphFunctor, NameAlgebra,
-    PartitionAlgebra, RelabelingFunctor, verify_cospan_chain_frobenius,
+    CospanAlgebra, CospanFrobeniusCheck, CospanToFrobeniusFunctor, FrobeniusVerificationResult,
+    HypergraphCategory, HypergraphFunctor, NameAlgebra, PartitionAlgebra, RelabelingFunctor, cap,
+    cap_single, cap_tensor, compose_names, cospan_to_frobenius, cup, cup_single, cup_tensor, name,
+    unname, verify_cospan_chain_frobenius,
 };
 
 // Multiway coherence exports
 pub use multiway_coherence::{
-    verify_all_coherence, verify_associator, verify_braiding, verify_unitor,
-    AssociatorWitness, BraidingWitness, CoherenceError, UnitorWitness,
+    AssociatorWitness, BraidingWitness, CoherenceError, UnitorWitness, verify_all_coherence,
+    verify_associator, verify_braiding, verify_unitor,
 };

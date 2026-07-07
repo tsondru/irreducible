@@ -16,7 +16,7 @@ use std::hash::Hash;
 
 use crate::interval::{DiscreteInterval, ParallelIntervals};
 use catgraph_physics::multiway::{
-    extract_branchial_foliation, BranchialGraph, MultiwayEvolutionGraph,
+    BranchialGraph, MultiwayEvolutionGraph, extract_branchial_foliation,
 };
 
 use super::{BranchResult, IrreducibilityFunctor};
@@ -45,7 +45,6 @@ pub struct MonoidalFunctorResult {
     pub is_multicomputationally_irreducible: bool,
 
     // === Coherence Conditions (from multiway_coherence) ===
-
     /// Associator coherence: all fork points with 3+ children are confluent.
     pub associator_coherent: bool,
 
@@ -247,7 +246,10 @@ impl IrreducibilityFunctor {
         let mut result = ParallelIntervals::new();
 
         for &node_id in &branchial.nodes {
-            if graph.get_forward_edges(&node_id).is_some_and(|e| !e.is_empty()) {
+            if graph
+                .get_forward_edges(&node_id)
+                .is_some_and(|e| !e.is_empty())
+            {
                 result.add_branch(DiscreteInterval::new(step, step + 1));
             }
         }

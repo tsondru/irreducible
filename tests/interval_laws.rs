@@ -20,20 +20,18 @@ fn arb_interval() -> impl Strategy<Value = DiscreteInterval> {
 /// Generate three composable intervals: [a,b], [b,c], [c,d].
 ///
 /// Each gap (b-a), (c-b), (d-c) is independently chosen from 0..=10.
-fn arb_three_composable() -> impl Strategy<Value = (DiscreteInterval, DiscreteInterval, DiscreteInterval)>
-{
-    (0_usize..=30, 0_usize..=10, 0_usize..=10, 0_usize..=10).prop_map(
-        |(a, gap1, gap2, gap3)| {
-            let b = a + gap1;
-            let c = b + gap2;
-            let d = c + gap3;
-            (
-                DiscreteInterval::new(a, b),
-                DiscreteInterval::new(b, c),
-                DiscreteInterval::new(c, d),
-            )
-        },
-    )
+fn arb_three_composable()
+-> impl Strategy<Value = (DiscreteInterval, DiscreteInterval, DiscreteInterval)> {
+    (0_usize..=30, 0_usize..=10, 0_usize..=10, 0_usize..=10).prop_map(|(a, gap1, gap2, gap3)| {
+        let b = a + gap1;
+        let c = b + gap2;
+        let d = c + gap3;
+        (
+            DiscreteInterval::new(a, b),
+            DiscreteInterval::new(b, c),
+            DiscreteInterval::new(c, d),
+        )
+    })
 }
 
 /// Generate a `ParallelIntervals` with 0..=5 branches.

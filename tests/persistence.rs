@@ -5,12 +5,12 @@
 #![cfg(feature = "persist")]
 
 use irreducible::machines::hypergraph::{
-    persistence::EvolutionPersistence, Hypergraph, HypergraphEvolution,
-    MultiwayCospanExt, RewriteRule as HypergraphRewriteRule,
+    Hypergraph, HypergraphEvolution, MultiwayCospanExt, RewriteRule as HypergraphRewriteRule,
+    persistence::EvolutionPersistence,
 };
+use surrealdb::Surreal;
 use surrealdb::engine::any::{self, Any};
 use surrealdb::types::RecordId;
-use surrealdb::Surreal;
 
 async fn setup_db() -> Surreal<Any> {
     let db = any::connect("mem://").await.unwrap();

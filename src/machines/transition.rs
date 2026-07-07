@@ -7,7 +7,7 @@
 //! [`Direction`] encodes the three possible head movements (Left, Right, Stay).
 
 use super::Configuration;
-use crate::{interval::DiscreteInterval, complexity::StepCount};
+use crate::{complexity::StepCount, interval::DiscreteInterval};
 use std::fmt;
 
 /// Direction the head moves after a transition.

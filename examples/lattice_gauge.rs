@@ -6,8 +6,8 @@
 //! Run: `cargo run --example lattice_gauge`
 
 use irreducible::machines::hypergraph::{
-    plaquette_action, total_action, Hypergraph, HypergraphEvolution, HypergraphLattice,
-    HypergraphRewriteGroup, RewriteRule as HypergraphRewriteRule,
+    Hypergraph, HypergraphEvolution, HypergraphLattice, HypergraphRewriteGroup,
+    RewriteRule as HypergraphRewriteRule, plaquette_action, total_action,
 };
 
 fn main() {

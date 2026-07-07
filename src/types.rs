@@ -396,7 +396,10 @@ mod tests {
         assert!(!effect.is_success());
         assert_eq!(effect.value, None);
         assert!(effect.has_error);
-        assert_eq!(effect.error_message, Some("something went wrong".to_string()));
+        assert_eq!(
+            effect.error_message,
+            Some("something went wrong".to_string())
+        );
     }
 
     #[test]

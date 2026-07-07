@@ -5,8 +5,8 @@
 //! and agreement between domain-specific and generic trace analysis.
 
 use irreducible::{
-    analyze_trace, DiscreteInterval, ElementaryCA, Generation, IrreducibilityFunctor,
-    StepTrace, StokesIrreducibility, TuringMachine,
+    DiscreteInterval, ElementaryCA, Generation, IrreducibilityFunctor, StepTrace,
+    StokesIrreducibility, TuringMachine, analyze_trace,
 };
 
 // ---------------------------------------------------------------------------
@@ -133,13 +133,19 @@ fn analyze_trace_agrees_with_domain_specific_tm() {
     let domain_analysis = history.analyze_irreducibility();
     let trace_analysis = analyze_trace(&history);
 
-    assert_eq!(domain_analysis.is_irreducible, trace_analysis.is_irreducible);
+    assert_eq!(
+        domain_analysis.is_irreducible,
+        trace_analysis.is_irreducible
+    );
     assert_eq!(
         domain_analysis.is_sequence_contiguous,
         trace_analysis.is_sequence_contiguous
     );
     assert_eq!(domain_analysis.step_count, trace_analysis.step_count);
-    assert_eq!(domain_analysis.total_interval, trace_analysis.total_interval);
+    assert_eq!(
+        domain_analysis.total_interval,
+        trace_analysis.total_interval
+    );
 }
 
 #[test]
@@ -151,7 +157,10 @@ fn analyze_trace_agrees_with_domain_specific_ca() {
     let domain_analysis = history.analyze_irreducibility();
     let trace_analysis = analyze_trace(&history);
 
-    assert_eq!(domain_analysis.is_irreducible, trace_analysis.is_irreducible);
+    assert_eq!(
+        domain_analysis.is_irreducible,
+        trace_analysis.is_irreducible
+    );
     assert_eq!(
         domain_analysis.is_sequence_contiguous,
         trace_analysis.is_sequence_contiguous
@@ -200,10 +209,7 @@ fn functor_non_contiguous_intervals_not_irreducible() {
     // Manually construct a sequence with a gap: [0,2], [5,7]
     // These are non-contiguous (2 != 5), so composition should fail
     // and the sequence should NOT be irreducible.
-    let intervals = vec![
-        DiscreteInterval::new(0, 2),
-        DiscreteInterval::new(5, 7),
-    ];
+    let intervals = vec![DiscreteInterval::new(0, 2), DiscreteInterval::new(5, 7)];
 
     assert!(!IrreducibilityFunctor::is_sequence_irreducible(&intervals));
 
@@ -228,7 +234,10 @@ fn repeat_detection_maps_to_shortcuts_and_cycles() {
     let domain_analysis = tm_history.analyze_irreducibility();
 
     // TraceAnalysis.repeats map to IrreducibilityAnalysis.shortcuts
-    assert_eq!(trace_analysis.repeats.len(), domain_analysis.shortcuts.len());
+    assert_eq!(
+        trace_analysis.repeats.len(),
+        domain_analysis.shortcuts.len()
+    );
     for (repeat, shortcut) in trace_analysis
         .repeats
         .iter()

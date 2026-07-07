@@ -16,10 +16,10 @@ fn main() {
 
 #[cfg(feature = "manifold-curvature")]
 mod manifold_demo {
+    use irreducible::extract_branchial_foliation;
     use irreducible::machines::multiway::{
         ManifoldCurvature, ShortestPathMDS, StringRewriteSystem,
     };
-    use irreducible::extract_branchial_foliation;
 
     pub fn run() {
         println!("=== Manifold Curvature Pipeline ===\n");

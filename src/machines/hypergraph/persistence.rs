@@ -7,12 +7,12 @@ use catgraph::cospan::Cospan;
 use catgraph::span::Span;
 use catgraph_surreal::error::PersistError;
 use catgraph_surreal::hyperedge_store::HyperedgeStore;
+use surrealdb::Surreal;
 use surrealdb::engine::any::Any;
 use surrealdb::types::RecordId;
-use surrealdb::Surreal;
 
-use catgraph_physics::hypergraph::{HypergraphEvolution, RewriteRule};
 use super::catgraph_bridge::MultiwayCospanExt;
+use catgraph_physics::hypergraph::{HypergraphEvolution, RewriteRule};
 
 /// Persistence layer for hypergraph evolution traces.
 ///
@@ -56,12 +56,10 @@ impl<'a> EvolutionPersistence<'a> {
                 "step": i,
                 "total_steps": total,
             });
-            let hub_id = self.store.decompose_cospan(
-                cospan,
-                "evolution_step",
-                props,
-                |v: &u32| format!("v{v}"),
-            ).await?;
+            let hub_id = self
+                .store
+                .decompose_cospan(cospan, "evolution_step", props, |v: &u32| format!("v{v}"))
+                .await?;
             hub_ids.push(hub_id);
         }
 
@@ -89,12 +87,12 @@ impl<'a> EvolutionPersistence<'a> {
                 "parent_id": edge.parent_id,
                 "child_id": edge.child_id,
             });
-            let hub_id = self.store.decompose_cospan(
-                &edge.cospan,
-                "multiway_edge",
-                props,
-                |v: &u32| format!("v{v}"),
-            ).await?;
+            let hub_id = self
+                .store
+                .decompose_cospan(&edge.cospan, "multiway_edge", props, |v: &u32| {
+                    format!("v{v}")
+                })
+                .await?;
             hub_ids.push(hub_id);
         }
 
@@ -118,12 +116,9 @@ impl<'a> EvolutionPersistence<'a> {
             "right_size": span.right().len(),
             "kernel_size": span.middle_pairs().len(),
         });
-        self.store.decompose_span(
-            &span,
-            "rewrite_rule",
-            props,
-            |v: &u32| format!("v{v}"),
-        ).await
+        self.store
+            .decompose_span(&span, "rewrite_rule", props, |v: &u32| format!("v{v}"))
+            .await
     }
 
     /// Reconstructs a cospan from a persisted hub record.
@@ -131,10 +126,7 @@ impl<'a> EvolutionPersistence<'a> {
     /// # Errors
     ///
     /// Returns `PersistError` if the hub record is missing or malformed.
-    pub async fn load_cospan(
-        &self,
-        hub_id: &RecordId,
-    ) -> Result<Cospan<u32>, PersistError> {
+    pub async fn load_cospan(&self, hub_id: &RecordId) -> Result<Cospan<u32>, PersistError> {
         self.store.reconstruct_cospan::<u32>(hub_id).await
     }
 
@@ -143,10 +135,7 @@ impl<'a> EvolutionPersistence<'a> {
     /// # Errors
     ///
     /// Returns `PersistError` if the hub record is missing or malformed.
-    pub async fn load_span(
-        &self,
-        hub_id: &RecordId,
-    ) -> Result<Span<u32>, PersistError> {
+    pub async fn load_span(&self, hub_id: &RecordId) -> Result<Span<u32>, PersistError> {
         self.store.reconstruct_span::<u32>(hub_id).await
     }
 }
@@ -173,7 +162,10 @@ mod tests {
         let rules = vec![RewriteRule::wolfram_a_to_bb()];
         let evolution = HypergraphEvolution::run(&initial, &rules, 1);
 
-        let hub_ids = persist.persist_cospan_chain(&evolution, "test_chain").await.unwrap();
+        let hub_ids = persist
+            .persist_cospan_chain(&evolution, "test_chain")
+            .await
+            .unwrap();
         assert_eq!(hub_ids.len(), 1);
     }
 
@@ -186,7 +178,10 @@ mod tests {
         let rules = vec![RewriteRule::edge_split()];
         let evolution = HypergraphEvolution::run(&initial, &rules, 3);
 
-        let hub_ids = persist.persist_cospan_chain(&evolution, "split_chain").await.unwrap();
+        let hub_ids = persist
+            .persist_cospan_chain(&evolution, "split_chain")
+            .await
+            .unwrap();
         assert_eq!(hub_ids.len(), 3);
     }
 
@@ -200,11 +195,17 @@ mod tests {
         let evolution = HypergraphEvolution::run(&initial, &rules, 1);
 
         let chain = evolution.to_cospan_chain();
-        let hub_ids = persist.persist_cospan_chain(&evolution, "roundtrip").await.unwrap();
+        let hub_ids = persist
+            .persist_cospan_chain(&evolution, "roundtrip")
+            .await
+            .unwrap();
 
         let loaded = persist.load_cospan(&hub_ids[0]).await.unwrap();
         assert_eq!(loaded.middle().len(), chain[0].middle().len());
-        assert_eq!(loaded.left_to_middle().len(), chain[0].left_to_middle().len());
+        assert_eq!(
+            loaded.left_to_middle().len(),
+            chain[0].left_to_middle().len()
+        );
     }
 
     #[tokio::test]
@@ -231,7 +232,10 @@ mod tests {
         let evolution = HypergraphEvolution::run_multiway(&initial, &rules, 2, 20);
 
         let graph = evolution.to_multiway_cospan_graph();
-        let hub_ids = persist.persist_multiway_graph(&evolution, "multiway_test").await.unwrap();
+        let hub_ids = persist
+            .persist_multiway_graph(&evolution, "multiway_test")
+            .await
+            .unwrap();
         assert_eq!(hub_ids.len(), graph.edges.len());
     }
 
@@ -248,7 +252,10 @@ mod tests {
         // Compare structural properties (Span may not implement PartialEq)
         assert_eq!(loaded.left().len(), original_span.left().len());
         assert_eq!(loaded.right().len(), original_span.right().len());
-        assert_eq!(loaded.middle_pairs().len(), original_span.middle_pairs().len());
+        assert_eq!(
+            loaded.middle_pairs().len(),
+            original_span.middle_pairs().len()
+        );
     }
 
     #[tokio::test]

@@ -308,8 +308,8 @@ fn causal_effect_json_roundtrip() {
 
 #[test]
 fn tm_try_build_missing_blank_returns_error() {
-    use irreducible::machines::{Direction, TuringMachineBuilder};
     use irreducible::BuilderError;
+    use irreducible::machines::{Direction, TuringMachineBuilder};
 
     let result = TuringMachineBuilder::new()
         .states(vec![0, 1])
@@ -324,8 +324,8 @@ fn tm_try_build_missing_blank_returns_error() {
 
 #[test]
 fn tm_try_build_missing_initial_state_returns_error() {
-    use irreducible::machines::TuringMachineBuilder;
     use irreducible::BuilderError;
+    use irreducible::machines::TuringMachineBuilder;
 
     let result = TuringMachineBuilder::new()
         .states(vec![0, 1])

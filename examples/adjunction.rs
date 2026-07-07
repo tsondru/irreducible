@@ -3,9 +3,7 @@
 //! Defines a concrete SimpleAdjunction implementing the Z' ⊣ Z adjunction,
 //! then verifies triangle identities and computes irreducibility indicators.
 
-use irreducible::adjunction::{
-    AdjunctionIrreducibility, AdjunctionVerification, ZPrimeOps,
-};
+use irreducible::adjunction::{AdjunctionIrreducibility, AdjunctionVerification, ZPrimeOps};
 use irreducible::computation_state::ComputationState;
 use irreducible::interval::DiscreteInterval;
 
@@ -72,7 +70,10 @@ fn functor_demo() {
     println!("Z'(step=2, complexity=5) = {interval}");
 
     let roundtrip = SimpleAdjunction::z(&interval);
-    println!("Z({interval}) = step={}, complexity={}", roundtrip.step, roundtrip.complexity);
+    println!(
+        "Z({interval}) = step={}, complexity={}",
+        roundtrip.step, roundtrip.complexity
+    );
     println!("Roundtrip Z(Z'(c)) == c? {}", roundtrip == state);
 
     // Zero complexity state
@@ -80,7 +81,10 @@ fn functor_demo() {
     let zero_interval = SimpleAdjunction::zprime(&zero_state);
     println!("\nZ'(step=3, complexity=0) = {zero_interval}  (min 1-step)");
     let back = SimpleAdjunction::z(&zero_interval);
-    println!("Z({zero_interval}) = step={}, complexity={}", back.step, back.complexity);
+    println!(
+        "Z({zero_interval}) = step={}, complexity={}",
+        back.step, back.complexity
+    );
     println!();
 }
 
@@ -93,7 +97,10 @@ fn unit_counit() {
 
     let state = ComputationState::new(1, 4);
     let eta = SimpleAdjunction::unit_at(&state);
-    println!("eta at (1,4): step={}, complexity={}", eta.step, eta.complexity);
+    println!(
+        "eta at (1,4): step={}, complexity={}",
+        eta.step, eta.complexity
+    );
 
     let interval = DiscreteInterval::new(2, 7);
     let epsilon = SimpleAdjunction::counit_at(&interval);

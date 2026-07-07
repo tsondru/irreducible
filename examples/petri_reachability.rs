@@ -7,7 +7,7 @@
 //! - the cospan representation of transition 0.
 
 use irreducible::machines::petri::{
-    run_multiway_reachability, Marking, PetriBuilder, PetriNetMachine,
+    Marking, PetriBuilder, PetriNetMachine, run_multiway_reachability,
 };
 use irreducible::trace::analyze_trace;
 use rust_decimal::Decimal;

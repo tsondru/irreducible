@@ -15,13 +15,22 @@ fn constructors() {
     println!("=== Constructors ===\n");
 
     let s = ComputationState::new(3, 7);
-    println!("new(3, 7)              step={}, complexity={}, fingerprint={:?}", s.step, s.complexity, s.fingerprint);
+    println!(
+        "new(3, 7)              step={}, complexity={}, fingerprint={:?}",
+        s.step, s.complexity, s.fingerprint
+    );
 
     let fp = ComputationState::with_fingerprint(1, 2, 0xCAFE);
-    println!("with_fingerprint(1,2,0xCAFE) step={}, complexity={}, fingerprint={:?}", fp.step, fp.complexity, fp.fingerprint);
+    println!(
+        "with_fingerprint(1,2,0xCAFE) step={}, complexity={}, fingerprint={:?}",
+        fp.step, fp.complexity, fp.fingerprint
+    );
 
     let init = ComputationState::initial();
-    println!("initial()              step={}, complexity={}", init.step, init.complexity);
+    println!(
+        "initial()              step={}, complexity={}",
+        init.step, init.complexity
+    );
     println!();
 }
 
@@ -38,7 +47,10 @@ fn multi_step_walk() {
     let s3 = s2.next();
 
     for (label, state) in [("s0", &s0), ("s1", &s1), ("s2", &s2), ("s3", &s3)] {
-        println!("{label}: step={}, complexity={}", state.step, state.complexity);
+        println!(
+            "{label}: step={}, complexity={}",
+            state.step, state.complexity
+        );
     }
 
     // next() from a fingerprinted state drops the fingerprint
@@ -61,12 +73,18 @@ fn to_interval_mapping() {
     // Normal case: [step, step + complexity]
     let s = ComputationState::new(2, 5);
     let i = s.to_interval();
-    println!("state(2, 5)  => interval {i}  (cardinality {})", i.cardinality());
+    println!(
+        "state(2, 5)  => interval {i}  (cardinality {})",
+        i.cardinality()
+    );
 
     // Zero complexity: uses min 1 step => [step, step + 1]
     let zero = ComputationState::new(3, 0);
     let iz = zero.to_interval();
-    println!("state(3, 0)  => interval {iz}  (min 1-step, cardinality {})", iz.cardinality());
+    println!(
+        "state(3, 0)  => interval {iz}  (min 1-step, cardinality {})",
+        iz.cardinality()
+    );
 
     // Walk and map each state
     println!("\nWalk trajectory as intervals:");
@@ -74,7 +92,10 @@ fn to_interval_mapping() {
     for _ in 0..5 {
         state = state.next();
         let interval = state.to_interval();
-        println!("  step={}, complexity={} => {interval}", state.step, state.complexity);
+        println!(
+            "  step={}, complexity={} => {interval}",
+            state.step, state.complexity
+        );
     }
     println!();
 }

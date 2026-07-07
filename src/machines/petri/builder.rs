@@ -52,11 +52,7 @@ where
 
     /// Append a transition. `pre` / `post` are `(place_index, weight)` pairs.
     #[must_use]
-    pub fn transition(
-        mut self,
-        pre: Vec<(usize, Decimal)>,
-        post: Vec<(usize, Decimal)>,
-    ) -> Self {
+    pub fn transition(mut self, pre: Vec<(usize, Decimal)>, post: Vec<(usize, Decimal)>) -> Self {
         self.transitions.push(Transition::new(pre, post));
         self
     }
@@ -87,7 +83,10 @@ where
                 }
             }
         }
-        Ok(PetriNetMachine::new(PetriNet::new(self.places, self.transitions)))
+        Ok(PetriNetMachine::new(PetriNet::new(
+            self.places,
+            self.transitions,
+        )))
     }
 
     /// Build the machine, panicking on error.
@@ -142,7 +141,10 @@ mod tests {
             .try_build();
         assert!(matches!(
             result,
-            Err(BuilderError::PetriArcOutOfBounds { place: 3, place_count: 1 })
+            Err(BuilderError::PetriArcOutOfBounds {
+                place: 3,
+                place_count: 1
+            })
         ));
     }
 }

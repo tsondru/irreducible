@@ -70,11 +70,9 @@ impl AdjunctionVerification {
     pub fn verify_sequence<T: ZPrimeOps>(states: &[ComputationState]) -> Self {
         let intervals: Vec<DiscreteInterval> = states.iter().map(T::zprime).collect();
 
-        let triangle_1_results: Vec<bool> =
-            states.iter().map(T::verify_triangle_1).collect();
+        let triangle_1_results: Vec<bool> = states.iter().map(T::verify_triangle_1).collect();
 
-        let triangle_2_results: Vec<bool> =
-            intervals.iter().map(T::verify_triangle_2).collect();
+        let triangle_2_results: Vec<bool> = intervals.iter().map(T::verify_triangle_2).collect();
 
         let all_triangle_1 = triangle_1_results.iter().all(|&b| b);
         let all_triangle_2 = triangle_2_results.iter().all(|&b| b);

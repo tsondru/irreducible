@@ -5,8 +5,8 @@
 //!
 //! Run: `cargo run --example builders`
 
-use irreducible::machines::{Direction, TuringMachine};
 use irreducible::NTMBuilder;
+use irreducible::machines::{Direction, TuringMachine};
 
 fn main() {
     println!("=== Turing Machine Builder ===\n");
@@ -53,10 +53,11 @@ fn nondeterministic_builder() {
         .accept_states(vec![2])
         .blank('_')
         // State 0 reading 'a': non-deterministic -- branch left or right
-        .transition(0, 'a', vec![
-            (1, 'x', Direction::Right),
-            (1, 'y', Direction::Left),
-        ])
+        .transition(
+            0,
+            'a',
+            vec![(1, 'x', Direction::Right), (1, 'y', Direction::Left)],
+        )
         // State 1: deterministic transitions to accept
         .deterministic_transition(1, '_', 2, '_', Direction::Stay)
         .deterministic_transition(1, 'a', 1, 'a', Direction::Right)

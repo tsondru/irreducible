@@ -48,7 +48,10 @@ fn complexity_trait() {
 
     // Parallel: cost of doing a and b simultaneously (max)
     let par = a.parallel(&b);
-    println!("a.parallel(&b)     = {par}  (max(3,5) = {})", par.as_steps());
+    println!(
+        "a.parallel(&b)     = {par}  (max(3,5) = {})",
+        par.as_steps()
+    );
 
     // Sequential with zero
     let zero = StepCount::zero();
@@ -122,8 +125,8 @@ fn ordering() {
 fn display() {
     println!("=== Display ===\n");
 
-    println!("{}", StepCount::new(0));  // "0 steps"
-    println!("{}", StepCount::new(1));  // "1 step"
+    println!("{}", StepCount::new(0)); // "0 steps"
+    println!("{}", StepCount::new(1)); // "1 step"
     println!("{}", StepCount::new(42)); // "42 steps"
     println!();
 }

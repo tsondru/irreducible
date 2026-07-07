@@ -224,17 +224,15 @@ mod inner {
             // the synthetic diagonal {t, b}. Add each multiway edge as a
             // 1-simplex first so it lives in the skeleton regardless of
             // whether any diamond touches it.
-            let complex = build_dc_complex(
-                vertex_list.len(),
-                &multiway_edges,
-                &diamond_vertices,
-            )
-            .expect(
-                "dc_topology complex construction cannot fail on valid multiway-derived input",
-            );
+            let complex = build_dc_complex(vertex_list.len(), &multiway_edges, &diamond_vertices)
+                .expect(
+                    "dc_topology complex construction cannot fail on valid multiway-derived input",
+                );
 
-            let multiway_edge_to_complex =
-                build_multiway_edge_to_complex_index(complex_edge_skeleton(&complex), &multiway_edges);
+            let multiway_edge_to_complex = build_multiway_edge_to_complex_index(
+                complex_edge_skeleton(&complex),
+                &multiway_edges,
+            );
 
             Self {
                 complex,

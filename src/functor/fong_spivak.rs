@@ -21,7 +21,7 @@ pub use catgraph::hypergraph_functor::{
 
 // Cospan algebras (§2.1, Def 2.2)
 pub use catgraph::cospan_algebra::{
-    cospan_to_frobenius, CospanAlgebra, NameAlgebra, PartitionAlgebra,
+    CospanAlgebra, NameAlgebra, PartitionAlgebra, cospan_to_frobenius,
 };
 
 // Compact closed structure (§3.1)
