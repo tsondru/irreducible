@@ -11,6 +11,22 @@ rebooted catgraph's core + physics layer.
 
 ### Added
 
+- **Corelations for multiway merge events** (`functor::corel` +
+  `MergesCorelExt` on `MultiwayCospanGraph`; F&S 2018 Ex 6.64,
+  issue #14). `step_corels` lifts the step-cospan chain to
+  corelations, **gluing fingerprint-coincident states** (the multiway
+  explorer keeps same-state nodes distinct, so merges exist only at
+  the fingerprint level — the corelation records their
+  identification); `evolution_corel` composes the chain into one
+  whole-evolution partition. On the hypergraph side,
+  `MergesCorelExt::merges_corel[_over]` exposes the merge partition
+  over vertex IDs (merge-point states aligned by sorted vertex-ID
+  order — an approximation where an isomorphism permutes IDs
+  non-monotonically, documented), and restricting two rule-ordering
+  runs to the shared initial vertices makes their partitions
+  comparable via `Corel::coarsest_common_refinement` — a candidate
+  confluence test stronger than the Wilson-loop check. `Corel` and
+  helpers re-exported at the crate root.
 - **Frobenius preservation for Z'**
   (`functor::frobenius_preservation`, issue #12):
   `IrreducibilityFunctor` now implements `HypergraphFunctor` on the

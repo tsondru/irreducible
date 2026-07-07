@@ -394,3 +394,139 @@ fn multiway_evolution_with_gauge_analysis_pipeline() {
     assert!(stats.max_step >= 1);
     assert!(!stats.rule_applications.is_empty());
 }
+
+// ---------------------------------------------------------------------------
+// Merge partition as a corelation (F&S 2018 Ex 6.64) — issue #14
+// ---------------------------------------------------------------------------
+
+#[test]
+fn merges_corel_builds_over_all_vertices() {
+    use irreducible::machines::hypergraph::{MergesCorelExt, MultiwayCospanExt};
+
+    let rule = RewriteRule::wolfram_a_to_bb();
+    let graph = Hypergraph::from_edges(vec![vec![0, 1, 2]]);
+    let evolution = HypergraphEvolution::run_multiway(&graph, &[rule], 3, 50);
+
+    let cospan_graph = evolution.to_multiway_cospan_graph();
+    let corel = cospan_graph.merges_corel().expect("corelation builds");
+    assert!(
+        !corel.equivalence_classes().is_empty(),
+        "evolution has vertices, so the partition has classes"
+    );
+}
+
+#[test]
+fn merge_partition_consistent_with_merge_points() {
+    use irreducible::machines::hypergraph::{MergesCorelExt, MultiwayCospanExt};
+
+    // Two independent match sites: different application orders reach the
+    // same final state — fingerprint merges appear.
+    let rule = RewriteRule::wolfram_a_to_bb();
+    let graph = Hypergraph::from_edges(vec![vec![0, 1, 2], vec![3, 4, 5]]);
+    let evolution = HypergraphEvolution::run_multiway(&graph, &[rule], 3, 100);
+
+    let cospan_graph = evolution.to_multiway_cospan_graph();
+    let corel = cospan_graph.merges_corel().expect("corelation builds");
+    assert!(
+        !cospan_graph.merge_points.is_empty(),
+        "two independent sites must produce fingerprint merges"
+    );
+
+    // Consistency contract: for every merge group, the sorted vertex-ID
+    // alignment of any two member states must land in one equivalence
+    // class of the corelation. (wolfram_a_to_bb creates no fresh vertices,
+    // so aligned IDs may be equal — merges() must hold either way.)
+    let boundary: Vec<u32> = {
+        let mut all: Vec<u32> = cospan_graph
+            .edges
+            .iter()
+            .flat_map(|e| e.cospan.middle().iter().copied())
+            .collect();
+        all.sort_unstable();
+        all.dedup();
+        all
+    };
+    let flat = |v: u32| -> usize {
+        boundary
+            .iter()
+            .position(|&b| b == v)
+            .expect("merged vertex appears in the evolution")
+    };
+
+    let vertices_of = |node: usize| -> Option<Vec<u32>> {
+        cospan_graph.edges.iter().find_map(|e| {
+            if e.child_id == node {
+                Some(
+                    e.cospan
+                        .right_to_middle()
+                        .iter()
+                        .map(|&m| e.cospan.middle()[m])
+                        .collect(),
+                )
+            } else if e.parent_id == node {
+                Some(
+                    e.cospan
+                        .left_to_middle()
+                        .iter()
+                        .map(|&m| e.cospan.middle()[m])
+                        .collect(),
+                )
+            } else {
+                None
+            }
+        })
+    };
+
+    for group in &cospan_graph.merge_points {
+        let (first, rest) = group.split_first().expect("groups are non-empty");
+        let mut base = vertices_of(*first).expect("node has vertices");
+        base.sort_unstable();
+        for other in rest {
+            let mut vs = vertices_of(*other).expect("node has vertices");
+            vs.sort_unstable();
+            assert_eq!(vs.len(), base.len(), "merged states have equal size");
+            for (&a, &b) in base.iter().zip(vs.iter()) {
+                assert!(
+                    corel.merges(flat(a), flat(b)),
+                    "aligned vertices {a} and {b} must share a class"
+                );
+            }
+        }
+    }
+}
+
+#[test]
+fn rule_ordering_confluence_via_coarsest_common_refinement() {
+    use irreducible::machines::hypergraph::{MergesCorelExt, MultiwayCospanExt};
+
+    // Same initial graph, two rule orderings. Restricting both merge
+    // partitions to the initial vertex IDs makes them comparable.
+    let r1 = RewriteRule::wolfram_a_to_bb();
+    let r2 = RewriteRule::edge_split();
+    let graph = Hypergraph::from_edges(vec![vec![0, 1, 2]]);
+    let initial_vertices: Vec<u32> = vec![0, 1, 2];
+
+    let evo_a = HypergraphEvolution::run_multiway(&graph, &[r1.clone(), r2.clone()], 3, 50);
+    let evo_b = HypergraphEvolution::run_multiway(&graph, &[r2, r1], 3, 50);
+
+    let corel_a = evo_a
+        .to_multiway_cospan_graph()
+        .merges_corel_over(&initial_vertices)
+        .expect("corelation A");
+    let corel_b = evo_b
+        .to_multiway_cospan_graph()
+        .merges_corel_over(&initial_vertices)
+        .expect("corelation B");
+
+    // The lattice law: the coarsest common refinement refines both inputs.
+    let ccr = corel_a
+        .coarsest_common_refinement(&corel_b)
+        .expect("shared boundary -> comparable");
+    assert!(ccr.refines(&corel_a).expect("same boundary"));
+    assert!(ccr.refines(&corel_b).expect("same boundary"));
+
+    // Rule order permutes exploration, not identification: the partitions
+    // over the shared initial vertices must agree (the confluence signal).
+    assert!(corel_a.refines(&corel_b).expect("same boundary"));
+    assert!(corel_b.refines(&corel_a).expect("same boundary"));
+}
