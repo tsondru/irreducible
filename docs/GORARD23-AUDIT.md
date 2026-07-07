@@ -1,7 +1,7 @@
 # Gorard 2023 Coverage Audit (irreducible v0.6.3)
 
 > **Paper:** Jonathan Gorard, *A Functorial Perspective on (Multi)computational Irreducibility* ([arXiv:2301.04690v1](https://arxiv.org/abs/2301.04690), 13 Oct 2022, dated Jan 2023; in-tree at `docs/2301.04690v1.pdf`).
-> **Library:** `irreducible` v0.6.5+ (audit doc landed in v0.6.4 at SHA `6b3d656`; tracking maintained as the crate evolves) — workspace umbrella `catgraph` v0.13.0 / SHA `4f8bda8`.
+> **Library:** `irreducible` v0.6.5+ (audit doc landed in v0.6.4 at SHA `6b3d656`; tracking maintained as the crate evolves) — catgraph workspace tag `v0.2.0` ([sustia-llc/catgraph](https://github.com/sustia-llc/catgraph) reboot lineage; the audit's item mapping predates the reboot and is unaffected — the consumer surface carried over intact).
 > **Method:** read all 60 pages of the paper end-to-end (intro + §2 + §3 + §4 + §5 + references); cross-walked every numbered equation, definition, theorem, figure caption, and named concept against the irreducible source tree (`src/**`, `tests/**`, `examples/**`). Coverage attribution honours the v0.6.3 shim: implementations that physically live in `catgraph_physics::{interval,temporal_cospan_chain,trace}` are attributed to the irreducible surface (consumers see them as `irreducible::*`).
 > **Update cadence:** maintained alongside the crate version. Add a row whenever a new paper item is implemented; flip status (e.g. ⏭️ → ✅) when an action item closes.
 >
@@ -12,7 +12,7 @@
 > - ➖ N/A — discussion / motivational / explicitly stated as future work in the paper itself.
 > - 🔗 IN-CATGRAPH — implementation lives in catgraph / catgraph-physics / catgraph-applied; consumed via re-export.
 >
-> **Companion audits (catgraph workspace):** [`FS19-AUDIT.md`](https://github.com/tsondru/catgraph/blob/main/catgraph/docs/FS19-AUDIT.md) (catgraph), [`FS18-AUDIT.md`](https://github.com/tsondru/catgraph/blob/main/catgraph-applied/docs/FS18-AUDIT.md) (catgraph-applied), [`BV25-AUDIT.md`](https://github.com/tsondru/catgraph/blob/main/catgraph-magnitude/docs/BV25-AUDIT.md) (catgraph-magnitude).
+> **Companion audits (catgraph workspace):** [`FS19-AUDIT.md`](https://github.com/sustia-llc/catgraph/blob/main/catgraph/docs/FS19-AUDIT.md) (catgraph), [`FS18-AUDIT.md`](https://github.com/sustia-llc/catgraph/blob/main/catgraph-applied/docs/FS18-AUDIT.md) (catgraph-applied), [`BV25-AUDIT.md`](https://github.com/sustia-llc/catgraph/blob/main/catgraph-magnitude/docs/BV25-AUDIT.md) (catgraph-magnitude).
 
 ---
 
