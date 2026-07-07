@@ -11,14 +11,26 @@
 //! Coherence verification uses [`multiway_coherence`](crate::multiway_coherence)
 //! on the actual multiway graph -- a real non-strict SMC where confluence is
 //! a falsifiable property.
+//!
+//! The per-step bundle assembly delegates to the cospan-algebra structure of
+//! Z' ([`IntervalCospanAlgebra`], F&S Def 2.2): `lax_monoidal` is the tensor
+//! `Z'(f) ⊕ Z'(g)` and `unit` the empty bundle. The per-step comparison
+//! itself is a branch *survival* (totality) check — deliberately NOT the
+//! lax-monoidal coherence square, which holds by construction for the
+//! componentwise `map_cospan` transport; see the
+//! [`interval_algebra`](super::interval_algebra) module docs for the
+//! issue #11 evaluation.
 
 use std::hash::Hash;
+
+use catgraph::cospan_algebra::CospanAlgebra;
 
 use crate::interval::{DiscreteInterval, ParallelIntervals};
 use catgraph_physics::multiway::{
     BranchialGraph, MultiwayEvolutionGraph, extract_branchial_foliation,
 };
 
+use super::interval_algebra::IntervalCospanAlgebra;
 use super::{BranchResult, IrreducibilityFunctor};
 
 /// Result of symmetric monoidal functor verification.
@@ -226,35 +238,41 @@ impl IrreducibilityFunctor {
         checks
     }
 
-    /// Compute expected parallel intervals from branchial structure.
+    /// Compute expected parallel intervals from branchial structure:
+    /// the lax-monoidal fold `⊕_j Z'(f_j)` over every branch in the slice.
     fn compute_expected_parallel(branchial: &BranchialGraph, step: usize) -> ParallelIntervals {
-        let mut result = ParallelIntervals::new();
-
-        for _ in &branchial.nodes {
-            result.add_branch(DiscreteInterval::new(step, step + 1));
-        }
-
-        result
+        let algebra = IntervalCospanAlgebra;
+        branchial.nodes.iter().fold(algebra.unit(), |acc, _| {
+            algebra.lax_monoidal(
+                &acc,
+                &ParallelIntervals::from_branch(DiscreteInterval::new(step, step + 1)),
+            )
+        })
     }
 
-    /// Compute actual parallel intervals from the graph.
+    /// Compute actual parallel intervals from the graph: the same
+    /// lax-monoidal fold restricted to branches with a continuation
+    /// (the survival/totality check).
     fn compute_actual_parallel<S: Clone + Hash, T: Clone>(
         graph: &MultiwayEvolutionGraph<S, T>,
         branchial: &BranchialGraph,
         step: usize,
     ) -> ParallelIntervals {
-        let mut result = ParallelIntervals::new();
-
-        for &node_id in &branchial.nodes {
-            if graph
-                .get_forward_edges(&node_id)
-                .is_some_and(|e| !e.is_empty())
-            {
-                result.add_branch(DiscreteInterval::new(step, step + 1));
-            }
-        }
-
-        result
+        let algebra = IntervalCospanAlgebra;
+        branchial
+            .nodes
+            .iter()
+            .filter(|node_id| {
+                graph
+                    .get_forward_edges(node_id)
+                    .is_some_and(|e| !e.is_empty())
+            })
+            .fold(algebra.unit(), |acc, _| {
+                algebra.lax_monoidal(
+                    &acc,
+                    &ParallelIntervals::from_branch(DiscreteInterval::new(step, step + 1)),
+                )
+            })
     }
 }
 

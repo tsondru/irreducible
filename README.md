@@ -24,6 +24,7 @@ irreducible is the **example consumer of the [catgraph](https://github.com/susti
 | `functor/mod.rs` | `IrreducibilityFunctor`, `MultiwayIrreducibilityResult` | Functor Z': T -> B, multiway branch analysis |
 | `functor/adjunction.rs` | `ZPrimeAdjunction`, `AdjunctionVerification`, `CompactClosedWitness` | Concrete Z' ⊣ Z adjunction + compact-closed (cup/cap zigzag, Prop 3.2) witnesses |
 | `functor/monoidal.rs` | `MonoidalFunctorResult`, `TensorCheck` | Symmetric monoidal functor verification |
+| `functor/interval_algebra.rs` | `IntervalCospanAlgebra`, `multiway_step_cospans` | Z' as a cospan-algebra (F&S Def 2.2): interval-bundle transport over multiway step cospans |
 | `functor/bifunctor.rs` | `TensorProduct`, `IntervalTransform` | Re-exports local bifunctor laws |
 | `functor/fong_spivak.rs` | `FrobeniusVerificationResult`, `verify_cospan_chain_frobenius` | Fong-Spivak Frobenius decomposition verification |
 | `functor/stokes_integration.rs` | `StokesIrreducibility` | Stokes conservation analysis wrapper |
