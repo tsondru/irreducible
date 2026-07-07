@@ -17,11 +17,15 @@
 pub mod adjunction;
 pub mod bifunctor;
 pub mod fong_spivak;
+pub mod interval_algebra;
 pub mod monoidal;
 pub mod stokes_integration;
 
 // Re-export monoidal functor types (deprecated coherence types removed in v0.4.3).
 pub use monoidal::{MonoidalFunctorResult, TensorCheck};
+
+// Re-export the Z' cospan-algebra surface (F&S Def 2.2).
+pub use interval_algebra::{IntervalCospanAlgebra, multiway_step_cospans};
 
 // Re-export adjunction types
 pub use adjunction::{

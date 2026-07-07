@@ -11,6 +11,23 @@ rebooted catgraph's core + physics layer.
 
 ### Added
 
+- **`IntervalCospanAlgebra` + `multiway_step_cospans`**
+  (`functor::interval_algebra`, re-exported from `functor`): Z' as a
+  cospan-algebra (F&S §2.1 Def 2.2, issue #11). The carrier is
+  `ParallelIntervals` per branchial boundary; `map_cospan` transports
+  interval bundles across multiway step cospans (apex = connected
+  components of the parent/child bipartite step graph) with
+  functoriality `a(c₁;c₂) = a(c₂)∘a(c₁)` tested against pushout
+  composition; `lax_monoidal` is `direct_sum`, `unit` the empty
+  bundle. `verify_symmetric_monoidal_functor` now assembles its
+  per-step bundles through the algebra (`lax_monoidal`/`unit` folds) —
+  behaviorally identical on every existing fixture (agreement tests in
+  `tests/interval_algebra.rs` compare against the verbatim
+  pre-refactor logic). Evaluation outcome recorded on the issue: the
+  per-step tensor check is a branch-survival (totality) check, not the
+  lax-monoidal coherence square — the square holds by construction
+  for componentwise transport, so the algebra delegation covers
+  bookkeeping while the survival semantics stays.
 - **`CompactClosedWitness`** (`functor::adjunction`, re-exported at the
   crate root): compact-closed witnesses for the Z' ⊣ Z adjunction
   (F&S §3.1 + Prop 3.2, issue #13). The zigzag (snake) identities are
