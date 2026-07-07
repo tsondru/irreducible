@@ -326,3 +326,91 @@ fn srs_empty_rules_no_evolution() {
     assert!(evolution.find_fork_points().is_empty());
     assert!(evolution.find_merge_points().is_empty());
 }
+
+// ---------------------------------------------------------------------------
+// Corelation merge partitions (F&S 2018 Ex 6.64) — issue #14
+// ---------------------------------------------------------------------------
+
+#[test]
+fn confluent_srs_diamond_merges_in_step_corel() {
+    use irreducible::step_corels;
+
+    // Diamond: S forks to AB | BA, both rewrite to Z — a genuine merge.
+    let srs = StringRewriteSystem::new(vec![("S", "AB"), ("S", "BA"), ("AB", "Z"), ("BA", "Z")]);
+    let evolution = srs.run_multiway("S", 2, 16);
+
+    // Fixture sanity: both step-2 nodes carry the same fingerprint ("Z"
+    // along both paths). The multiway explorer keeps them as distinct
+    // nodes, so the merge exists only at the fingerprint level — which is
+    // exactly what the corelation records.
+    let final_slice = &extract_branchial_foliation(&evolution)[2];
+    let fingerprints: Vec<u64> = final_slice
+        .nodes
+        .iter()
+        .filter_map(|id| evolution.get_node(id).map(|n| n.fingerprint))
+        .collect();
+    assert_eq!(fingerprints.len(), 2, "diamond reaches two step-2 nodes");
+    assert_eq!(
+        fingerprints[0], fingerprints[1],
+        "diamond fixture must reconverge"
+    );
+
+    let corels = step_corels(&evolution).expect("step corels");
+    // Step 1: two parent branches (AB, BA) converge on Z — one class.
+    let merge_step = &corels[1];
+    assert_eq!(merge_step.as_cospan().left_to_middle().len(), 2);
+    assert!(
+        merge_step.merges(0, 1),
+        "merging parents must share an equivalence class"
+    );
+}
+
+#[test]
+fn non_confluent_srs_fragment_keeps_branches_separate() {
+    use irreducible::step_corels;
+
+    // Fork with distinct continuations, no reconvergence.
+    let srs = StringRewriteSystem::new(vec![("S", "AB"), ("S", "BA"), ("AB", "AC"), ("BA", "BC")]);
+    let evolution = srs.run_multiway("S", 2, 16);
+
+    // Fixture sanity: the two step-2 states are distinct — no merge.
+    let final_slice = &extract_branchial_foliation(&evolution)[2];
+    let fingerprints: Vec<u64> = final_slice
+        .nodes
+        .iter()
+        .filter_map(|id| evolution.get_node(id).map(|n| n.fingerprint))
+        .collect();
+    assert_eq!(fingerprints.len(), 2);
+    assert_ne!(fingerprints[0], fingerprints[1], "fixture must not merge");
+
+    let corels = step_corels(&evolution).expect("step corels");
+    // Step 1: two parent branches evolve independently — separate classes.
+    let step = &corels[1];
+    assert_eq!(step.as_cospan().left_to_middle().len(), 2);
+    assert!(
+        !step.merges(0, 1),
+        "independent branches must stay in distinct classes"
+    );
+}
+
+#[test]
+fn evolution_corel_composes_across_diamond() {
+    use irreducible::evolution_corel;
+
+    let srs = StringRewriteSystem::new(vec![("S", "AB"), ("S", "BA"), ("AB", "Z"), ("BA", "Z")]);
+    let evolution = srs.run_multiway("S", 2, 16);
+    let corel = evolution_corel(&evolution)
+        .expect("composition succeeds")
+        .expect("evolution has steps");
+
+    // One root in; two final positions (the distinct Z nodes) glued into
+    // one class, causally connected to the root.
+    assert_eq!(corel.as_cospan().left_to_middle().len(), 1);
+    assert_eq!(corel.as_cospan().right_to_middle().len(), 2);
+    let dom_mid = 1 + corel.as_cospan().middle().len();
+    assert!(
+        corel.merges(dom_mid, dom_mid + 1),
+        "the two final positions are one merged state"
+    );
+    assert!(corel.merges(0, dom_mid), "root connects to the final state");
+}

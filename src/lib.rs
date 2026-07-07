@@ -95,6 +95,10 @@ pub use functor::{
     verify_frobenius_preservation,
 };
 
+// Corelation exports (F&S 2018 Ex 6.64)
+pub use functor::{Corel, evolution_corel, step_corels};
+pub use machines::hypergraph::MergesCorelExt;
+
 // Bifunctor / tensor product exports
 pub use functor::{
     IntervalTransform, TensorProduct, tensor_bimap, tensor_first, tensor_second,

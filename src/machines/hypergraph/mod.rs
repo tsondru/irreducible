@@ -33,8 +33,8 @@ pub use catgraph_physics::hypergraph::{
     RewriteRule, RewriteSpan, WilsonLoop, plaquette_action, total_action,
 };
 
-// Local types (multiway cospan wrappers) and extension trait
+// Local types (multiway cospan wrappers) and extension traits
 pub use catgraph_bridge::{
-    CospanInvarianceResult, CospanMergeDetail, MultiwayCospan, MultiwayCospanExt,
+    CospanInvarianceResult, CospanMergeDetail, MergesCorelExt, MultiwayCospan, MultiwayCospanExt,
     MultiwayCospanGraph,
 };

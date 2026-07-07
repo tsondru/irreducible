@@ -26,6 +26,7 @@ irreducible is the **example consumer of the [catgraph](https://github.com/susti
 | `functor/monoidal.rs` | `MonoidalFunctorResult`, `TensorCheck` | Symmetric monoidal functor verification |
 | `functor/interval_algebra.rs` | `IntervalCospanAlgebra`, `multiway_step_cospans` | Z' as a cospan-algebra (F&S Def 2.2): interval-bundle transport over multiway step cospans |
 | `functor/frobenius_preservation.rs` | `FrobeniusPreservationResult`, `verify_frobenius_preservation` | Z' as a hypergraph functor: Eq. 12 generator preservation + per-event spider factorization (μ = merge, δ = fork, ε = death) |
+| `functor/corel.rs` | `Corel`, `step_corels`, `evolution_corel` | Merge partitions as corelations (F&S 2018 Ex 6.64) with fingerprint gluing; hypergraph-side `MergesCorelExt` adds `coarsest_common_refinement` confluence comparison |
 | `functor/bifunctor.rs` | `TensorProduct`, `IntervalTransform` | Re-exports local bifunctor laws |
 | `functor/fong_spivak.rs` | `FrobeniusVerificationResult`, `verify_cospan_chain_frobenius` | Fong-Spivak Frobenius decomposition verification |
 | `functor/stokes_integration.rs` | `StokesIrreducibility` | Stokes conservation analysis wrapper |

@@ -16,6 +16,7 @@
 
 pub mod adjunction;
 pub mod bifunctor;
+pub mod corel;
 pub mod fong_spivak;
 pub mod frobenius_preservation;
 pub mod interval_algebra;
@@ -32,6 +33,9 @@ pub use interval_algebra::{IntervalCospanAlgebra, multiway_step_cospans};
 pub use frobenius_preservation::{
     FrobeniusPreservationResult, StepFrobeniusCheck, verify_frobenius_preservation,
 };
+
+// Re-export the corelation surface (F&S 2018 Ex 6.64).
+pub use corel::{Corel, evolution_corel, step_corels};
 
 // Re-export adjunction types
 pub use adjunction::{
