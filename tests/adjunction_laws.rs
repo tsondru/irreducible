@@ -154,3 +154,67 @@ fn irreducibility_indicator_averages() {
     let empty = SimpleAdjunction::adjunction_irreducibility_indicator(&[]);
     assert!((empty - 0.0).abs() < 1e-10);
 }
+
+// ---------------------------------------------------------------------------
+// Compact closed witness (F&S §3.1 + Prop 3.2) — issue #13
+// ---------------------------------------------------------------------------
+
+#[test]
+fn compact_closed_witness_holds_along_walk() {
+    use irreducible::{CompactClosedWitness, ZPrimeAdjunction};
+
+    let states = make_walk(6);
+    for s in &states {
+        let witness: CompactClosedWitness = ZPrimeAdjunction::verify_compact_closed_witness(s)
+            .expect("witness computation along walk");
+        assert!(
+            witness.all_hold(),
+            "compact closed witness failed at step {}: {witness:?}",
+            s.step
+        );
+    }
+}
+
+#[test]
+fn compact_closed_witness_agrees_with_triangle_identities() {
+    use irreducible::{ZPrimeAdjunction, ZPrimeOps};
+
+    // The zigzag identities are the categorical form of the triangle
+    // identities; on well-formed states both verifications must agree.
+    let states = make_walk(4);
+    for s in &states {
+        let triangles = ZPrimeAdjunction::verify_triangle_1(s) && {
+            let i = ZPrimeAdjunction::zprime(s);
+            ZPrimeAdjunction::verify_triangle_2(&i)
+        };
+        let witness =
+            ZPrimeAdjunction::verify_compact_closed_witness(s).expect("witness computation");
+        assert_eq!(
+            triangles,
+            witness.all_hold(),
+            "triangle identities and compact closed witness disagree at step {}",
+            s.step
+        );
+    }
+}
+
+#[test]
+fn zprime_cospan_composes_along_contiguous_walk() {
+    use catgraph::category::Composable;
+    use irreducible::ZPrimeAdjunction;
+
+    // Adjacent Z'-cospans of a contiguous walk share boundary labels and
+    // must compose (the categorical form of interval contiguity). Each
+    // state starts where the previous interval ended.
+    let states = [
+        ComputationState::new(0, 2), // [0, 2]
+        ComputationState::new(2, 3), // [2, 5]
+        ComputationState::new(5, 1), // [5, 6]
+    ];
+    let cospans: Vec<_> = states.iter().map(ZPrimeAdjunction::zprime_cospan).collect();
+    for pair in cospans.windows(2) {
+        pair[0]
+            .compose(&pair[1])
+            .expect("contiguous Z'-cospans must compose");
+    }
+}

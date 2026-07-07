@@ -81,7 +81,10 @@ pub use interval::{DiscreteInterval, ParallelIntervals};
 pub use functor::IrreducibilityFunctor;
 
 // Adjunction exports
-pub use functor::{AdjunctionIrreducibility, AdjunctionVerification, ZPrimeAdjunction, ZPrimeOps};
+pub use functor::{
+    AdjunctionIrreducibility, AdjunctionVerification, CompactClosedWitness, ZPrimeAdjunction,
+    ZPrimeOps,
+};
 
 // Monoidal functor exports
 pub use functor::{MonoidalFunctorResult, TensorCheck};

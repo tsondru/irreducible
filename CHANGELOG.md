@@ -11,6 +11,20 @@ rebooted catgraph's core + physics layer.
 
 ### Added
 
+- **`CompactClosedWitness`** (`functor::adjunction`, re-exported at the
+  crate root): compact-closed witnesses for the Z' ⊣ Z adjunction
+  (F&S §3.1 + Prop 3.2, issue #13). The zigzag (snake) identities are
+  verified semantically in `Cospan<u32>` (pushout composition +
+  structural equality) at every boundary label of Z'(c)'s cospan, and
+  the Prop 3.2 name/unname round-trip is verified on the Frobenius
+  decomposition (`CospanToFrobeniusFunctor`) at the boundary level.
+  Evaluation outcome recorded on the issue: name/unname cannot
+  *replace* the semantic triangle checks — the free hypergraph
+  category carries no diagram normal form upstream, so full
+  string-diagram equality is undecidable there; the witnesses
+  strengthen rather than substitute. Also adds
+  `ZPrimeAdjunction::zprime_cospan` (the `to_cospan_chain`-compatible
+  single-interval encoding).
 - **CI** (`.github/workflows/ci.yml`): fmt, clippy `-D warnings`,
   tests on default features plus a `manifold-curvature,dec` feature
   leg; private git-dep auth via a read-only deploy key +

@@ -22,7 +22,7 @@ irreducible is the **example consumer of the [catgraph](https://github.com/susti
 | `temporal_cospan_chain.rs` | `TemporalComplex`, `ConservationResult`, `TemporalComplexError` (`StokesError` deprecated alias) | Cospan chain bridge for interval sequences (re-export shim into `catgraph_physics::temporal_cospan_chain` as of v0.6.3) |
 | `trace.rs` | `StepTrace`, `analyze_trace`, `RepeatDetection`, `is_irreducible` (`IrreducibilityTrace` deprecated alias) | Generic trace analysis, repeat detection (re-export shim into `catgraph_physics::trace` as of v0.6.3) |
 | `functor/mod.rs` | `IrreducibilityFunctor`, `MultiwayIrreducibilityResult` | Functor Z': T -> B, multiway branch analysis |
-| `functor/adjunction.rs` | `ZPrimeAdjunction`, `AdjunctionVerification` | Concrete Z' ⊣ Z adjunction for computation states |
+| `functor/adjunction.rs` | `ZPrimeAdjunction`, `AdjunctionVerification`, `CompactClosedWitness` | Concrete Z' ⊣ Z adjunction + compact-closed (cup/cap zigzag, Prop 3.2) witnesses |
 | `functor/monoidal.rs` | `MonoidalFunctorResult`, `TensorCheck` | Symmetric monoidal functor verification |
 | `functor/bifunctor.rs` | `TensorProduct`, `IntervalTransform` | Re-exports local bifunctor laws |
 | `functor/fong_spivak.rs` | `FrobeniusVerificationResult`, `verify_cospan_chain_frobenius` | Fong-Spivak Frobenius decomposition verification |
