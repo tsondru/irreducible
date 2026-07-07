@@ -11,6 +11,13 @@ rebooted catgraph's core + physics layer.
 
 ### Changed
 
+- **Docs reboot-aligned**: root `CLAUDE.md` is now a real public file
+  (purpose, build/test, feature matrix, durable rules) instead of a
+  private include; `README.md` reflects the sustia-llc/catgraph v0.2.0
+  dep, the example-consumer role, current test counts, and the persist
+  removal. Work tracking moved to GitHub issues (`TODO.md` retired
+  with pointers).
+
 - **catgraph dependencies repointed** from the retired
   `tsondru/catgraph` lineage (`v0.13.0`) to the rebooted
   `sustia-llc/catgraph` (`v0.2.0`, SSH; single tag string shared by
