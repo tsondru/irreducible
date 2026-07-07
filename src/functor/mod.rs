@@ -25,7 +25,8 @@ pub use monoidal::{MonoidalFunctorResult, TensorCheck};
 
 // Re-export adjunction types
 pub use adjunction::{
-    AdjunctionIrreducibility, AdjunctionVerification, ZPrimeAdjunction, ZPrimeOps,
+    AdjunctionIrreducibility, AdjunctionVerification, CompactClosedWitness, ZPrimeAdjunction,
+    ZPrimeOps,
 };
 
 // Re-export bifunctor types
