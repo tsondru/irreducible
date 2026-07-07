@@ -69,16 +69,16 @@ macro_rules! assert_debug_contains {
 macro_rules! intervals {
     // Single interval
     [($start:expr, $end:expr)] => {{
-        crate::interval::ParallelIntervals::from_branch(
-            crate::interval::DiscreteInterval::new($start, $end)
+        $crate::interval::ParallelIntervals::from_branch(
+            $crate::interval::DiscreteInterval::new($start, $end)
         )
     }};
     // Multiple intervals (tensor product)
     [$(($start:expr, $end:expr)),+ $(,)?] => {{
         #[allow(unused_mut)]
-        let mut result = crate::interval::ParallelIntervals::new();
+        let mut result = $crate::interval::ParallelIntervals::new();
         $(
-            result.add_branch(crate::interval::DiscreteInterval::new($start, $end));
+            result.add_branch($crate::interval::DiscreteInterval::new($start, $end));
         )+
         result
     }};

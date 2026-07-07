@@ -10,13 +10,21 @@ license = "MIT"
 authors = ["tsondru", "Claude <noreply@anthropic.com>"]
 
 [workspace.dependencies]
-catgraph = { git = "https://github.com/tsondru/catgraph", tag = "v0.13.0" }
-catgraph-applied = { git = "https://github.com/tsondru/catgraph", tag = "v0.13.0" }
-catgraph-physics = { git = "https://github.com/tsondru/catgraph", tag = "v0.13.0" }
-catgraph-surreal = { git = "https://github.com/tsondru/catgraph-surreal", tag = "v0.11.1" }
-deep_causality_topology = "0.5.1"
-deep_causality_tensor = "0.4.2"
-deep_causality_sparse = "0.1.7"
+# Reboot lineage (sustia-llc, private, SSH). ONE tag string shared by all three
+# — see the dual-SHA note on the [patch] block below.
+catgraph = { git = "ssh://git@github.com/sustia-llc/catgraph", tag = "v0.2.0" }
+catgraph-applied = { git = "ssh://git@github.com/sustia-llc/catgraph", tag = "v0.2.0" }
+catgraph-physics = { git = "ssh://git@github.com/sustia-llc/catgraph", tag = "v0.2.0" }
+# QUARANTINED: pre-reboot lineage. catgraph-surreal still depends on the old
+# tsondru/catgraph — mixing it with reboot catgraph is a type-identity
+# mismatch. Do not enable `persist` until catgraph-surreal is realigned.
+catgraph-surreal = { git = "ssh://git@github.com/tsondru/catgraph-surreal", tag = "v0.11.1" }
+# Pre-release deep_causality (topology 0.6.1 / tensor 0.4.4 / sparse 0.2.0 are
+# not on crates.io yet). ONE rev string shared by all three (same dual-SHA
+# rationale as catgraph). Swap back to crates.io versions once released.
+deep_causality_topology = { git = "https://github.com/deepcausality-rs/deep_causality", rev = "00ba8c0e766033f8658a2a8701402e04aaae8026" }
+deep_causality_tensor = { git = "https://github.com/deepcausality-rs/deep_causality", rev = "00ba8c0e766033f8658a2a8701402e04aaae8026" }
+deep_causality_sparse = { git = "https://github.com/deepcausality-rs/deep_causality", rev = "00ba8c0e766033f8658a2a8701402e04aaae8026" }
 rust_decimal = "1"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
@@ -66,22 +74,27 @@ proptest = "1"
 # ---------------------------------------------------------------------------
 # Local development override (uncomment in lock-step cross-repo edits)
 # ---------------------------------------------------------------------------
-# Point the catgraph deps at a local checkout so the catgraph workspace + this
-# crate can be edited in lock-step before an upstream umbrella tag is cut.
-# Re-comment + revert to git tags before pushing — released artifacts must
-# reference the workspace umbrella git tag.
+# Point the git deps at local checkouts so upstream + this crate can be edited
+# in lock-step before an upstream tag/release is cut. Re-comment + revert to
+# git tags before pushing — committed state must never carry a path dep.
 #
-# IMPORTANT (H.4 dual-SHA prevention): all THREE catgraph deps must be patched
+# IMPORTANT (dual-SHA prevention): all deps sharing one git URL must be patched
 # together — patching only catgraph + catgraph-physics while leaving
 # catgraph-applied resolving from the git tag would split the source identity
-# of the catgraph URL (path-patched vs git-tagged) and reproduce the H.4
+# of the catgraph URL (path-patched vs git-tagged) and reproduce the
 # boundary-type mismatch on `Cospan<u32>` / `Span<u32>`. Same single-tag-string
-# convention as in the live `[workspace.dependencies]` block above.
+# (single-rev-string for deep_causality) convention as in the live
+# `[workspace.dependencies]` block above.
 #
-# [patch."https://github.com/tsondru/catgraph"]
-# catgraph = { path = "../catgraph/catgraph" }
-# catgraph-applied = { path = "../catgraph/catgraph-applied" }
-# catgraph-physics = { path = "../catgraph/catgraph-physics" }
+# [patch."ssh://git@github.com/sustia-llc/catgraph"]
+# catgraph = { path = "../../sustia-llc/catgraph/catgraph" }
+# catgraph-applied = { path = "../../sustia-llc/catgraph/catgraph-applied" }
+# catgraph-physics = { path = "../../sustia-llc/catgraph/catgraph-physics" }
 #
-# [patch."https://github.com/tsondru/catgraph-surreal"]
+# [patch."https://github.com/deepcausality-rs/deep_causality"]
+# deep_causality_topology = { path = "../../category/deep_causality/deep_causality_topology" }
+# deep_causality_tensor = { path = "../../category/deep_causality/deep_causality_tensor" }
+# deep_causality_sparse = { path = "../../category/deep_causality/deep_causality_sparse" }
+#
+# [patch."ssh://git@github.com/tsondru/catgraph-surreal"]
 # catgraph-surreal = { path = "../catgraph-surreal" }

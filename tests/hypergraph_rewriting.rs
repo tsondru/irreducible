@@ -5,8 +5,8 @@
 //! plaquette/total action, and lattice construction.
 
 use irreducible::machines::hypergraph::{
-    plaquette_action, total_action, Hypergraph, HypergraphEvolution, HypergraphLattice,
-    HypergraphRewriteGroup, RewriteRule,
+    Hypergraph, HypergraphEvolution, HypergraphLattice, HypergraphRewriteGroup, RewriteRule,
+    plaquette_action, total_action,
 };
 
 // ---------------------------------------------------------------------------
@@ -318,7 +318,7 @@ fn rewrite_empty_graph_produces_no_change() {
     assert!(matches.is_empty());
 
     // Deterministic evolution on an empty graph should produce only the root node
-    let evolution = HypergraphEvolution::run(&empty_graph, &[rule.clone()], 5);
+    let evolution = HypergraphEvolution::run(&empty_graph, std::slice::from_ref(&rule), 5);
     assert_eq!(evolution.node_count(), 1); // only the root
     assert_eq!(evolution.max_step(), 0); // no steps taken
 
@@ -373,7 +373,10 @@ fn multiway_evolution_with_gauge_analysis_pipeline() {
     // 5 & 6. Compute plaquette action per holonomy and total action
     for &h in &holonomies {
         let pa = plaquette_action(h);
-        assert!(pa.is_finite() || h == 0.0, "Plaquette action should be finite for h > 0");
+        assert!(
+            pa.is_finite() || h == 0.0,
+            "Plaquette action should be finite for h > 0"
+        );
     }
 
     let action = total_action(&holonomies);

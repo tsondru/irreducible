@@ -175,8 +175,8 @@ fn cospan_middle_represents_vertex_union() {
 
         // Left boundary maps parent vertices into the apex
         // Right boundary maps child vertices into the apex
-        assert!(cospan.left_to_middle().len() > 0);
-        assert!(cospan.right_to_middle().len() > 0);
+        assert!(!cospan.left_to_middle().is_empty());
+        assert!(!cospan.right_to_middle().is_empty());
     }
 }
 

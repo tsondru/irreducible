@@ -1,0 +1,39 @@
+name: ci
+on: [push, pull_request]
+
+# Private git-dep auth (first use of this pattern; copy for other consumers of
+# private catgraph):
+#   1. Generate a dedicated keypair:  ssh-keygen -t ed25519 -N "" -C "<consumer>-ci-readonly"
+#   2. Public key  -> read-only deploy key on the dep repo:
+#        gh repo deploy-key add key.pub -R sustia-llc/catgraph --title "<consumer>-ci-readonly"
+#   3. Private key -> Actions secret on THIS repo:
+#        gh secret set CATGRAPH_DEPLOY_KEY -R <owner>/<consumer> < key
+#   4. webfactory/ssh-agent loads it; CARGO_NET_GIT_FETCH_WITH_CLI makes cargo
+#      shell out to git so the agent key is actually used for ssh:// dep URLs.
+# Cargo.lock is committed and CI builds --locked: lock generation would need the
+# manifests of every git dep (including the optional, quarantined
+# catgraph-surreal on a second private repo); building from the lock does not.
+env:
+  CARGO_NET_GIT_FETCH_WITH_CLI: "true"
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.CATGRAPH_DEPLOY_KEY }}
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo fmt --all --check
+      - run: cargo clippy --workspace --all-targets --locked -- -D warnings
+      - run: cargo test --workspace --locked
+      # Feature-matrix leg. `persist` is deliberately excluded: it pins the
+      # pre-reboot catgraph-surreal lineage and mixing it with reboot catgraph
+      # is a type-identity mismatch (quarantined until catgraph-surreal aligns).
+      # `lapack` is excluded: needs libopenblas-dev and adds no logic coverage.
+      - run: cargo clippy --workspace --all-targets --locked --features manifold-curvature,dec -- -D warnings
+      - run: cargo test --workspace --locked --features manifold-curvature,dec
