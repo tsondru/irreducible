@@ -11,6 +11,22 @@ rebooted catgraph's core + physics layer.
 
 ### Added
 
+- **Frobenius preservation for Z'**
+  (`functor::frobenius_preservation`, issue #12):
+  `IrreducibilityFunctor` now implements `HypergraphFunctor` on the
+  free hypergraph category (identity on labels and cospan shapes —
+  Gorard's Z' forgets computational content, keeps event structure),
+  and `verify_frobenius_preservation` checks the decidable Eq. 12
+  slice: the four generator equations at cospan level AND through
+  `CospanToFrobeniusFunctor` (Prop 3.8), per-event spider
+  factorization ((l−1) μ then ε or (r−1) δ, compared against pushout
+  composition), and boundary preservation of every step-cospan
+  decomposition. Evaluation outcome: T's Frobenius generators are the
+  multiway event types (μ = merge, δ = fork, ε = branch death,
+  η = root creation); both T and B are hypergraph categories by
+  encoding into `Cospan<u32>` (Thm 3.14) rather than via new trait
+  impls on machine types. TM + CA + fork/merge SRS coverage in
+  `tests/frobenius_preservation.rs`.
 - **`IntervalCospanAlgebra` + `multiway_step_cospans`**
   (`functor::interval_algebra`, re-exported from `functor`): Z' as a
   cospan-algebra (F&S §2.1 Def 2.2, issue #11). The carrier is
