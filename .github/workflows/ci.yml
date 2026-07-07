@@ -10,9 +10,9 @@ on: [push, pull_request]
 #        gh secret set CATGRAPH_DEPLOY_KEY -R <owner>/<consumer> < key
 #   4. webfactory/ssh-agent loads it; CARGO_NET_GIT_FETCH_WITH_CLI makes cargo
 #      shell out to git so the agent key is actually used for ssh:// dep URLs.
-# Cargo.lock is committed and CI builds --locked: lock generation would need the
-# manifests of every git dep (including the optional, quarantined
-# catgraph-surreal on a second private repo); building from the lock does not.
+# Cargo.lock is committed and CI builds --locked: cargo fetches every git
+# source in the lock (even disabled optional deps), so the lock must never
+# carry a git source CI cannot authenticate to.
 env:
   CARGO_NET_GIT_FETCH_WITH_CLI: "true"
 
@@ -31,9 +31,9 @@ jobs:
       - run: cargo fmt --all --check
       - run: cargo clippy --workspace --all-targets --locked -- -D warnings
       - run: cargo test --workspace --locked
-      # Feature-matrix leg. `persist` is deliberately excluded: it pins the
-      # pre-reboot catgraph-surreal lineage and mixing it with reboot catgraph
-      # is a type-identity mismatch (quarantined until catgraph-surreal aligns).
+      # Feature-matrix leg. `persist` was removed pending the catgraph-surreal
+      # reboot (pre-reboot catgraph-surreal = type-identity mismatch with
+      # reboot catgraph + two unauthenticatable private git sources in the lock).
       # `lapack` is excluded: needs libopenblas-dev and adds no logic coverage.
       - run: cargo clippy --workspace --all-targets --locked --features manifold-curvature,dec -- -D warnings
       - run: cargo test --workspace --locked --features manifold-curvature,dec

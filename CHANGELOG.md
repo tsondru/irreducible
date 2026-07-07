@@ -27,18 +27,25 @@ rebooted catgraph's core + physics layer.
   Hodge ⋆ from the Regge metric (a metric-less `Manifold` panics).
   Test-only fixes in `tests/dc_topology_smoke.rs` and
   `tests/multiway_stokes.rs`.
-- **`persist` feature quarantined**: `catgraph-surreal` still pins the
-  pre-reboot catgraph lineage; mixing it with reboot catgraph is a
-  type-identity mismatch. The dep stays declared (now SSH) but the
-  feature must not be enabled in CI or tests until catgraph-surreal
-  is realigned.
+### Removed
+
+- **`persist` feature removed pending the catgraph-surreal reboot**
+  (with it: the `catgraph-surreal` / `surrealdb` / `tokio` deps,
+  `EvolutionPersistence` (`src/machines/hypergraph/persistence.rs`),
+  `tests/persistence.rs`, `examples/persist_evolution.rs`; all
+  recoverable from git history). The pre-reboot catgraph-surreal pins
+  the retired catgraph lineage — a type-identity mismatch with reboot
+  catgraph — and its presence in the lock drags two additional private
+  git sources into every CI fetch. The surface returns when
+  catgraph-surreal is realigned.
 - **CI introduced** (`.github/workflows/ci.yml`): fmt, clippy
   `-D warnings`, tests on default features plus a
   `manifold-curvature,dec` feature leg; private git-dep auth via a
   read-only deploy key + `webfactory/ssh-agent`.
 - **`Cargo.lock` is now committed** (removed from `.gitignore`): CI
-  builds `--locked`, which avoids fetching the quarantined private
-  `catgraph-surreal` manifest during lock generation.
+  builds `--locked` for reproducible runs; cargo fetches every git
+  source in the lock, so the lock must never carry a git source CI
+  cannot authenticate to.
 
 ## [0.6.5] - 2026-05-05
 

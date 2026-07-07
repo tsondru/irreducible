@@ -25,8 +25,6 @@
 //! `to_cospan_chain()`) are native methods on catgraph's hypergraph types.
 
 pub mod catgraph_bridge;
-#[cfg(feature = "persist")]
-pub mod persistence;
 
 // Re-export core types from catgraph-physics
 pub use catgraph_physics::hypergraph::{
