@@ -89,6 +89,12 @@ pub use functor::{
 // Monoidal functor exports
 pub use functor::{MonoidalFunctorResult, TensorCheck};
 
+// Z' cospan-algebra + Frobenius-preservation exports
+pub use functor::{
+    FrobeniusPreservationResult, IntervalCospanAlgebra, StepFrobeniusCheck, multiway_step_cospans,
+    verify_frobenius_preservation,
+};
+
 // Bifunctor / tensor product exports
 pub use functor::{
     IntervalTransform, TensorProduct, tensor_bimap, tensor_first, tensor_second,
