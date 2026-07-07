@@ -184,7 +184,9 @@ impl ElementaryCA {
         let mut state = seed;
         let cells: Vec<bool> = (0..self.width)
             .map(|_| {
-                state = state.wrapping_mul(6_364_136_223_846_793_005).wrapping_add(1);
+                state = state
+                    .wrapping_mul(6_364_136_223_846_793_005)
+                    .wrapping_add(1);
                 (state >> 63) != 0
             })
             .collect();
@@ -336,7 +338,10 @@ impl StepTrace for CAExecutionHistory {
     }
 
     fn to_intervals(&self) -> Vec<DiscreteInterval> {
-        self.transitions.iter().map(CATransition::to_interval).collect()
+        self.transitions
+            .iter()
+            .map(CATransition::to_interval)
+            .collect()
     }
 
     fn step_count(&self) -> usize {
@@ -521,8 +526,11 @@ impl fmt::Display for CAIrreducibilityAnalysis {
         for cycle in &self.cycles {
             writeln!(f, "    - {cycle}")?;
         }
-        writeln!(f, "  Population: {} → {} (avg: {:.1})",
-            self.initial_population, self.final_population, self.avg_population)?;
+        writeln!(
+            f,
+            "  Population: {} → {} (avg: {:.1})",
+            self.initial_population, self.final_population, self.avg_population
+        )?;
         Ok(())
     }
 }

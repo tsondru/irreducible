@@ -15,7 +15,10 @@ fn constructors() {
     println!("=== Constructors ===\n");
 
     let interval = DiscreteInterval::new(2, 7);
-    println!("new(2, 7)          = {interval}  (cardinality {})", interval.cardinality());
+    println!(
+        "new(2, 7)          = {interval}  (cardinality {})",
+        interval.cardinality()
+    );
 
     let ok = DiscreteInterval::try_new(3, 5);
     let err = DiscreteInterval::try_new(5, 3);
@@ -23,7 +26,10 @@ fn constructors() {
     println!("try_new(5, 3)      = {:?}", err);
 
     let single = DiscreteInterval::singleton(4);
-    println!("singleton(4)       = {single}  (identity? {})", single.is_identity());
+    println!(
+        "singleton(4)       = {single}  (identity? {})",
+        single.is_identity()
+    );
 
     let id = DiscreteInterval::identity(0);
     println!("identity(0)        = {id}  (steps {})", id.steps());
@@ -77,8 +83,14 @@ fn containment_and_intersection() {
     println!("outer={outer}, inner={inner}");
     println!("outer.contains(5)           = {}", outer.contains(5));
     println!("outer.contains(11)          = {}", outer.contains(11));
-    println!("outer.contains_interval(&inner) = {}", outer.contains_interval(&inner));
-    println!("inner.contains_interval(&outer) = {}", inner.contains_interval(&outer));
+    println!(
+        "outer.contains_interval(&inner) = {}",
+        outer.contains_interval(&inner)
+    );
+    println!(
+        "inner.contains_interval(&outer) = {}",
+        inner.contains_interval(&outer)
+    );
 
     let x = DiscreteInterval::new(1, 6);
     let y = DiscreteInterval::new(4, 9);
@@ -98,10 +110,18 @@ fn parallel_intervals() {
     println!("=== ParallelIntervals ===\n");
 
     let mut pi = ParallelIntervals::new();
-    println!("new()              branches={}, is_singleway={}", pi.branch_count(), pi.is_singleway());
+    println!(
+        "new()              branches={}, is_singleway={}",
+        pi.branch_count(),
+        pi.is_singleway()
+    );
 
     pi.add_branch(DiscreteInterval::new(0, 4));
-    println!("after add_branch   branches={}, is_singleway={}", pi.branch_count(), pi.is_singleway());
+    println!(
+        "after add_branch   branches={}, is_singleway={}",
+        pi.branch_count(),
+        pi.is_singleway()
+    );
 
     let branch_b = ParallelIntervals::from_branch(DiscreteInterval::new(10, 18));
     let combined = pi.tensor(branch_b);
@@ -144,12 +164,18 @@ fn equivalence() {
         p
     };
     println!("a = [0,2]+[5,9],  b = [10,14]+[20,22]");
-    println!("structurally_equivalent = {}", a.structurally_equivalent(&b));
+    println!(
+        "structurally_equivalent = {}",
+        a.structurally_equivalent(&b)
+    );
     println!("exactly_equal           = {}", a.exactly_equal(&b));
 
     let c = a.clone();
     println!("\na == c (clone)");
-    println!("structurally_equivalent = {}", a.structurally_equivalent(&c));
+    println!(
+        "structurally_equivalent = {}",
+        a.structurally_equivalent(&c)
+    );
     println!("exactly_equal           = {}", a.exactly_equal(&c));
     println!();
 }
@@ -170,8 +196,14 @@ fn tensor_product_trait() {
     // Unit laws: unit ⊗ a == a, a ⊗ unit == a
     let left_id = ParallelIntervals::unit().tensor(a.clone());
     let right_id = a.clone().tensor(ParallelIntervals::unit());
-    println!("unit.tensor(a) == a  (left unit)  = {}", left_id.exactly_equal(&a));
-    println!("a.tensor(unit) == a  (right unit) = {}", right_id.exactly_equal(&a));
+    println!(
+        "unit.tensor(a) == a  (left unit)  = {}",
+        left_id.exactly_equal(&a)
+    );
+    println!(
+        "a.tensor(unit) == a  (right unit) = {}",
+        right_id.exactly_equal(&a)
+    );
 
     // Associativity: (a⊗b)⊗c == a⊗(b⊗c)
     let b = ParallelIntervals::from_branch(DiscreteInterval::new(5, 8));

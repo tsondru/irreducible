@@ -119,7 +119,10 @@ where
         }
 
         if n == 1 {
-            return (vec![SVector::<f64, DIM>::zeros()], MetricTensor::euclidean());
+            return (
+                vec![SVector::<f64, DIM>::zeros()],
+                MetricTensor::euclidean(),
+            );
         }
 
         // --- Step 1: All-pairs BFS ---
@@ -143,12 +146,8 @@ where
         let eigen = b.symmetric_eigen();
 
         // Sort eigenvalues descending, keeping track of original indices
-        let mut indexed: Vec<(usize, f64)> = eigen
-            .eigenvalues
-            .iter()
-            .copied()
-            .enumerate()
-            .collect();
+        let mut indexed: Vec<(usize, f64)> =
+            eigen.eigenvalues.iter().copied().enumerate().collect();
         indexed.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
 
         // --- Step 5: Extract top DIM eigenvalues and compute coordinates ---
@@ -446,10 +445,7 @@ impl DiscreteCurvature for ManifoldCurvature {
     }
 
     fn ricci_curvature(&self, vertex: usize) -> f64 {
-        self.vertex_curvatures
-            .get(vertex)
-            .copied()
-            .unwrap_or(0.0)
+        self.vertex_curvatures.get(vertex).copied().unwrap_or(0.0)
     }
 
     fn sectional_curvature(&self, i: usize, j: usize) -> f64 {
@@ -474,11 +470,7 @@ impl DiscreteCurvature for ManifoldCurvature {
 
 impl fmt::Display for ManifoldCurvature {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        writeln!(
-            f,
-            "Manifold Curvature (step {}):",
-            self.time_step
-        )?;
+        writeln!(f, "Manifold Curvature (step {}):", self.time_step)?;
         writeln!(f, "  Embedding dimension: {}", self.embedding_dim)?;
         writeln!(f, "  Graph dimension: {}", self.dim)?;
         writeln!(f, "  Scalar curvature R: {:.6}", self.scalar)?;
@@ -587,10 +579,7 @@ mod tests {
     #[test]
     fn trait_conformance_dimension_step_indicator() {
         let nodes: Vec<MultiwayNodeId> = (0..3).map(|i| make_id(i, 5)).collect();
-        let edges = vec![
-            (nodes[0], nodes[1]),
-            (nodes[1], nodes[2]),
-        ];
+        let edges = vec![(nodes[0], nodes[1]), (nodes[1], nodes[2])];
         let branchial = BranchialGraph {
             step: 5,
             nodes,
@@ -712,13 +701,7 @@ mod tests {
 
         // Pentagonal fan: 5 triangles meeting at vertex 0, closing into
         // a disk with boundary cycle 1→2→3→4→5→1.
-        let triangles = [
-            [0usize, 1, 2],
-            [0, 2, 3],
-            [0, 3, 4],
-            [0, 4, 5],
-            [0, 5, 1],
-        ];
+        let triangles = [[0usize, 1, 2], [0, 2, 3], [0, 3, 4], [0, 4, 5], [0, 5, 1]];
 
         let mut builder = SimplicialComplexBuilder::new(2);
         for tri in &triangles {
@@ -731,8 +714,8 @@ mod tests {
             .expect("pentagonal-fan should yield a valid 2D complex");
 
         let edge_count = complex.skeletons()[1].simplices().len();
-        let metric = flat_regge_geometry(edge_count)
-            .expect("flat_regge_geometry on pentagonal-fan edges");
+        let metric =
+            flat_regge_geometry(edge_count).expect("flat_regge_geometry on pentagonal-fan edges");
 
         let ricci = metric
             .calculate_ricci_curvature(&complex)
@@ -751,11 +734,10 @@ mod tests {
         );
 
         // Boundary vertices: zero deficit (boundary-bone zeroing).
-        for v in 1..=5 {
+        for (v, deficit) in deficits.iter().enumerate().skip(1) {
             assert!(
-                deficits[v].abs() < 1e-10,
-                "boundary vertex {v} should have zero deficit, got {}",
-                deficits[v]
+                deficit.abs() < 1e-10,
+                "boundary vertex {v} should have zero deficit, got {deficit}"
             );
         }
     }

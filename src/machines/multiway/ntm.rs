@@ -33,7 +33,7 @@ use std::collections::HashMap;
 
 use crate::machines::{BuilderError, Configuration, Direction, State, Symbol};
 
-use catgraph_physics::multiway::{run_multiway_bfs, MultiwayEvolutionGraph};
+use catgraph_physics::multiway::{MultiwayEvolutionGraph, run_multiway_bfs};
 
 /// Non-deterministic transition function type.
 ///
@@ -133,7 +133,10 @@ impl NondeterministicTM {
     /// Returns a Vec of (Configuration, `NTMTransitionData`) for each
     /// possible non-deterministic choice.
     #[must_use]
-    pub fn possible_steps(&self, config: &Configuration) -> Vec<(Configuration, NTMTransitionData)> {
+    pub fn possible_steps(
+        &self,
+        config: &Configuration,
+    ) -> Vec<(Configuration, NTMTransitionData)> {
         if self.is_halted(config) {
             return Vec::new();
         }
@@ -244,7 +247,7 @@ impl NondeterministicTM {
         Self::new(
             vec![0, 1, 2, 3],
             0,
-            vec![3],  // accept
+            vec![3], // accept
             vec![],
             '_',
             transitions,
@@ -267,14 +270,7 @@ impl NondeterministicTM {
 
         transitions.insert((1, '_'), vec![(2, '_', Direction::Stay)]);
 
-        Self::new(
-            vec![0, 1, 2],
-            0,
-            vec![2],
-            vec![],
-            '_',
-            transitions,
-        )
+        Self::new(vec![0, 1, 2], 0, vec![2], vec![], '_', transitions)
     }
 
     /// Guess-and-verify pattern: NTM for "does the input contain '1'?"
@@ -303,8 +299,8 @@ impl NondeterministicTM {
         Self::new(
             vec![0, 1, 2],
             0,
-            vec![1],  // accept
-            vec![2],  // reject
+            vec![1], // accept
+            vec![2], // reject
             '_',
             transitions,
         )
@@ -321,21 +317,11 @@ impl NondeterministicTM {
         for sym in ['_', '0', '1'] {
             transitions.insert(
                 (0, sym),
-                vec![
-                    (0, 'A', Direction::Right),
-                    (0, 'B', Direction::Right),
-                ],
+                vec![(0, 'A', Direction::Right), (0, 'B', Direction::Right)],
             );
         }
 
-        Self::new(
-            vec![0],
-            0,
-            vec![],
-            vec![],
-            '_',
-            transitions,
-        )
+        Self::new(vec![0], 0, vec![], vec![], '_', transitions)
     }
 }
 
@@ -524,7 +510,11 @@ mod tests {
             .initial_state(0)
             .accept_states(vec![2])
             .blank('_')
-            .transition(0, 'a', vec![(1, 'b', Direction::Right), (2, 'c', Direction::Left)])
+            .transition(
+                0,
+                'a',
+                vec![(1, 'b', Direction::Right), (2, 'c', Direction::Left)],
+            )
             .build();
 
         assert_eq!(ntm.initial_state, 0);
@@ -576,7 +566,7 @@ mod tests {
 
         let stats = evolution.statistics();
         assert_eq!(stats.fork_count, 0); // No branching
-        assert_eq!(stats.max_depth, 6);  // BB(2) takes 6 steps
+        assert_eq!(stats.max_depth, 6); // BB(2) takes 6 steps
     }
 
     #[test]
@@ -643,10 +633,7 @@ mod tests {
 
     #[test]
     fn test_ntm_try_build_missing_initial_state() {
-        let result = NTMBuilder::new()
-            .states(vec![0])
-            .blank('_')
-            .try_build();
+        let result = NTMBuilder::new().states(vec![0]).blank('_').try_build();
         assert!(matches!(result, Err(BuilderError::MissingInitialState)));
     }
 

@@ -15,6 +15,7 @@ use deep_causality_topology::{
 };
 use irreducible::StringRewriteSystem;
 use irreducible::geometry::dc_bridge::branchial_to_simplicial;
+use irreducible::geometry::hodge::unit_hodge_operators;
 use irreducible::geometry::regge_metric::flat_regge_geometry;
 
 /// End-to-end check on a flat equilateral triangle:
@@ -29,7 +30,18 @@ fn flat_triangle_has_euler_char_one_and_zero_curvature() {
     builder
         .add_simplex(Simplex::new(vec![0, 1, 2]))
         .expect("adding triangle should succeed");
-    let complex: SimplicialComplex<f64> = builder.build().expect("complex build");
+    let base: SimplicialComplex<f64> = builder.build().expect("complex build");
+
+    // deep_causality_topology 0.6 validates the Hodge ⋆ surface eagerly at
+    // `Manifold::with_metric`; a builder-built complex carries no coordinates,
+    // so pre-supply unit Hodge operators (this smoke test asserts topology and
+    // Regge curvature only — no assertion depends on ⋆ values).
+    let complex = SimplicialComplex::new(
+        base.skeletons().clone(),
+        base.boundary_operators().clone(),
+        base.coboundary_operators().clone(),
+        unit_hodge_operators(&base),
+    );
 
     // Flat metric: 3 edges of length 1.
     let metric = flat_regge_geometry(3).expect("flat metric should construct");

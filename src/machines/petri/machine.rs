@@ -137,7 +137,10 @@ mod tests {
     fn producer_consumer() -> PetriNetMachine<char> {
         let net = PetriNet::new(
             vec!['R', 'D'],
-            vec![Transition::new(vec![(0, Decimal::ONE)], vec![(1, Decimal::ONE)])],
+            vec![Transition::new(
+                vec![(0, Decimal::ONE)],
+                vec![(1, Decimal::ONE)],
+            )],
         );
         PetriNetMachine::new(net)
     }

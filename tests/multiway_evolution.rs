@@ -4,7 +4,9 @@
 //! branchial foliation, merge detection, curvature computation,
 //! and max-limits enforcement.
 
-use irreducible::{DiscreteCurvature, NondeterministicTM, OllivierRicciCurvature, StringRewriteSystem};
+use irreducible::{
+    DiscreteCurvature, NondeterministicTM, OllivierRicciCurvature, StringRewriteSystem,
+};
 
 use irreducible::machines::multiway::{
     branchial_to_parallel_intervals, extract_branchial_foliation, find_all_merge_points,
@@ -34,7 +36,11 @@ fn ntm_simple_branching_produces_fork_points() {
         .initial_state(0)
         .accept_states(vec![1, 2])
         .blank('_')
-        .transition(0, '_', vec![(1, 'X', Direction::Right), (2, 'Y', Direction::Left)])
+        .transition(
+            0,
+            '_',
+            vec![(1, 'X', Direction::Right), (2, 'Y', Direction::Left)],
+        )
         .build();
 
     let evolution = ntm.run_multiway("_", 3, 50);
@@ -67,10 +73,10 @@ fn srs_and_ntm_use_same_generic_bfs() {
     // Both graphs have the same structural methods
     assert!(srs_evo.node_count() > 0);
     assert!(ntm_evo.node_count() > 0);
-    assert!(srs_evo.roots().len() > 0);
-    assert!(ntm_evo.roots().len() > 0);
-    assert!(srs_evo.leaves().len() > 0);
-    assert!(ntm_evo.leaves().len() > 0);
+    assert!(!srs_evo.roots().is_empty());
+    assert!(!ntm_evo.roots().is_empty());
+    assert!(!srs_evo.leaves().is_empty());
+    assert!(!ntm_evo.leaves().is_empty());
 }
 
 // ---------------------------------------------------------------------------
@@ -258,7 +264,11 @@ fn ntm_statistics_detailed() {
         .initial_state(0)
         .accept_states(vec![1, 2])
         .blank('_')
-        .transition(0, '_', vec![(1, 'X', Direction::Right), (2, 'Y', Direction::Left)])
+        .transition(
+            0,
+            '_',
+            vec![(1, 'X', Direction::Right), (2, 'Y', Direction::Left)],
+        )
         .build();
 
     let evolution = ntm.run_multiway("_", 3, 50);

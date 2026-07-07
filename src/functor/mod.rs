@@ -30,8 +30,8 @@ pub use adjunction::{
 
 // Re-export bifunctor types
 pub use bifunctor::{
-    tensor_bimap, tensor_first, tensor_second, verify_associativity, verify_symmetry,
-    verify_unit_laws, IntervalTransform, TensorProduct,
+    IntervalTransform, TensorProduct, tensor_bimap, tensor_first, tensor_second,
+    verify_associativity, verify_symmetry, verify_unit_laws,
 };
 
 // Re-export Stokes integration types
@@ -39,10 +39,10 @@ pub use stokes_integration::StokesIrreducibility;
 
 // Re-export Fong-Spivak types
 pub use fong_spivak::{
-    cap, cap_single, cap_tensor, compose_names, cospan_to_frobenius, cup, cup_single, cup_tensor,
-    name, unname, CospanAlgebra, CospanFrobeniusCheck, CospanToFrobeniusFunctor,
-    FrobeniusVerificationResult, HypergraphCategory, HypergraphFunctor, NameAlgebra,
-    PartitionAlgebra, RelabelingFunctor, verify_cospan_chain_frobenius,
+    CospanAlgebra, CospanFrobeniusCheck, CospanToFrobeniusFunctor, FrobeniusVerificationResult,
+    HypergraphCategory, HypergraphFunctor, NameAlgebra, PartitionAlgebra, RelabelingFunctor, cap,
+    cap_single, cap_tensor, compose_names, cospan_to_frobenius, cup, cup_single, cup_tensor, name,
+    unname, verify_cospan_chain_frobenius,
 };
 
 use crate::{
@@ -202,7 +202,10 @@ impl MultiwayIrreducibilityResult {
     /// Count reducible branches.
     #[must_use]
     pub fn reducible_branch_count(&self) -> usize {
-        self.branch_results.iter().filter(|b| !b.is_irreducible).count()
+        self.branch_results
+            .iter()
+            .filter(|b| !b.is_irreducible)
+            .count()
     }
 }
 
@@ -327,14 +330,8 @@ mod tests {
 
     #[test]
     fn test_multiway_irreducibility() {
-        let branch1 = vec![
-            DiscreteInterval::new(0, 2),
-            DiscreteInterval::new(2, 5),
-        ];
-        let branch2 = vec![
-            DiscreteInterval::new(0, 3),
-            DiscreteInterval::new(3, 4),
-        ];
+        let branch1 = vec![DiscreteInterval::new(0, 2), DiscreteInterval::new(2, 5)];
+        let branch2 = vec![DiscreteInterval::new(0, 3), DiscreteInterval::new(3, 4)];
         let result = IrreducibilityFunctor::verify_multiway_functoriality(&[branch1, branch2]);
         assert!(result.is_fully_irreducible);
         assert_eq!(result.branch_results.len(), 2);
@@ -342,14 +339,8 @@ mod tests {
 
     #[test]
     fn test_multiway_partial_reducibility() {
-        let branch1 = vec![
-            DiscreteInterval::new(0, 2),
-            DiscreteInterval::new(2, 5),
-        ];
-        let branch2 = vec![
-            DiscreteInterval::new(0, 3),
-            DiscreteInterval::new(4, 6),
-        ];
+        let branch1 = vec![DiscreteInterval::new(0, 2), DiscreteInterval::new(2, 5)];
+        let branch2 = vec![DiscreteInterval::new(0, 3), DiscreteInterval::new(4, 6)];
         let result = IrreducibilityFunctor::verify_multiway_functoriality(&[branch1, branch2]);
         assert!(!result.is_fully_irreducible);
         assert_eq!(result.reducible_branch_count(), 1);

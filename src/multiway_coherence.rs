@@ -212,7 +212,9 @@ pub fn verify_all_coherence<S: Clone + Hash, T: Clone>(
             .map(|edges| edges.iter().map(|e| e.to).collect())
             .unwrap_or_default();
 
-        if children.len() >= 3 && let Err(e) = verify_associator(graph, fork) {
+        if children.len() >= 3
+            && let Err(e) = verify_associator(graph, fork)
+        {
             errors.push(e);
         }
 
@@ -325,7 +327,10 @@ mod tests {
     fn verify_all_non_confluent_has_errors() {
         let g = non_confluent_3fork();
         let errors = verify_all_coherence(&g);
-        assert!(!errors.is_empty(), "expected errors for non-confluent graph");
+        assert!(
+            !errors.is_empty(),
+            "expected errors for non-confluent graph"
+        );
     }
 
     #[test]

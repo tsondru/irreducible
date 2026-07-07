@@ -61,8 +61,7 @@ mod dec_tests {
         let complex = MultiwayComplex::from_evolution(&g);
 
         if complex.num_2_simplices() > 0 && complex.num_1_simplices() >= 2 {
-            let omega =
-                OneForm::from_values(&complex, |i| if i % 2 == 0 { 1.0 } else { 3.0 });
+            let omega = OneForm::from_values(&complex, |i| if i % 2 == 0 { 1.0 } else { 3.0 });
             assert!(
                 !complex.is_closed(&omega),
                 "asymmetric cost should be path-dependent"
@@ -132,11 +131,7 @@ mod dec_tests {
                     (format!("r{i}"), format!("e_r{i}"), 1),
                 ],
             );
-            let bottom = g.add_sequential_step(
-                branches[0],
-                format!("m{i}"),
-                format!("merge_l{i}"),
-            );
+            let bottom = g.add_sequential_step(branches[0], format!("m{i}"), format!("merge_l{i}"));
             g.add_merge_edge(branches[1], bottom, format!("merge_r{i}"));
             top = bottom;
         }
@@ -162,10 +157,7 @@ mod dec_tests {
 
         let d_omega = complex.exterior_derivative(&omega);
         for (i, &c) in d_omega.coefficients.iter().enumerate() {
-            assert!(
-                c.is_finite(),
-                "d(omega) coefficient {i} is not finite: {c}"
-            );
+            assert!(c.is_finite(), "d(omega) coefficient {i} is not finite: {c}");
         }
 
         // Second-derivative sanity: diamond coboundary composed with vertex
@@ -188,6 +180,7 @@ mod dec_tests {
             Manifold, Simplex, SimplicialComplex, SimplicialComplexBuilder,
         };
         use irreducible::geometry::hodge::unit_hodge_operators;
+        use irreducible::geometry::regge_metric::flat_regge_geometry;
         use nalgebra::DMatrix;
 
         // Single equilateral triangle — passes dc_topology's orientation
@@ -214,6 +207,13 @@ mod dec_tests {
             .sum();
         let v_count = complex.skeletons()[0].simplices().len();
 
+        // deep_causality_topology 0.6: the differential operators
+        // (codifferential, laplacian) source Hodge ⋆ from the Regge metric —
+        // a metric-less Manifold panics in `codifferential`. Flat unit edge
+        // lengths on the equilateral triangle keep the operator geometry
+        // trivial.
+        let metric = flat_regge_geometry(3).expect("flat metric on 3 edges");
+
         // Probe laplacian(0) column-by-column: apply to e_i (unit 0-form),
         // densify. Result is a v_count × v_count matrix L.
         let mut lap = DMatrix::<f64>::zeros(v_count, v_count);
@@ -221,10 +221,10 @@ mod dec_tests {
             let mut probe = vec![0.0_f64; total_simplices];
             probe[i] = 1.0;
             let data = CausalTensor::new(probe, vec![total_simplices]).unwrap();
-            let manifold = Manifold::<f64, f64>::with_metric(
+            let manifold = Manifold::<SimplicialComplex<f64>, f64>::with_metric(
                 complex.clone(),
                 data,
-                None,
+                Some(metric.clone()),
                 0,
             )
             .expect("manifold construction on single triangle");
@@ -241,7 +241,11 @@ mod dec_tests {
         // invariant by ~1e-15.
         let symmetrized = (lap.clone() + lap.transpose()) * 0.5;
         let eigen = symmetrized.symmetric_eigen();
-        let min_eig = eigen.eigenvalues.iter().cloned().fold(f64::INFINITY, f64::min);
+        let min_eig = eigen
+            .eigenvalues
+            .iter()
+            .cloned()
+            .fold(f64::INFINITY, f64::min);
         let max_eig = eigen
             .eigenvalues
             .iter()
@@ -256,8 +260,9 @@ mod dec_tests {
             max_eig.is_finite(),
             "max eigenvalue must be finite: {max_eig}"
         );
-        // Observed spectrum on the single-unit-triangle complex:
-        // {0, 6, 6}. The 0 eigenvalue is the constant 0-form (nullspace of d),
-        // the double 6 is the Hodge-weighted graph Laplacian signature.
+        // Spectrum shape on the single-unit-triangle complex: one ~0
+        // eigenvalue (the constant 0-form, nullspace of d) and a positive
+        // doublet whose value depends on the metric's Hodge ⋆ weights
+        // (was {0, 6, 6} under unit ⋆; the flat Regge metric rescales it).
     }
 }

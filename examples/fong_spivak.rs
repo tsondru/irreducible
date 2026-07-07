@@ -9,8 +9,8 @@
 
 use irreducible::machines::hypergraph::{Hypergraph, HypergraphEvolution, RewriteRule};
 use irreducible::{
-    verify_cospan_chain_frobenius, CospanToFrobeniusFunctor, HypergraphCategory, HypergraphFunctor,
-    IrreducibilityFunctor, StokesIrreducibility, TuringMachine,
+    CospanToFrobeniusFunctor, HypergraphCategory, HypergraphFunctor, IrreducibilityFunctor,
+    StokesIrreducibility, TuringMachine, verify_cospan_chain_frobenius,
 };
 
 fn main() {
@@ -69,10 +69,7 @@ fn part2_hypergraph_frobenius() {
     let result = verify_cospan_chain_frobenius(&chain);
     println!("Frobenius verification:");
     println!("  All valid: {}", result.all_valid);
-    println!(
-        "  Composition preserved: {}",
-        result.composition_preserved
-    );
+    println!("  Composition preserved: {}", result.composition_preserved);
     for check in &result.per_cospan {
         println!(
             "  Cospan {}: valid={}, generators={}",
@@ -96,11 +93,7 @@ fn part2_hypergraph_frobenius() {
     let comult: catgraph::cospan::Cospan<u32> = HypergraphCategory::comultiplication(0);
     println!("\nHypergraphCategory generators for type 0:");
     println!("  unit:   [] -> {:?}", unit.codomain());
-    println!(
-        "  comult: {:?} -> {:?}",
-        comult.domain(),
-        comult.codomain()
-    );
+    println!("  comult: {:?} -> {:?}", comult.domain(), comult.codomain());
     println!();
 }
 

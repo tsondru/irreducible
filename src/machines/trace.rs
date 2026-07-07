@@ -9,5 +9,5 @@
 
 #[allow(deprecated)]
 pub use crate::trace::{
-    analyze_trace, detect_repeats, IrreducibilityTrace, RepeatDetection, StepTrace, TraceAnalysis,
+    IrreducibilityTrace, RepeatDetection, StepTrace, TraceAnalysis, analyze_trace, detect_repeats,
 };

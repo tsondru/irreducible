@@ -6,6 +6,47 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this c
 
 ## [Unreleased]
 
+Reboot alignment: irreducible becomes the example consumer of the
+rebooted catgraph's core + physics layer.
+
+### Changed
+
+- **catgraph dependencies repointed** from the retired
+  `tsondru/catgraph` lineage (`v0.13.0`) to the rebooted
+  `sustia-llc/catgraph` (`v0.2.0`, SSH; single tag string shared by
+  `catgraph` / `catgraph-applied` / `catgraph-physics` for dual-SHA
+  prevention). No API changes were required in library code — the
+  reboot's consumer surface is drop-in for this crate.
+- **deep_causality git-pinned pre-release**: `deep_causality_topology`
+  0.6.1 / `deep_causality_tensor` 0.4.4 / `deep_causality_sparse`
+  0.2.0 via a single shared git rev (versions not yet on crates.io;
+  swap back to crates.io pins once released). Adapted to the 0.6
+  `Manifold` API: type parameters are now `Manifold<K: ChainComplex, F>`,
+  Hodge ⋆ availability is validated eagerly at `with_metric`, and the
+  differential operators (`codifferential`, `laplacian`) source
+  Hodge ⋆ from the Regge metric (a metric-less `Manifold` panics).
+  Test-only fixes in `tests/dc_topology_smoke.rs` and
+  `tests/multiway_stokes.rs`.
+### Removed
+
+- **`persist` feature removed pending the catgraph-surreal reboot**
+  (with it: the `catgraph-surreal` / `surrealdb` / `tokio` deps,
+  `EvolutionPersistence` (`src/machines/hypergraph/persistence.rs`),
+  `tests/persistence.rs`, `examples/persist_evolution.rs`; all
+  recoverable from git history). The pre-reboot catgraph-surreal pins
+  the retired catgraph lineage — a type-identity mismatch with reboot
+  catgraph — and its presence in the lock drags two additional private
+  git sources into every CI fetch. The surface returns when
+  catgraph-surreal is realigned.
+- **CI introduced** (`.github/workflows/ci.yml`): fmt, clippy
+  `-D warnings`, tests on default features plus a
+  `manifold-curvature,dec` feature leg; private git-dep auth via a
+  read-only deploy key + `webfactory/ssh-agent`.
+- **`Cargo.lock` is now committed** (removed from `.gitignore`): CI
+  builds `--locked` for reproducible runs; cargo fetches every git
+  source in the lock, so the lock must never carry a git source CI
+  cannot authenticate to.
+
 ## [0.6.5] - 2026-05-05
 
 Top-up post-shipping reviewer pass on v0.6.3 + v0.6.4. Workspace

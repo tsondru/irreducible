@@ -1,7 +1,9 @@
 //! Integration tests for the temporal cospan chain bridge.
 
 use catgraph::category::Composable;
-use irreducible::temporal_cospan_chain::{ConservationResult, TemporalComplex, TemporalComplexError};
+use irreducible::temporal_cospan_chain::{
+    ConservationResult, TemporalComplex, TemporalComplexError,
+};
 use irreducible::{DiscreteInterval, ElementaryCA, TuringMachine};
 
 #[test]

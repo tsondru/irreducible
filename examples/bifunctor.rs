@@ -5,8 +5,8 @@
 //! unit/symmetry verification.
 
 use irreducible::bifunctor::{
-    tensor_bimap, tensor_first, tensor_second, verify_associativity, verify_symmetry,
-    verify_unit_laws, IntervalTransform, TensorProduct,
+    IntervalTransform, TensorProduct, tensor_bimap, tensor_first, tensor_second,
+    verify_associativity, verify_symmetry, verify_unit_laws,
 };
 use irreducible::interval::{DiscreteInterval, ParallelIntervals};
 
@@ -31,7 +31,11 @@ fn tensor_product_trait() {
 
     let a = make_parallel(vec![(0, 5), (10, 15)]);
     let b = make_parallel(vec![(20, 25)]);
-    println!("a: {} branches, b: {} branches", a.branch_count(), b.branch_count());
+    println!(
+        "a: {} branches, b: {} branches",
+        a.branch_count(),
+        b.branch_count()
+    );
 
     let ab = a.clone().tensor(b.clone());
     println!("a.tensor(b): {} branches", ab.branch_count());
@@ -97,11 +101,7 @@ fn bifunctor_mapping() {
     println!("  right: {:?}", new_right.branches);
 
     // tensor_first: transform only left
-    let (new_left, new_right) = tensor_first(
-        left.clone(),
-        right.clone(),
-        |p| p.shift_all(100),
-    );
+    let (new_left, new_right) = tensor_first(left.clone(), right.clone(), |p| p.shift_all(100));
     println!("tensor_first(shift_all(100)):");
     println!("  left:  {:?}", new_left.branches);
     println!("  right: {:?}  (unchanged)", new_right.branches);
@@ -125,15 +125,24 @@ fn monoidal_verification() {
     let b = make_parallel(vec![(10, 15)]);
     let c = make_parallel(vec![(20, 25)]);
 
-    println!("verify_associativity(a, b, c) = {}", verify_associativity(&a, &b, &c));
+    println!(
+        "verify_associativity(a, b, c) = {}",
+        verify_associativity(&a, &b, &c)
+    );
     println!("verify_unit_laws(a)           = {}", verify_unit_laws(&a));
-    println!("verify_symmetry(a, b)         = {}", verify_symmetry(&a, &b));
+    println!(
+        "verify_symmetry(a, b)         = {}",
+        verify_symmetry(&a, &b)
+    );
 
     // Multi-branch
     let multi = make_parallel(vec![(0, 2), (3, 5), (6, 8)]);
     println!("\nMulti-branch (3 branches):");
     println!("verify_unit_laws(multi) = {}", verify_unit_laws(&multi));
-    println!("verify_symmetry(a, multi) = {}", verify_symmetry(&a, &multi));
+    println!(
+        "verify_symmetry(a, multi) = {}",
+        verify_symmetry(&a, &multi)
+    );
     println!();
 }
 

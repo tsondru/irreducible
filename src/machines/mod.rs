@@ -59,8 +59,8 @@
 
 mod cellular_automaton;
 mod configuration;
-pub mod multiway;
 pub mod hypergraph;
+pub mod multiway;
 pub mod petri;
 mod tape;
 pub mod trace;
@@ -82,14 +82,10 @@ pub use cellular_automaton::{
 };
 
 // Petri net exports
-pub use petri::{
-    PetriBuilder, PetriExecutionHistory, PetriNetMachine, PetriTransitionRecord,
-};
+pub use petri::{PetriBuilder, PetriExecutionHistory, PetriNetMachine, PetriTransitionRecord};
 
 // Trace analysis exports
-pub use trace::{
-    analyze_trace, detect_repeats, StepTrace, RepeatDetection, TraceAnalysis,
-};
+pub use trace::{RepeatDetection, StepTrace, TraceAnalysis, analyze_trace, detect_repeats};
 
 /// State identifier for Turing machines.
 pub type State = u32;

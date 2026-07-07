@@ -5,9 +5,7 @@
 //!
 //! See Gorard's paper (Section 4.2) for the mathematical foundation.
 
-pub use crate::adjunction::{
-    AdjunctionIrreducibility, AdjunctionVerification, ZPrimeOps,
-};
+pub use crate::adjunction::{AdjunctionIrreducibility, AdjunctionVerification, ZPrimeOps};
 use crate::{computation_state::ComputationState, interval::DiscreteInterval};
 
 /// The Z' ⊣ Z adjunction between computation and cobordism categories.

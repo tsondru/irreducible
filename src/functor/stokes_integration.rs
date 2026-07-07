@@ -4,11 +4,11 @@
 //! re-exported from the [`temporal_cospan_chain`](crate::temporal_cospan_chain) module.
 //! This module provides the irreducibility-specific `StokesIrreducibility` wrapper.
 
-pub use crate::temporal_cospan_chain::{ConservationResult, TemporalComplexError, TemporalComplex};
+pub use crate::temporal_cospan_chain::{ConservationResult, TemporalComplex, TemporalComplexError};
 
 use crate::interval::DiscreteInterval;
 
-use super::fong_spivak::{verify_cospan_chain_frobenius, FrobeniusVerificationResult};
+use super::fong_spivak::{FrobeniusVerificationResult, verify_cospan_chain_frobenius};
 
 /// Stokes-theorem perspective on computational irreducibility.
 ///
@@ -106,10 +106,7 @@ mod tests {
 
     #[test]
     fn test_stokes_irreducibility_cospan_chain() {
-        let intervals = vec![
-            DiscreteInterval::new(0, 3),
-            DiscreteInterval::new(3, 7),
-        ];
+        let intervals = vec![DiscreteInterval::new(0, 3), DiscreteInterval::new(3, 7)];
         let analysis = StokesIrreducibility::analyze(&intervals).unwrap();
         let cospans = analysis.to_cospan_chain();
         assert_eq!(cospans.len(), 2);

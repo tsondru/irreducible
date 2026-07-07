@@ -33,7 +33,11 @@ impl PetriTransitionRecord {
     /// Construct a transition record.
     #[must_use]
     pub fn new(transition_idx: usize, before: Marking, after: Marking) -> Self {
-        Self { transition_idx, before, after }
+        Self {
+            transition_idx,
+            before,
+            after,
+        }
     }
 }
 
@@ -161,10 +165,13 @@ mod tests {
         };
 
         let intervals = history.to_intervals();
-        assert_eq!(intervals, vec![
-            DiscreteInterval::new(0, 1),
-            DiscreteInterval::new(1, 2),
-            DiscreteInterval::new(2, 3),
-        ]);
+        assert_eq!(
+            intervals,
+            vec![
+                DiscreteInterval::new(0, 1),
+                DiscreteInterval::new(1, 2),
+                DiscreteInterval::new(2, 3),
+            ]
+        );
     }
 }

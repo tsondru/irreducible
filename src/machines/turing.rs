@@ -90,7 +90,11 @@ impl TuringMachine {
     /// Returns `None` if the machine is halted or no transition is defined.
     /// Returns `Some((new_config, transition))` otherwise.
     #[must_use]
-    pub fn step(&self, config: &Configuration, step_num: usize) -> Option<(Configuration, Transition)> {
+    pub fn step(
+        &self,
+        config: &Configuration,
+        step_num: usize,
+    ) -> Option<(Configuration, Transition)> {
         if self.is_halted(config) {
             return None;
         }
@@ -209,10 +213,10 @@ impl TuringMachine {
 
         Self::new(
             vec![0, 1, 2],
-            0,           // initial: A
-            vec![2],     // accept: HALT
-            vec![],      // no reject states
-            '0',         // blank = 0
+            0,       // initial: A
+            vec![2], // accept: HALT
+            vec![],  // no reject states
+            '0',     // blank = 0
             transitions,
         )
     }
@@ -237,14 +241,7 @@ impl TuringMachine {
 
         // State 2: halt (accept)
 
-        Self::new(
-            vec![0, 1, 2],
-            0,
-            vec![2],
-            vec![],
-            '_',
-            transitions,
-        )
+        Self::new(vec![0, 1, 2], 0, vec![2], vec![], '_', transitions)
     }
 
     /// Create a simple left-mover that loops forever.
@@ -259,14 +256,7 @@ impl TuringMachine {
         transitions.insert((0, '1'), (0, '1', Direction::Left));
         transitions.insert((0, '_'), (0, '_', Direction::Left));
 
-        Self::new(
-            vec![0],
-            0,
-            vec![],
-            vec![],
-            '_',
-            transitions,
-        )
+        Self::new(vec![0], 0, vec![], vec![], '_', transitions)
     }
 }
 
@@ -337,8 +327,10 @@ impl TuringMachineBuilder {
         write_symbol: Symbol,
         direction: Direction,
     ) -> Self {
-        self.transitions
-            .insert((from_state, read_symbol), (to_state, write_symbol, direction));
+        self.transitions.insert(
+            (from_state, read_symbol),
+            (to_state, write_symbol, direction),
+        );
         self
     }
 
@@ -397,7 +389,10 @@ impl StepTrace for ExecutionHistory {
     }
 
     fn to_intervals(&self) -> Vec<DiscreteInterval> {
-        self.transitions.iter().map(Transition::to_interval).collect()
+        self.transitions
+            .iter()
+            .map(Transition::to_interval)
+            .collect()
     }
 
     fn step_count(&self) -> usize {
@@ -586,10 +581,7 @@ mod tests {
 
     #[test]
     fn test_tm_initial_config() {
-        let tm = TuringMachine::builder()
-            .initial_state(0)
-            .blank('_')
-            .build();
+        let tm = TuringMachine::builder().initial_state(0).blank('_').build();
 
         let config = tm.initial_config("abc");
         assert_eq!(config.state, 0);

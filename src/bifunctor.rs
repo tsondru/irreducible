@@ -257,12 +257,8 @@ mod tests {
         let left = make_parallel(vec![(0, 5)]);
         let right = make_parallel(vec![(10, 15)]);
 
-        let (new_left, new_right) = tensor_bimap(
-            left,
-            right,
-            |p| p.shift_all(10),
-            |p| p.scale_all(2),
-        );
+        let (new_left, new_right) =
+            tensor_bimap(left, right, |p| p.shift_all(10), |p| p.scale_all(2));
 
         assert_eq!(new_left.branches[0].start, 10);
         assert_eq!(new_left.branches[0].end, 15);

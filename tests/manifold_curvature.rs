@@ -6,7 +6,7 @@
 //! `DiscreteCurvature` trait conformance and edge cases.
 
 use irreducible::machines::multiway::{ManifoldCurvature, ShortestPathMDS, StringRewriteSystem};
-use irreducible::{extract_branchial_foliation, DiscreteCurvature};
+use irreducible::{DiscreteCurvature, extract_branchial_foliation};
 
 // ---------------------------------------------------------------------------
 // Full pipeline: SRS -> multiway -> branchial -> manifold curvature
@@ -18,7 +18,10 @@ fn srs_multiway_to_manifold_curvature_pipeline() {
     let evolution = srs.run_multiway("AB", 4, 200);
 
     let foliation = extract_branchial_foliation(&evolution);
-    assert!(!foliation.is_empty(), "foliation must have at least one step");
+    assert!(
+        !foliation.is_empty(),
+        "foliation must have at least one step"
+    );
 
     let embedding = ShortestPathMDS::<3>;
 
