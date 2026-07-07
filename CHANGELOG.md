@@ -9,6 +9,17 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this c
 Reboot alignment: irreducible becomes the example consumer of the
 rebooted catgraph's core + physics layer.
 
+### Added
+
+- **CI** (`.github/workflows/ci.yml`): fmt, clippy `-D warnings`,
+  tests on default features plus a `manifold-curvature,dec` feature
+  leg; private git-dep auth via a read-only deploy key +
+  `webfactory/ssh-agent`.
+- **`Cargo.lock` is now committed** (removed from `.gitignore`): CI
+  builds `--locked` for reproducible runs; cargo fetches every git
+  source in the lock, so the lock must never carry a git source CI
+  cannot authenticate to.
+
 ### Changed
 
 - **Docs reboot-aligned**: root `CLAUDE.md` is now a real public file
@@ -33,7 +44,10 @@ rebooted catgraph's core + physics layer.
   differential operators (`codifferential`, `laplacian`) source
   Hodge ⋆ from the Regge metric (a metric-less `Manifold` panics).
   Test-only fixes in `tests/dc_topology_smoke.rs` and
-  `tests/multiway_stokes.rs`.
+  `tests/multiway_stokes.rs`, plus `#[cfg(test)]`-scoped clippy fixes
+  in `src/test_utils.rs` (`$crate` macro hygiene) and
+  `src/machines/multiway/manifold_bridge.rs`.
+
 ### Removed
 
 - **`persist` feature removed pending the catgraph-surreal reboot**
@@ -45,14 +59,6 @@ rebooted catgraph's core + physics layer.
   catgraph — and its presence in the lock drags two additional private
   git sources into every CI fetch. The surface returns when
   catgraph-surreal is realigned.
-- **CI introduced** (`.github/workflows/ci.yml`): fmt, clippy
-  `-D warnings`, tests on default features plus a
-  `manifold-curvature,dec` feature leg; private git-dep auth via a
-  read-only deploy key + `webfactory/ssh-agent`.
-- **`Cargo.lock` is now committed** (removed from `.gitignore`): CI
-  builds `--locked` for reproducible runs; cargo fetches every git
-  source in the lock, so the lock must never carry a git source CI
-  cannot authenticate to.
 
 ## [0.6.5] - 2026-05-05
 
