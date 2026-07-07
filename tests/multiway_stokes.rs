@@ -168,11 +168,13 @@ mod dec_tests {
         );
     }
 
-    /// Build a small 2D simplicial complex by hand, equip it with unit-edge
-    /// Hodge star operators, wrap in a `Manifold`, and compute the
-    /// Hodge Laplacian on 0-forms via `manifold.laplacian(0)`. Densify the
-    /// resulting linear operator and verify that every eigenvalue is
-    /// non-negative (within numerical tolerance).
+    /// Build a small 2D simplicial complex by hand, attach a flat unit-edge
+    /// Regge metric, wrap in a `Manifold`, and compute the Hodge Laplacian
+    /// on 0-forms via `manifold.laplacian(0)`. Under dc_topology 0.6 the
+    /// differential operators source Hodge ⋆ from the metric; the unit Hodge
+    /// operators pre-supplied on the complex only satisfy `with_metric`'s
+    /// eager validation. Densify the resulting linear operator and verify
+    /// the spectrum is PSD with a strictly positive top eigenvalue.
     #[test]
     fn hodge_laplacian_spectrum_is_nonneg() {
         use deep_causality_tensor::CausalTensor;
@@ -259,6 +261,13 @@ mod dec_tests {
         assert!(
             max_eig.is_finite(),
             "max eigenvalue must be finite: {max_eig}"
+        );
+        // Guard against a silently-zero operator (e.g. a regression in the
+        // metric-sourced Hodge ⋆ path returning zero weights): the flat
+        // equilateral metric must produce a strictly positive doublet.
+        assert!(
+            max_eig > 1e-12,
+            "Hodge Laplacian must be nonzero on the unit triangle; max eigenvalue = {max_eig}"
         );
         // Spectrum shape on the single-unit-triangle complex: one ~0
         // eigenvalue (the constant 0-form, nullspace of d) and a positive

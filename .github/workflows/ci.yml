@@ -1,5 +1,14 @@
 name: ci
-on: [push, pull_request]
+# push is filtered to main so PR-branch commits run once (pull_request event
+# only); superseded runs on the same ref are cancelled.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 # Private git-dep auth (first use of this pattern; copy for other consumers of
 # private catgraph):
@@ -37,3 +46,7 @@ jobs:
       # `lapack` is excluded: needs libopenblas-dev and adds no logic coverage.
       - run: cargo clippy --workspace --all-targets --locked --features manifold-curvature,dec -- -D warnings
       - run: cargo test --workspace --locked --features manifold-curvature,dec
+      # dc-geometry in isolation: the documented `--features dc-geometry`
+      # invocation must build without nalgebra (which manifold-curvature and
+      # dec both pull in).
+      - run: cargo test --workspace --locked --features dc-geometry
