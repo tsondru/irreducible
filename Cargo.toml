@@ -10,11 +10,11 @@ license = "MIT"
 authors = ["tsondru", "Claude <noreply@anthropic.com>"]
 
 [workspace.dependencies]
-# Reboot lineage (sustia-llc, private, SSH). ONE tag string shared by all three
-# — see the dual-SHA note on the [patch] block below.
-catgraph = { git = "ssh://git@github.com/sustia-llc/catgraph", tag = "v0.2.0" }
-catgraph-applied = { git = "ssh://git@github.com/sustia-llc/catgraph", tag = "v0.2.0" }
-catgraph-physics = { git = "ssh://git@github.com/sustia-llc/catgraph", tag = "v0.2.0" }
+# Reboot lineage (sustia-llc, public, HTTPS). ONE tag string shared by all
+# three — see the dual-SHA note on the [patch] block below.
+catgraph = { git = "https://github.com/sustia-llc/catgraph", tag = "v0.2.0" }
+catgraph-applied = { git = "https://github.com/sustia-llc/catgraph", tag = "v0.2.0" }
+catgraph-physics = { git = "https://github.com/sustia-llc/catgraph", tag = "v0.2.0" }
 # NOTE: the `persist` feature (catgraph-surreal + surrealdb + tokio) was
 # removed pending the catgraph-surreal reboot — the pre-reboot catgraph-surreal
 # pins the retired tsondru/catgraph lineage, which is a type-identity mismatch
@@ -82,7 +82,7 @@ proptest = "1"
 # (single-rev-string for deep_causality) convention as in the live
 # `[workspace.dependencies]` block above.
 #
-# [patch."ssh://git@github.com/sustia-llc/catgraph"]
+# [patch."https://github.com/sustia-llc/catgraph"]
 # catgraph = { path = "../../sustia-llc/catgraph/catgraph" }
 # catgraph-applied = { path = "../../sustia-llc/catgraph/catgraph-applied" }
 # catgraph-physics = { path = "../../sustia-llc/catgraph/catgraph-physics" }

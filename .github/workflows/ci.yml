@@ -10,29 +10,16 @@ concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-# Private git-dep auth (first use of this pattern; copy for other consumers of
-# private catgraph):
-#   1. Generate a dedicated keypair:  ssh-keygen -t ed25519 -N "" -C "<consumer>-ci-readonly"
-#   2. Public key  -> read-only deploy key on the dep repo:
-#        gh repo deploy-key add key.pub -R sustia-llc/catgraph --title "<consumer>-ci-readonly"
-#   3. Private key -> Actions secret on THIS repo:
-#        gh secret set CATGRAPH_DEPLOY_KEY -R <owner>/<consumer> < key
-#   4. webfactory/ssh-agent loads it; CARGO_NET_GIT_FETCH_WITH_CLI makes cargo
-#      shell out to git so the agent key is actually used for ssh:// dep URLs.
-# Cargo.lock is committed and CI builds --locked: cargo fetches every git
-# source in the lock (even disabled optional deps), so the lock must never
-# carry a git source CI cannot authenticate to.
-env:
-  CARGO_NET_GIT_FETCH_WITH_CLI: "true"
-
+# All git deps resolve over anonymous HTTPS (catgraph went public
+# 2026-07-27) — no deploy-key/ssh-agent machinery needed. Cargo.lock is
+# committed and CI builds --locked: cargo fetches every git source in the
+# lock (even disabled optional deps), so the lock must never carry a git
+# source CI cannot fetch.
 jobs:
   check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: webfactory/ssh-agent@v0.9.0
-        with:
-          ssh-private-key: ${{ secrets.CATGRAPH_DEPLOY_KEY }}
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy, rustfmt
