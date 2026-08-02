@@ -125,17 +125,9 @@ rebooted catgraph's core + physics layer.
 
 ## [0.6.5] - 2026-05-05
 
-Top-up post-shipping reviewer pass on v0.6.3 + v0.6.4. Workspace
-CLAUDE.md release rule 7 specifies the canonical triumvirate
-`superpowers:code-reviewer` + `rust-v2:rust-dev-v2` +
-`rust-v2:rust-practical`; the prior pass had two silent substitutions
-(`feature-dev:code-reviewer` instead of `superpowers:code-reviewer` —
-not the same agent — and `general-purpose` deep-paper audit
-substituted for `rust-v2:rust-practical` instead of being added
-alongside it). The user re-dispatched the missing two reviewers; this
-v0.6.5 patch carries their findings. Workspace CLAUDE.md release
-rule 7 was simultaneously tightened to lock the canonical triumvirate
-and forbid silent substitution.
+Top-up post-release review pass on v0.6.3 + v0.6.4: the v0.6.4 pass
+had run with an incomplete reviewer set, so the missing reviews were
+re-run; this v0.6.5 patch carries their findings.
 
 Four mechanical findings, all doc / Cargo.toml-comment level. No
 code or behavioral change.
@@ -151,7 +143,7 @@ code or behavioral change.
   Categorical Infrastructure" section header + the integration-status
   paragraph (line 214) + the deferred-work table (line 494) to
   reference the umbrella convention rather than a stale
-  point-release tag. Reviewers N-I1 + I-2.
+  point-release tag.
 - **`Cargo.toml` commented `[patch.*]` block completed**. The block
   listed `catgraph` and `catgraph-physics` as the path-patch targets
   but **omitted `catgraph-applied`** even though it is a
@@ -159,41 +151,40 @@ code or behavioral change.
   Anyone uncommenting the block for cross-repo dev would
   accidentally split the catgraph source identity (path-patched
   `catgraph` + git-tagged `catgraph-applied` from the same URL =
-  H.4 dual-SHA). Added the missing line + an explicit
-  `IMPORTANT (H.4 dual-SHA prevention)` comment block citing the
-  workspace H.4 precedent. Reviewer rust-v2:rust-practical I-1.
+  a dual-SHA split). Added the missing line + an explicit
+  `IMPORTANT (dual-SHA prevention)` comment block citing the
+  established dual-SHA precedent.
 - **`docs/GORARD23-AUDIT.md` header version updated** from
   `v0.6.3 / e099cb9` to a version-neutral framing covering the doc's
   ongoing maintenance. The audit doc was *committed* at v0.6.4 SHA
   `6b3d656` but the header still claimed v0.6.3, creating a
-  release-marker drift. Reviewer N-I2.
+  release-marker drift.
 - **`docs/GORARD23-AUDIT.md` Acceptance Gate 9 (NTM
   subadditive-parallel-composition test) cross-references action
   item I-6** with the v0.7.0 ratified-decision link. Previously
-  Gate 9 said "Blocking" with no scheduled-fix pointer. Reviewer N-M1.
+  Gate 9 said "Blocking" with no scheduled-fix pointer.
 - **`src/lib.rs:12` rustdoc** clarified that `Complexity` +
   `ComputationState` remain local types, while `DiscreteInterval`,
   `ParallelIntervals`, `TemporalComplex`, and `StepTrace` are
   re-exported from `catgraph_physics` via the v0.6.3 shim modules
   (which v0.7.0 will drop). Previously the line said all three were
   "re-exported from catgraph", which was true pre-shim but is now
-  misleading. Reviewer N-M2.
+  misleading.
 
 ### Architectural follow-up (v0.7.0 plan annotation)
 
-- **A-1 (rust-v2:rust-practical)**: v0.7.0's release procedure
+- v0.7.0's release procedure
   should add an explicit pre-tagging gate "verify catgraph-surreal's
   umbrella tag matches the irreducible catgraph pin" — when v0.7.0
   drops the shim files, if catgraph-surreal has not yet bumped to
-  the umbrella tag of that release, the H.4 dual-SHA pattern can
+  the umbrella tag of that release, the dual-SHA pattern can
   recur. Tracked in the v0.7.0 design phase.
 
 ## [0.6.4] - 2026-05-05
 
-Three-reviewer post-shipping patch on v0.6.3 (per workspace CLAUDE.md
-release rule 7 — `superpowers:code-reviewer` + `rust-v2:rust-dev-v2` +
-deep paper-fidelity audit against Gorard 2023, modeled on yesterday's
-catgraph-magnitude v0.2.1 deep-pass pattern). Audit doc landed at
+Three-reviewer post-release patch on v0.6.3 (code review +
+Rust-language review + a deep paper-fidelity audit against
+Gorard 2023). Audit doc landed at
 [`docs/GORARD23-AUDIT.md`](docs/GORARD23-AUDIT.md) (51 audited items —
 38 implementable: 20 DONE, 8 PARTIAL, 10 DEFERRED).
 
@@ -215,7 +206,7 @@ in the audit doc.
   implement — the blanket already satisfies it). Updated the
   symbol table at line 161 + the directory tree at line 36 +
   added an explicit "Do NOT add new methods to `IrreducibilityTrace`"
-  note. Reviewer C-I1.
+  note.
 - **`src/trace.rs:21-30` rustdoc clarified**: the deprecation warning
   on `IrreducibilityTrace` fires at the **bound site** (`fn f<T:
   IrreducibilityTrace>(...)`), not at method-call sites — method
@@ -224,25 +215,22 @@ in the audit doc.
   per bound is the intended trade-off of the sub-trait pattern over
   duplicating method signatures. The pre-patch wording "fires the
   `#[deprecated]` warning at consumer call sites" was inaccurate.
-  Reviewer R-I1.
 - **`src/trace.rs:30` blanket impl narrowed** from `impl<T: StepTrace
   + ?Sized> IrreducibilityTrace for T {}` to `impl<T: StepTrace>
   IrreducibilityTrace for T {}`. Upstream `StepTrace` is implicitly
   `Sized`-bound, so the `?Sized` widening was harmless (the bound
   was unsatisfiable for `!Sized` `T`) but asymmetric vs. upstream
   and slightly misleading at the API surface. Matching narrowing
-  applied to `tests/shim_aliases.rs` test bounds. Reviewer R-I2.
+  applied to `tests/shim_aliases.rs` test bounds.
 - **`tests/shim_aliases.rs:11-15` doc comment clarified**: replaced
   the inaccurate "and vice versa via the blanket" with an explicit
   bidirectional account (the blanket gives `StepTrace ⇒
   IrreducibilityTrace`; the supertrait bound gives the reverse).
-  Reviewer M-1 from code-review.
 - **CHANGELOG v0.6.3 test-count notation corrected**: the line
   "200 lib + 12 integration (incl. 1 new alias-round-trip) +
   1 shim_aliases + 9 doctests" double-counted `shim_aliases.rs` and
   understated the integration-test file count. Replaced with the
-  accurate "200 lib + 15 integration test files" wording. Reviewer
-  C-I2.
+  accurate "200 lib + 15 integration test files" wording.
 
 ### Added
 
@@ -281,8 +269,9 @@ sequence of smaller fidelity items. All are tracked in
   not adjointness. The paper's right adjoint Z is `𝓑ord^Riem → 𝓥ect`
   (Atiyah-Segal propagator); irreducible's Z is `DiscreteInterval →
   ComputationState` — a categorical pun. **Decision (2026-05-05):
-  build a real Z stub on rebozo's `causality:topology-lattice-gauge`
-  substrate in v0.8.0+**, aligning with paper §4. v0.7.0 doc-warns
+  build a real Z stub on lattice-gauge infrastructure (Wilson /
+  Polyakov loops, e.g. `deep_causality_topology`'s gauge module)
+  in v0.8.0+**, aligning with paper §4. v0.7.0 doc-warns
   the current `ZPrimeAdjunction` to flag the framing gap.
 - **P-M2 (paper)** — `Direction::Stay` should be `Direction::Id`
   (paper Eqs 1, 8 explicitly write the third δ value as `id` to
@@ -319,14 +308,14 @@ commitment.
   this crate depends on are unchanged at the source level
   (catgraph v0.12.2, catgraph-applied v0.5.4, catgraph-physics v0.3.0).
 - **`catgraph-surreal` pin bumped from `v0.10.1` to `v0.11.1`.**
-  v0.11.1 was cut alongside this release as the +1 H.4-pattern
-  crate-tag — it is the same code as v0.11.0 plus a single-line
+  v0.11.1 was cut alongside this release as the +1
+  dual-SHA-prevention crate-tag — it is the same code as v0.11.0 plus a single-line
   catgraph-deps tag-string bump from `v0.12.0` to `v0.13.0` so all
   four pins in this crate's resolved graph collapse to one catgraph
   source identity. Without that bump, the v0.13.0 umbrella + a
   `v0.10.1`-or-v0.11.0 catgraph-surreal in the same graph produce
-  two cargo source identities for catgraph and the canonical H.4
-  boundary-type mismatch on `Cospan<u32>` / `Span<u32>`.
+  two cargo source identities for catgraph and the canonical
+  dual-SHA boundary-type mismatch on `Cospan<u32>` / `Span<u32>`.
 - **`src/interval.rs` reduced to a re-export shim** (387 LOC →
   8 LOC) pointing at `catgraph_physics::interval::{DiscreteInterval,
   ParallelIntervals}`. No type renames; consumer paths

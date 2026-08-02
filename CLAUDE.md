@@ -26,12 +26,12 @@ Rust 2024 edition, MSRV 1.90.
 ## Dependencies
 
 - `catgraph` / `catgraph-applied` / `catgraph-physics` — git tag on the
-  private `sustia-llc/catgraph` workspace (SSH). **ONE tag string shared by
+  public `sustia-llc/catgraph` workspace (HTTPS). **ONE tag string shared by
   all three** (dual-SHA prevention; see the Cargo.toml comments).
 - `deep_causality_{topology,tensor,sparse}` — currently git-rev-pinned
   pre-release (one shared rev string); swap to crates.io pins once released.
-- CI authenticates the private catgraph dep with a read-only deploy key +
-  `webfactory/ssh-agent`; `Cargo.lock` is committed and CI builds `--locked`.
+- All git deps fetch over anonymous HTTPS; `Cargo.lock` is committed and CI
+  builds `--locked`.
 
 ## Feature flags
 
@@ -62,4 +62,4 @@ catgraph lineage (type-identity mismatch). Restore path: issue #15.
 5. **Upstream gaps are upstream issues.** If a catgraph surface is missing or
    wrong, file it on catgraph — never work around it downstream.
 
-Work is tracked as GitHub issues; TODO.md is retired.
+Work is tracked as GitHub issues.

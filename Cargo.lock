@@ -187,7 +187,7 @@ checksum = "8ae3f5d315924270530207e2a68396c3cc547f6dca3fbdca317cfb1a51edb593"
 [[package]]
 name = "catgraph"
 version = "0.2.0"
-source = "git+ssh://git@github.com/sustia-llc/catgraph?tag=v0.2.0#d0fa5cd06eb0389053eaca0daff9bd96760eb828"
+source = "git+https://github.com/sustia-llc/catgraph?tag=v0.2.0#a7f8ff2d894a1bfdb7e1082321b546b56f9a2b2d"
 dependencies = [
  "either",
  "itertools 0.15.0",
@@ -202,7 +202,7 @@ dependencies = [
 [[package]]
 name = "catgraph-applied"
 version = "0.2.0"
-source = "git+ssh://git@github.com/sustia-llc/catgraph?tag=v0.2.0#d0fa5cd06eb0389053eaca0daff9bd96760eb828"
+source = "git+https://github.com/sustia-llc/catgraph?tag=v0.2.0#a7f8ff2d894a1bfdb7e1082321b546b56f9a2b2d"
 dependencies = [
  "catgraph",
  "deep_causality_num 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -220,7 +220,7 @@ dependencies = [
 [[package]]
 name = "catgraph-physics"
 version = "0.2.0"
-source = "git+ssh://git@github.com/sustia-llc/catgraph?tag=v0.2.0#d0fa5cd06eb0389053eaca0daff9bd96760eb828"
+source = "git+https://github.com/sustia-llc/catgraph?tag=v0.2.0#a7f8ff2d894a1bfdb7e1082321b546b56f9a2b2d"
 dependencies = [
  "catgraph",
  "nalgebra 0.35.0",
@@ -1732,7 +1732,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "32497e9a4c7b38532efcdebeef879707aa9f794296a4f0244f6f69e9bc8574bd"
 dependencies = [
  "fastrand",
- "getrandom 0.4.3",
+ "getrandom 0.3.4",
  "once_cell",
  "rustix",
  "windows-sys 0.61.2",
