@@ -340,8 +340,8 @@ fn linear_graph(fingerprints: &[u64]) -> MultiwayEvolutionGraph<u64, ()> {
 ///
 /// These values do **not** separate irreducible from reducible traces — see
 /// [`categorical_perspectives_do_not_separate_the_reducible_trace`], which
-/// pins the same values on rule 0. They pin the single-track *shape*: a fork,
-/// a merge or a truncation would move them.
+/// pins the same values on rule 0. They pin the single-track *shape*: a fork
+/// or a truncation would move them.
 fn assert_single_track_perspectives(fingerprints: &[u64], name: &str) {
     let graph = linear_graph(fingerprints);
     let expected_steps = fingerprints.len() - 1;

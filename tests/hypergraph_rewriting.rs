@@ -588,7 +588,8 @@ fn merge_partition_apex_labels_are_class_minima() {
     assert_eq!(
         corel.as_cospan().middle(),
         &[0, 1, 2, 3, 4, 5, 13, 23, 54],
-        "apex labels must be the minimum vertex ID of each class"
+        "apex labels must be the minimum vertex ID of each class \
+         (maxima would give [0, 1, 2, 3, 4, 22, 89, 28, 82])"
     );
     assert_eq!(
         boundary, 90,
@@ -632,16 +633,24 @@ fn merge_group_graph(
 fn merge_states_of_equal_size_align_by_sorted_vertex_id() {
     use irreducible::machines::hypergraph::MergesCorelExt;
 
-    // Control for the skip path below: one vertex each, so the alignment
-    // runs and identifies 20 with 30 under the smaller representative.
-    let graph = merge_group_graph(&[20], &[30]);
+    // Both merged states carry two vertices, listed out of ascending order in
+    // one of them. Sorting before zipping pairs 20↔30 and 21↔31; zipping the
+    // stored order would pair 20↔31 and 21↔30 instead. Both orders produce
+    // the same class *count* and the same representatives, so only the
+    // pairing assertions below separate them.
+    let graph = merge_group_graph(&[20, 21], &[31, 30]);
     let corel = graph.merges_corel().expect("corelation builds");
 
-    assert_eq!(corel.as_cospan().left_to_middle().len(), 4);
-    assert_eq!(corel.as_cospan().middle(), &[10, 11, 20]);
+    // Boundary is [10, 11, 20, 21, 30, 31]; 10 and 11 are untouched, and the
+    // two merged pairs collapse onto the smaller ID of each.
+    assert_eq!(corel.as_cospan().left_to_middle().len(), 6);
+    assert_eq!(corel.as_cospan().middle(), &[10, 11, 20, 21]);
+
+    assert!(corel.merges(2, 4), "sorted alignment pairs 20 with 30");
+    assert!(corel.merges(3, 5), "sorted alignment pairs 21 with 31");
     assert!(
-        corel.merges(2, 3),
-        "aligned vertices 20 and 30 must share a class"
+        !corel.merges(2, 5),
+        "20 and 31 are not aligned — that is the unsorted pairing"
     );
 }
 

@@ -274,7 +274,8 @@ fn truncated_evolution_produces_a_counit_event() {
     // Derived from the graph, not from the cospans: the truncation leaves
     // exactly one step-1 node without forward edges, and every other node at
     // steps 0 and 1 forks in two. The cospan literals below follow from this
-    // shape, so a drift in the BFS truncation order fails here first.
+    // shape, so a drift in the truncated shape — slice widths, or which
+    // nodes keep children — fails here first.
     let slice_widths: Vec<usize> = foliation.iter().map(|s| s.nodes.len()).collect();
     assert_eq!(slice_widths, vec![1, 2, 2], "branchial slice widths");
     let children_at_step_1: Vec<usize> = foliation[1]

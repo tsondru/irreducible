@@ -1208,11 +1208,11 @@ fn print_final_summary() {
     println!("  │     Z'(g∘f) = Z'(g) ∘ Z'(f)                                      │");
     println!("  │                                                                 │");
     println!("  │  2. TURING MACHINE: THE BUSY BEAVER                             │");
-    println!("  │     Z' maps each transition to [n, n+1]; contiguous = no       │");
+    println!("  │     Z' maps each transition to [n, n+1]; contiguous = no        │");
     println!("  │     shortcuts = irreducible                                     │");
     println!("  │                                                                 │");
     println!("  │  3. CELLULAR AUTOMATA: RULE 30 vs RULE 0                        │");
-    println!("  │     Rule 30 never repeats; rule 0 reaches a fixed point         │");
+    println!("  │     No repeat in rule 30's 20 generations; rule 0 repeats       │");
     println!("  │                                                                 │");
     println!("  │  4. THE ADJUNCTION Z' ⊣ Z                                       │");
     println!("  │     Encodes 'quantum duality' between computation and time      │");
