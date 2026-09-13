@@ -30,7 +30,7 @@
 //!
 //! # Persistence (`persist`)
 //!
-//! The [`persistence`] module stores a cospan chain in SurrealDB through
+//! The `persistence` module stores a cospan chain in SurrealDB through
 //! catgraph-surreal. It is behind the `persist` feature, which selects no
 //! engine on its own — `persist-mem` or `persist-rocksdb` adds one.
 

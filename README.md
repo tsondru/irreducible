@@ -6,7 +6,7 @@ Computational irreducibility as functoriality in Rust, implementing Jonathan Gor
 
 irreducible is the **example consumer of the [catgraph](https://github.com/sustia-llc/catgraph) core + physics layer** (v0.23.0): [catgraph](https://github.com/sustia-llc/catgraph) supplies the Fong-Spivak categorical infrastructure (cospans, spans, hypergraph categories, cospan-algebras), catgraph-applied the Petri-net substrate, and catgraph-physics the hypergraph DPO rewriting, multiway evolution graphs, confluence diamond detection, and branchial spectral analysis. irreducible owns the computation-facing layer -- interval algebra, adjunctions, monoidal coherence, discrete exterior calculus, trace analysis -- plus the computation models (TM, CA, SRS, NTM, Petri nets).
 
-Zero clippy warnings at `-D warnings`. Rust 2024 edition, MSRV 1.94 (measured cross-feature maximum; the default feature set builds on 1.90, the `dc-geometry` tiers need 1.93, the `persist` tiers 1.94).
+Zero clippy warnings at `-D warnings`. Rust 2024 edition, MSRV 1.98 (measured cross-feature maximum; the default feature set builds on 1.90, the `persist` tiers need 1.94, the `dc-geometry` tiers 1.98).
 
 ## Component Index
 
@@ -116,7 +116,7 @@ assert!(functorial && stokes_ok && frobenius_ok); // all agree
 | Feature | Gates | Dependencies |
 |---------|-------|--------------|
 | *(none)* | Core library (TM, CA, SRS, NTM, functor, cobordism) | `catgraph`, `catgraph-physics`, `serde` |
-| `dc-geometry` | dc_topology Regge + DEC substrate | `deep_causality_topology`, `deep_causality_tensor`, `deep_causality_sparse` |
+| `dc-geometry` | dc_topology Regge + DEC substrate | `deep_causality_topology`, `deep_causality_tensor`, `deep_causality_linear` |
 | `dec` | Discrete exterior calculus on multiway complexes | `dc-geometry`, `nalgebra` |
 | `manifold-curvature` | Regge deficit-angle curvature on branchial complexes | `dc-geometry`, `nalgebra` |
 | `lapack` | LAPACK-accelerated eigendecomposition for MDS | `nalgebra-lapack` (implies `manifold-curvature`; requires `libopenblas-dev`) |
@@ -201,7 +201,7 @@ For 1D simplicial complexes, Stokes conservation reduces to contiguity + monoton
 
 - [catgraph](https://github.com/sustia-llc/catgraph) v0.23.0 -- category theory infrastructure (cospans, spans, Fong-Spivak hypergraph categories); workspace tag shared with catgraph-applied (Petri nets) and catgraph-physics (hypergraph DPO rewriting, multiway evolution, confluence diamonds, discrete curvature, branchial spectral analysis)
 - `serde` + `serde_json` -- serialization
-- Optional: `deep_causality_topology` + `deep_causality_tensor` + `deep_causality_sparse` (Regge curvature + DEC substrate; currently git-rev-pinned pre-release), `nalgebra` (matrix ops), `nalgebra-lapack` (LAPACK)
+- Optional: `deep_causality_topology` 0.10 + `deep_causality_tensor` 0.5 + `deep_causality_linear` 0.1 (Regge curvature + DEC substrate), `nalgebra` (matrix ops), `nalgebra-lapack` (LAPACK)
 
 ## References
 

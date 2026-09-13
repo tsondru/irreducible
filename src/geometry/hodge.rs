@@ -25,11 +25,11 @@
 //!
 //! # Output type
 //!
-//! All three operators are returned as `deep_causality_sparse::CsrMatrix<f64>`
+//! All three operators are returned as `deep_causality_linear::CsrMatrix<f64>`
 //! — the same type `SimplicialComplex::new` accepts in its
 //! `hodge_star_operators` slot.
 
-use deep_causality_sparse::CsrMatrix;
+use deep_causality_linear::CsrMatrix;
 use deep_causality_topology::SimplicialComplex;
 
 /// Area of a unit-edge equilateral triangle: `√3 / 4`.
@@ -274,5 +274,26 @@ mod tests {
         assert_eq!(ops[0].shape(), (3, 3));
         assert_eq!(ops[1].shape(), (3, 3));
         assert_eq!(ops[2].shape(), (1, 1));
+        // One stored (diagonal) entry per row, every entry positive; on a
+        // single triangle every edge is a boundary edge, so ⋆₁ is
+        // DUAL_LEN_BOUNDARY throughout.
+        for (k, (op, rows)) in ops.iter().zip([3usize, 3, 1]).enumerate() {
+            assert_eq!(
+                op.values().len(),
+                rows,
+                "⋆{k} stores {} entries, expected {rows}",
+                op.values().len()
+            );
+            assert!(
+                op.values().iter().all(|&v| v > 0.0),
+                "⋆{k} entries are not all positive: {:?}",
+                op.values()
+            );
+        }
+        assert!(
+            ops[1].values().iter().all(|&v| v == DUAL_LEN_BOUNDARY),
+            "⋆₁ on a single triangle is DUAL_LEN_BOUNDARY per edge: {:?}",
+            ops[1].values()
+        );
     }
 }

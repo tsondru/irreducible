@@ -40,8 +40,6 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this c
 
 ### Changed
 
-- **`rust-version` 1.93 → 1.94**: the `persist` lanes refuse below 1.94
-  (`catgraph-surreal`, `fastnum`).
 - **Categorical-stack cleanups** (#26), output-identical on every
   fixture: interval bundles fold by value, slice positions are indexed
   per window, the three hand-rolled union-finds are the `union-find`
@@ -49,6 +47,16 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this c
   `renumber_first_seen` is shared, `step_corels` extracts the foliation
   once, `spider_recipe` is memoized per `verify_frobenius_preservation`
   call.
+- **deep_causality on crates.io** (#17): `deep_causality_topology`
+  `0.10`, `deep_causality_tensor` `0.5`, `deep_causality_linear` `0.1`
+  replace the git-rev pre-release pins; `CsrMatrix` comes from
+  `deep_causality_linear` (the topology crate no longer depends on
+  `deep_causality_sparse`, which leaves the lock). Consumer surface
+  otherwise drop-in; every `dc-geometry` test value unchanged.
+- **`rust-version` 1.93 → 1.98**, the measured cross-feature maximum:
+  the `persist` lanes refuse below 1.94 (`catgraph-surreal`, `fastnum`);
+  the `dc-geometry` tiers refuse below 1.98 (every `deep_causality_*`
+  crate at `0.10`).
 
 ## [0.7.0] - 2026-09-13
 
