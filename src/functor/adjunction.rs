@@ -88,7 +88,7 @@ impl AdjunctionIrreducibility for ZPrimeAdjunction {}
 /// structure.
 ///
 /// The snake identities are verified *semantically* — cospan composition
-/// via pushout, compared by [`Cospan::structurally_equal`]. The Prop 3.2
+/// via pushout, compared by [`Cospan`]'s `PartialEq`. The Prop 3.2
 /// name/unname round-trip on the Frobenius decomposition is verified at
 /// the boundary level only: the free hypergraph category carries no
 /// diagram normal form upstream, so full string-diagram equality is not

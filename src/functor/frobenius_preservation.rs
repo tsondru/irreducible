@@ -4,7 +4,7 @@
 //!
 //! Both categories are structured as hypergraph categories **by encoding
 //! into the free one** (Thm 3.14): T-morphisms are the multiway step
-//! cospans of [`multiway_step_cospans`](super::interval_algebra::multiway_step_cospans)
+//! cospans of [`super::interval_algebra::multiway_step_cospans`]
 //! and B-morphisms are cobordism cospans — both `Cospan<u32>`, which
 //! carries the `HypergraphCategory` impl. Under this encoding the Frobenius
 //! generators of T **are the multiway event types**:

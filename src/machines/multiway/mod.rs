@@ -1,6 +1,7 @@
 //! Multiway (non-deterministic) computation systems.
 //!
-//! Generic multiway infrastructure re-exported from [`catgraph::multiway`].
+//! Generic multiway infrastructure re-exported from
+//! [`catgraph_physics::multiway`].
 //! Domain-specific computation models (SRS, NTM) and the manifold curvature
 //! bridge remain local to this crate.
 //!

@@ -6,7 +6,8 @@
 //!
 //! # Mathematical Setting
 //!
-//! Given a [`MultiwayEvolutionGraph`] with confluence diamonds:
+//! Given a [`catgraph_physics::multiway::MultiwayEvolutionGraph`] with
+//! confluence diamonds:
 //! - **0-simplices** = states (nodes)
 //! - **1-simplices** = rewrite events (edges)
 //! - **2-simplices** = confluence diamonds (triangulated into pairs of
@@ -25,20 +26,21 @@
 //! # Substrate port (Phase 2, 2026-04-14)
 //!
 //! The internal skeleton storage is now a
-//! [`deep_causality_topology::SimplicialComplex<f64>`]. The
-//! [`MultiwayComplex`] type holds:
+//! `deep_causality_topology::SimplicialComplex<f64>`. The
+//! `MultiwayComplex` type holds:
 //!
 //! 1. The `dc_topology` complex (vertices + multiway edges + triangulated
 //!    2-simplices with populated unit-edge Hodge operators).
 //! 2. A parallel table of diamond faces as 4-tuples of multiway-edge indices
-//!    — the canonical 4-cycle structure used by [`MultiwayComplex::exterior_derivative`].
+//!    — the canonical 4-cycle structure used by
+//!    `MultiwayComplex::exterior_derivative`.
 //!
 //! The diamond-cycle coboundary is deliberately **not** the standard simplicial
 //! `d₁` on the triangulated faces: those two semantics differ, and the diamond
 //! integral is the one that lines up with the categorical closedness statement
 //! (path integrals around confluence diamonds). The triangulated complex is
-//! retained because it gives [`Manifold::laplacian`],
-//! [`Manifold::hodge_star`], and [`Manifold::codifferential`] something to
+//! retained because it gives `Manifold::laplacian`,
+//! `Manifold::hodge_star`, and `Manifold::codifferential` something to
 //! run against when callers want the full `dc_topology` DEC stack
 //! (e.g. the `hodge_laplacian_spectrum_is_nonneg` integration test).
 //!
@@ -63,7 +65,7 @@ mod inner {
     /// Internally backed by a [`deep_causality_topology::SimplicialComplex<f64>`]
     /// whose 2-simplices are the triangulation of confluence diamonds
     /// (one diamond → two triangles sharing a synthetic `top→bottom` diagonal).
-    /// The parallel [`Self::diamond_faces`] table preserves the 4-cycle
+    /// The parallel `diamond_faces` table preserves the 4-cycle
     /// structure used by the diamond exterior derivative.
     #[derive(Debug, Clone)]
     pub struct MultiwayComplex {

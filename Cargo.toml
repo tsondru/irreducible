@@ -3,7 +3,7 @@ resolver = "2"
 members = []
 
 [workspace.package]
-version = "0.6.5"
+version = "0.7.0"
 edition = "2024"
 rust-version = "1.90"
 license = "MIT"
@@ -56,8 +56,8 @@ catgraph.workspace = true
 catgraph-applied.workspace = true
 catgraph-physics.workspace = true
 rust_decimal.workspace = true
-nalgebra = { version = "0.34", optional = true }
-nalgebra-lapack = { version = "0.27", optional = true, default-features = false, features = ["lapack-openblas"] }
+nalgebra = { version = "0.35", optional = true }
+nalgebra-lapack = { version = "0.28", optional = true, default-features = false, features = ["lapack-openblas"] }
 deep_causality_topology = { workspace = true, optional = true }
 deep_causality_tensor = { workspace = true, optional = true }
 deep_causality_sparse = { workspace = true, optional = true }

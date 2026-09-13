@@ -1,5 +1,5 @@
-//! Interval bridge helpers between `catgraph::multiway` and irreducible's
-//! local `interval` module.
+//! Interval bridge helpers between `catgraph_physics::multiway` and
+//! irreducible's local `interval` module.
 //!
 //! catgraph v0.10.5 moved `interval` out of catgraph into irreducible, so the
 //! two helper functions that used to return `DiscreteInterval` /

@@ -151,12 +151,16 @@ fn wilson_loop_computation() {
     let evolution = HypergraphEvolution::run_multiway(&graph, &[rule], 4, 100);
     let loops = evolution.find_wilson_loops();
 
-    // Wilson loops exist only when branches merge (same fingerprint)
-    // We just verify the API works and returns valid structures
-    for wl in &loops {
-        assert!(!wl.path.is_empty());
-        assert!(wl.holonomy >= 0.0);
-        assert!(wl.holonomy <= 1.0);
+    // Wilson loops exist only when branches merge (same fingerprint).
+    // Holonomy is the causal-graph comparison of the two branches, so it is
+    // exactly 1.0 (isomorphic) or 0.0 — no intermediate value.
+    for (i, wl) in loops.iter().enumerate() {
+        assert!(!wl.path.is_empty(), "loop {i} has an empty path");
+        assert!(
+            wl.holonomy == 1.0 || wl.holonomy == 0.0,
+            "loop {i} holonomy is {}, neither 1.0 nor 0.0",
+            wl.holonomy
+        );
     }
 }
 

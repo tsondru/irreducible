@@ -1,7 +1,7 @@
 //! Multiway cospan analysis for hypergraph evolution.
 //!
 //! Core types and extension trait re-exported from
-//! [`catgraph::hypergraph::multiway_cospan`], plus the local
+//! [`catgraph_physics::hypergraph::multiway_cospan`], plus the local
 //! [`MergesCorelExt`] extension exposing the evolution's merge structure as
 //! a [`Corel`] (F&S 2018 Ex 6.64; issue #14).
 

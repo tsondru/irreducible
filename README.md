@@ -4,7 +4,7 @@ Computational irreducibility as functoriality in Rust, implementing Jonathan Gor
 
 **Core insight**: A computation is irreducible iff a certain functor Z': T -> B (from computations to cobordisms) preserves composition. No shortcuts exist when Z' is functorial.
 
-irreducible is the **example consumer of the [catgraph](https://github.com/sustia-llc/catgraph) core + physics layer** (v0.2.0): [catgraph](https://github.com/sustia-llc/catgraph) supplies the Fong-Spivak categorical infrastructure (cospans, spans, hypergraph categories, cospan-algebras), catgraph-applied the Petri-net substrate, and catgraph-physics the hypergraph DPO rewriting, multiway evolution graphs, confluence diamond detection, and branchial spectral analysis. irreducible owns the computation-facing layer -- interval algebra, adjunctions, monoidal coherence, discrete exterior calculus, trace analysis -- plus the computation models (TM, CA, SRS, NTM, Petri nets).
+irreducible is the **example consumer of the [catgraph](https://github.com/sustia-llc/catgraph) core + physics layer** (v0.23.0): [catgraph](https://github.com/sustia-llc/catgraph) supplies the Fong-Spivak categorical infrastructure (cospans, spans, hypergraph categories, cospan-algebras), catgraph-applied the Petri-net substrate, and catgraph-physics the hypergraph DPO rewriting, multiway evolution graphs, confluence diamond detection, and branchial spectral analysis. irreducible owns the computation-facing layer -- interval algebra, adjunctions, monoidal coherence, discrete exterior calculus, trace analysis -- plus the computation models (TM, CA, SRS, NTM, Petri nets).
 
 354 tests on default features (381 with `manifold-curvature,dec`), zero clippy warnings. Rust 2024 edition, MSRV 1.90.
 
@@ -42,7 +42,7 @@ irreducible is the **example consumer of the [catgraph](https://github.com/susti
 
 ## Fong-Spivak Feature Map
 
-Re-exports from catgraph v0.2.0 implementing [Fong & Spivak, *Hypergraph Categories*](https://arxiv.org/abs/1806.08304) SS2-3:
+Re-exports from catgraph v0.23.0 implementing [Fong & Spivak, *Hypergraph Categories*](https://arxiv.org/abs/1806.08304) SS2-3:
 
 | Paper Reference | Re-exported Type | Purpose |
 |-----------------|------------------|---------|
@@ -66,10 +66,10 @@ Re-exports from catgraph v0.2.0 implementing [Fong & Spivak, *Hypergraph Categor
 | Stokes integration | `TemporalComplex`, `ConservationResult` | temporal_cospan_chain.rs |
 | Discrete exterior calculus | `MultiwayComplex`, `OneForm`, `TwoForm` | multiway_stokes.rs (feature: dec) |
 | Frobenius structure | `FrobeniusVerificationResult`, `verify_cospan_chain_frobenius` | functor/fong_spivak.rs |
-| DPO rewriting as spans | `RewriteRule::to_span()` | catgraph::hypergraph |
-| Evolution as cospan chain | `HypergraphEvolution::to_cospan_chain()` | catgraph::hypergraph |
-| Causal invariance | Wilson loops, holonomy analysis | catgraph::hypergraph |
-| Branchial curvature | `OllivierRicciCurvature` | catgraph::multiway |
+| DPO rewriting as spans | `RewriteRule::to_span()` | catgraph_physics::hypergraph |
+| Evolution as cospan chain | `HypergraphEvolution::to_cospan_chain()` | catgraph_physics::hypergraph |
+| Causal invariance | Wilson loops, holonomy analysis | catgraph_physics::hypergraph |
+| Branchial curvature | `OllivierRicciCurvature` | catgraph_physics::multiway |
 | Complexity algebra | `Complexity`, `StepCount` | irreducible::complexity |
 
 ## Quick Start
@@ -193,7 +193,7 @@ For 1D simplicial complexes, Stokes conservation reduces to contiguity + monoton
 
 ## Dependencies
 
-- [catgraph](https://github.com/sustia-llc/catgraph) v0.2.0 -- category theory infrastructure (cospans, spans, Fong-Spivak hypergraph categories); workspace tag shared with catgraph-applied (Petri nets) and catgraph-physics (hypergraph DPO rewriting, multiway evolution, confluence diamonds, discrete curvature, branchial spectral analysis)
+- [catgraph](https://github.com/sustia-llc/catgraph) v0.23.0 -- category theory infrastructure (cospans, spans, Fong-Spivak hypergraph categories); workspace tag shared with catgraph-applied (Petri nets) and catgraph-physics (hypergraph DPO rewriting, multiway evolution, confluence diamonds, discrete curvature, branchial spectral analysis)
 - `serde` + `serde_json` -- serialization
 - Optional: `deep_causality_topology` + `deep_causality_tensor` + `deep_causality_sparse` (Regge curvature + DEC substrate; currently git-rev-pinned pre-release), `nalgebra` (matrix ops), `nalgebra-lapack` (LAPACK)
 

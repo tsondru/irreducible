@@ -1,7 +1,11 @@
 //! Hypergraph rewriting for Wolfram Physics model.
 //!
-//! Core types re-exported from [`catgraph::hypergraph`]. This module
+//! Core types re-exported from [`catgraph_physics::hypergraph`]. This module
 //! adds multiway cospan analysis types for evolution graph interpretation.
+//!
+//! The `GaugeGroup`, `HypergraphLattice`, `HypergraphRewriteGroup`,
+//! `plaquette_action` and `total_action` re-exports are unconditional because
+//! catgraph-physics' default feature set includes `gauge`.
 //!
 //! # Key Concepts
 //!
