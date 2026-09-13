@@ -190,6 +190,25 @@ fn generator_preserved(
 /// also errors if a step cospan contains an event with no parent branch
 /// (a spontaneous creation mid-evolution, which multiway BFS never
 /// produces).
+///
+/// # Examples
+///
+/// On the diamond `S → AB | BA`, both `→ Z`, every generator equation holds
+/// and each step's events factor through their spider recipe — the fork at
+/// step 0, two sequential events at step 1:
+///
+/// ```rust
+/// use irreducible::{StringRewriteSystem, verify_frobenius_preservation};
+///
+/// let srs = StringRewriteSystem::new(vec![("S", "AB"), ("S", "BA"), ("AB", "Z"), ("BA", "Z")]);
+/// let evolution = srs.run_multiway("S", 2, 16);
+/// let result = verify_frobenius_preservation(&evolution).unwrap();
+///
+/// assert!(result.all_hold());
+/// assert_eq!(result.per_step.len(), 2);
+/// assert_eq!(result.per_step[0].components_checked, 1);
+/// assert_eq!(result.per_step[1].components_checked, 2);
+/// ```
 pub fn verify_frobenius_preservation<S: Clone + Hash, T: Clone>(
     graph: &MultiwayEvolutionGraph<S, T>,
 ) -> Result<FrobeniusPreservationResult, CatgraphError> {

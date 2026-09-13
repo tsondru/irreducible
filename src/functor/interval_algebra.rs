@@ -76,6 +76,26 @@ impl CospanAlgebra<u32> for IntervalCospanAlgebra {
     /// - a right-boundary node's apex component contains no left-boundary
     ///   node (a spontaneous branch has no interval history to transport;
     ///   multiway step cospans never produce this).
+    ///
+    /// # Examples
+    ///
+    /// A merge — both left-boundary nodes share the single apex vertex —
+    /// hands the surviving branch the hull of its parents' intervals:
+    ///
+    /// ```rust
+    /// use catgraph::cospan::Cospan;
+    /// use irreducible::{CospanAlgebra, DiscreteInterval, IntervalCospanAlgebra, ParallelIntervals};
+    ///
+    /// let merge = Cospan::new(vec![0, 0], vec![0], vec![0u32]).unwrap();
+    ///
+    /// let mut parents = ParallelIntervals::new();
+    /// parents.add_branch(DiscreteInterval::new(0, 2));
+    /// parents.add_branch(DiscreteInterval::new(1, 4));
+    ///
+    /// let child = IntervalCospanAlgebra.map_cospan(&merge, &parents).unwrap();
+    /// assert_eq!(child.branch_count(), 1);
+    /// assert_eq!(child.branches[0], DiscreteInterval::new(0, 4));
+    /// ```
     fn map_cospan(
         &self,
         cospan: &Cospan<u32>,
@@ -138,6 +158,24 @@ impl CospanAlgebra<u32> for IntervalCospanAlgebra {
 /// Adjacent cospans in the returned chain are composable: the right boundary
 /// arity of step `i` equals the left boundary arity of step `i + 1` (both
 /// are the branchial slice at `i + 1`, in the same node order).
+///
+/// # Examples
+///
+/// The diamond `S → AB | BA`, both `→ Z`, gives a fork at step 0 (one apex
+/// vertex, two right-boundary nodes) and two sequential events at step 1:
+///
+/// ```rust
+/// use irreducible::{StringRewriteSystem, multiway_step_cospans};
+///
+/// let srs = StringRewriteSystem::new(vec![("S", "AB"), ("S", "BA"), ("AB", "Z"), ("BA", "Z")]);
+/// let evolution = srs.run_multiway("S", 2, 16);
+/// let chain = multiway_step_cospans(&evolution);
+///
+/// assert_eq!(chain.len(), 2);
+/// assert_eq!(chain[0].left_to_middle(), &[0]);
+/// assert_eq!(chain[0].right_to_middle(), &[0, 0]);
+/// assert_eq!(chain[1].middle().len(), 2);
+/// ```
 #[must_use]
 pub fn multiway_step_cospans<S: Clone + Hash, T: Clone>(
     graph: &MultiwayEvolutionGraph<S, T>,

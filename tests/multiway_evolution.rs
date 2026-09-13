@@ -463,10 +463,25 @@ fn non_confluent_srs_fragment_keeps_branches_separate() {
 
 #[test]
 fn evolution_corel_composes_across_diamond() {
-    use irreducible::evolution_corel;
+    use irreducible::{evolution_corel, step_corels};
 
     let srs = StringRewriteSystem::new(vec![("S", "AB"), ("S", "BA"), ("AB", "Z"), ("BA", "Z")]);
     let evolution = srs.run_multiway("S", 2, 16);
+
+    // The fingerprint quotient is observable only per step: in the composite
+    // the two final positions already share the root's class through the
+    // step-0 fork, so a merge there does not witness the gluing.
+    let corels = step_corels(&evolution).expect("step corels");
+    assert_eq!(
+        corels[1].as_cospan().middle().len(),
+        1,
+        "the two step-1 events are glued into one class"
+    );
+    assert!(
+        corels[1].merges(0, 1),
+        "the two parent branches reach one state"
+    );
+
     let corel = evolution_corel(&evolution)
         .expect("composition succeeds")
         .expect("evolution has steps");

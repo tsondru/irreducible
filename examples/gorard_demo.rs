@@ -36,6 +36,8 @@ use irreducible::{
     StringRewriteSystem,
     // Turing Machine
     TuringMachine,
+    // Corelations (merge partitions)
+    evolution_corel,
     // Adjunction
     functor::{AdjunctionVerification, StokesIrreducibility, ZPrimeAdjunction, ZPrimeOps},
     // Hypergraph rewriting + catgraph bridge
@@ -44,6 +46,10 @@ use irreducible::{
     machines::multiway::{BranchialSummary, OllivierFoliation, extract_branchial_foliation},
     // Multiway coherence
     multiway_coherence::{verify_all_coherence, verify_associator, verify_braiding},
+    // Step cospans, Frobenius census, corelations
+    multiway_step_cospans,
+    step_corels,
+    verify_frobenius_preservation,
 };
 
 fn main() {
@@ -78,6 +84,15 @@ fn main() {
 
     // Demo 9: Multiway Branching Visualization
     demo_multiway_branching();
+
+    // Demo 10: Frobenius Event Census
+    demo_frobenius_census();
+
+    // Demo 11: Corelation Merge Partition
+    demo_corel_merge_partition();
+
+    // Demo 12: Compact-Closed Witness
+    demo_compact_closed_witness();
 
     // Final Summary
     print_final_summary();
@@ -950,6 +965,236 @@ fn demo_multiway_branching() {
 }
 
 // ============================================================================
+// Demo 10: Frobenius Event Census
+// ============================================================================
+
+fn demo_frobenius_census() {
+    print_section("10. FROBENIUS STRUCTURE: Multiway Events ARE the Generators");
+
+    println!("  Fong-Spivak §2.3 (Eq. 12) + Prop 3.8:");
+    println!("  ┌─────────────────────────────────────────────────────────────────┐");
+    println!("  │ Under the free-hypergraph-category encoding, the Frobenius     │");
+    println!("  │ generators of 𝒯 ARE the multiway event types.                  │");
+    println!("  └─────────────────────────────────────────────────────────────────┘");
+    println!();
+    println!("    μ  multiplication   ←→  merge  (two branches reach one state)");
+    println!("    δ  comultiplication ←→  fork   (one state rewrites two ways)");
+    println!("    ε  counit           ←→  death  (a branch has no continuation)");
+    println!("    η  unit             ←→  birth  (the root; never mid-evolution)");
+    println!();
+
+    // Diamond: S forks to AB | BA, both rewrite to Z.
+    let srs = StringRewriteSystem::new(vec![("S", "AB"), ("S", "BA"), ("AB", "Z"), ("BA", "Z")]);
+    let evolution = srs.run_multiway("S", 2, 16);
+
+    println!("  Fixture: S → AB | BA, both → Z");
+    println!("  ────────────────────────────────");
+    let chain = multiway_step_cospans(&evolution);
+    for (i, cospan) in chain.iter().enumerate() {
+        let apex_count = cospan.middle().len();
+        let mut parents = vec![0usize; apex_count];
+        let mut children = vec![0usize; apex_count];
+        for &a in cospan.left_to_middle() {
+            parents[a] += 1;
+        }
+        for &a in cospan.right_to_middle() {
+            children[a] += 1;
+        }
+        println!("    step {i}: {apex_count} event(s)");
+        for (l, r) in parents.iter().zip(children.iter()) {
+            let generator = match (l, r) {
+                (_, 0) => "ε  branch death",
+                (1, 1) => "id sequential step",
+                (1, _) => "δ  fork",
+                (_, 1) => "μ  merge",
+                _ => "spider (merge then fork)",
+            };
+            println!("      ({l} parents → {r} children)   {generator}");
+        }
+    }
+    println!();
+
+    let result = verify_frobenius_preservation(&evolution).expect("verification runs");
+    println!("  Eq. 12 on the generators (Z' preserves each):");
+    println!("    η  {}", result.unit_preserved);
+    println!("    ε  {}", result.counit_preserved);
+    println!("    μ  {}", result.multiplication_preserved);
+    println!("    δ  {}", result.comultiplication_preserved);
+    println!();
+    println!("  Spider factorization per event (Prop 3.8):");
+    for check in &result.per_step {
+        println!(
+            "    step {}: {} component(s), factorizations hold: {}",
+            check.step, check.components_checked, check.factorizations_hold
+        );
+    }
+    println!();
+    println!(
+        "  All Frobenius checks hold: {}  ← every event is its generator recipe",
+        result.all_hold()
+    );
+    println!();
+
+    assert!(result.all_hold(), "{result:?}");
+    assert_eq!(chain.len(), 2, "the diamond runs two steps");
+    assert_eq!(
+        chain[0].middle().len(),
+        1,
+        "step 0 is one event: the fork out of S"
+    );
+    assert_eq!(
+        result.per_step[1].components_checked, 2,
+        "step 1 is two events in the merge-blind chain"
+    );
+}
+
+// ============================================================================
+// Demo 11: Corelation Merge Partition
+// ============================================================================
+
+fn demo_corel_merge_partition() {
+    print_section("11. CORELATIONS: Where the Branches Reconverge");
+
+    println!("  Fong-Spivak 2018, Ex 6.64:");
+    println!("  ┌─────────────────────────────────────────────────────────────────┐");
+    println!("  │ A corelation is a jointly-surjective cospan — a partition of   │");
+    println!("  │ its boundary. Each multiway step lifts to one, whose classes    │");
+    println!("  │ are the step's events.                                          │");
+    println!("  └─────────────────────────────────────────────────────────────────┘");
+    println!();
+    println!("  The multiway explorer keeps same-state nodes reached along");
+    println!("  different paths as DISTINCT graph nodes, so a merge exists only");
+    println!("  at the fingerprint level. The corelation is what records it.");
+    println!();
+
+    let srs = StringRewriteSystem::new(vec![("S", "AB"), ("S", "BA"), ("AB", "Z"), ("BA", "Z")]);
+    let evolution = srs.run_multiway("S", 2, 16);
+
+    println!("  Diamond: S → AB | BA, both → Z");
+    println!("  ───────────────────────────────");
+    let raw = multiway_step_cospans(&evolution);
+    let corels = step_corels(&evolution).expect("step cospans are jointly surjective");
+    for (i, (raw_step, corel)) in raw.iter().zip(corels.iter()).enumerate() {
+        println!(
+            "    step {i}: raw chain sees {} event(s); the corelation sees {} class(es)",
+            raw_step.middle().len(),
+            corel.as_cospan().middle().len()
+        );
+    }
+    println!();
+    println!(
+        "    Step 1's two parent branches share a class: {}",
+        corels[1].merges(0, 1)
+    );
+    println!("    ← AB and BA both reach \"Z\": the reconvergence the raw,");
+    println!("      merge-blind chain cannot see.");
+    println!();
+
+    let whole = evolution_corel(&evolution)
+        .expect("composition succeeds")
+        .expect("the evolution has steps");
+    let dom_mid = 1 + whole.as_cospan().middle().len();
+    println!("  Composed over the whole evolution (pushout of the chain):");
+    println!(
+        "    {} initial position → {} final position(s), {} class(es)",
+        whole.as_cospan().left_to_middle().len(),
+        whole.as_cospan().right_to_middle().len(),
+        whole.as_cospan().middle().len()
+    );
+    println!(
+        "    Both final positions are one state: {}",
+        whole.merges(dom_mid, dom_mid + 1)
+    );
+    println!();
+
+    assert_eq!(raw[1].middle().len(), 2, "the raw chain sees two events");
+    assert_eq!(
+        corels[1].as_cospan().middle().len(),
+        1,
+        "the corelation glues them into one class"
+    );
+    assert!(
+        corels[1].merges(0, 1),
+        "AB and BA must share the merged class"
+    );
+    assert_eq!(whole.as_cospan().left_to_middle().len(), 1);
+    assert_eq!(whole.as_cospan().right_to_middle().len(), 2);
+    assert!(whole.merges(dom_mid, dom_mid + 1));
+}
+
+// ============================================================================
+// Demo 12: Compact-Closed Witness
+// ============================================================================
+
+fn demo_compact_closed_witness() {
+    print_section("12. COMPACT CLOSURE: The Snake Identities Behind Z' ⊣ Z");
+
+    println!("  The adjunction of Demo 4 has a string-diagram counterpart: in a");
+    println!("  compact closed category every object is its own dual, witnessed");
+    println!("  by cup and cap satisfying the snake (zigzag) identities.");
+    println!();
+    println!("      right snake:  (id ⊗ cup) ; (cap ⊗ id) = id");
+    println!("      left snake:   (cup ⊗ id) ; (id ⊗ cap) = id");
+    println!();
+    println!("  Drawn, the composite is a bent wire pulled straight:");
+    println!();
+    println!("        ╭───╮              ");
+    println!("     ───╯   ╰───    ═══>    ─────────");
+    println!();
+
+    let state = ComputationState::new(0, 5);
+    let cospan = ZPrimeAdjunction::zprime_cospan(&state);
+    println!("  Z'(state) as a cospan in the temporal encoding:");
+    println!(
+        "    left={:?} apex={:?} right={:?}",
+        cospan.left_to_middle(),
+        cospan.middle(),
+        cospan.right_to_middle()
+    );
+    println!();
+
+    let witness = ZPrimeAdjunction::verify_compact_closed_witness(&state)
+        .expect("the witness computes for a well-formed state");
+    println!("  Witness at every boundary label of Z'(state):");
+    println!(
+        "    right snake holds:              {}",
+        witness.right_snake_holds
+    );
+    println!(
+        "    left snake holds:               {}",
+        witness.left_snake_holds
+    );
+    println!(
+        "    name/unname boundary round-trip: {}",
+        witness.name_roundtrip_boundaries_hold
+    );
+    println!();
+    println!(
+        "  All compact-closed witnesses hold: {}",
+        witness.all_hold()
+    );
+    println!();
+    println!("  The round-trip is Prop 3.2's name/unname on the Frobenius");
+    println!("  decomposition, checked at the boundary level: the free");
+    println!("  hypergraph category carries no diagram normal form upstream,");
+    println!("  so full string-diagram equality is not decidable there.");
+    println!();
+
+    assert!(witness.right_snake_holds, "right snake");
+    assert!(witness.left_snake_holds, "left snake");
+    assert!(
+        witness.name_roundtrip_boundaries_hold,
+        "name/unname boundary round-trip"
+    );
+    assert!(witness.all_hold());
+    assert_eq!(
+        cospan.middle().len(),
+        2,
+        "Z'(state)'s apex is {{start, end}}"
+    );
+}
+
+// ============================================================================
 // Final Summary
 // ============================================================================
 
@@ -987,6 +1232,18 @@ fn print_final_summary() {
     println!("  │                                                                 │");
     println!("  │  8. MULTIWAY BRANCHING VISUALIZATION                            │");
     println!("  │     Branchial foliation, curvature, geometric complexity        │");
+    println!("  │                                                                 │");
+    println!("  │  9. FROBENIUS STRUCTURE                                         │");
+    println!("  │     Multiway events ARE the generators: μ merge, δ fork,        │");
+    println!("  │     ε death, η birth — each factors through its spider recipe   │");
+    println!("  │                                                                 │");
+    println!("  │ 10. CORELATION MERGE PARTITION                                  │");
+    println!("  │     Jointly-surjective cospans record the fingerprint-level     │");
+    println!("  │     reconvergence the raw event chain cannot see                │");
+    println!("  │                                                                 │");
+    println!("  │ 11. COMPACT CLOSURE                                             │");
+    println!("  │     Snake identities + Prop 3.2 name/unname round-trip          │");
+    println!("  │     behind the Z' ⊣ Z adjunction                                │");
     println!("  │                                                                 │");
     println!("  └─────────────────────────────────────────────────────────────────┘");
     println!();

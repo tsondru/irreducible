@@ -49,6 +49,27 @@ use union_find::UnionFind;
 /// Returns [`CatgraphError::Corel`] if a quotiented step cospan is not
 /// jointly surjective — impossible by construction, so an error indicates a
 /// bug in the step-cospan or quotient construction.
+///
+/// # Examples
+///
+/// On the diamond `S → AB | BA`, both `→ Z`, the raw chain sees two separate
+/// step-1 events; the corelation glues them, so both parent branches land in
+/// one class:
+///
+/// ```rust
+/// use irreducible::{StringRewriteSystem, multiway_step_cospans, step_corels};
+///
+/// let srs = StringRewriteSystem::new(vec![("S", "AB"), ("S", "BA"), ("AB", "Z"), ("BA", "Z")]);
+/// let evolution = srs.run_multiway("S", 2, 16);
+///
+/// let raw = multiway_step_cospans(&evolution);
+/// let corels = step_corels(&evolution).unwrap();
+///
+/// assert_eq!(corels.len(), 2);
+/// assert_eq!(raw[1].middle().len(), 2);
+/// assert_eq!(corels[1].as_cospan().middle().len(), 1);
+/// assert!(corels[1].merges(0, 1));
+/// ```
 pub fn step_corels<S: Clone + Hash, T: Clone>(
     graph: &MultiwayEvolutionGraph<S, T>,
 ) -> Result<Vec<Corel<u32>>, CatgraphError> {
@@ -70,6 +91,29 @@ pub fn step_corels<S: Clone + Hash, T: Clone>(
 /// # Errors
 ///
 /// Propagates [`CatgraphError`] from corelation composition (pushout).
+///
+/// # Examples
+///
+/// The diamond composes to one initial position, two final positions and a
+/// single class; a root-only evolution has no steps to compose:
+///
+/// ```rust
+/// use irreducible::machines::multiway::MultiwayEvolutionGraph;
+/// use irreducible::{StringRewriteSystem, evolution_corel};
+///
+/// let srs = StringRewriteSystem::new(vec![("S", "AB"), ("S", "BA"), ("AB", "Z"), ("BA", "Z")]);
+/// let evolution = srs.run_multiway("S", 2, 16);
+/// let corel = evolution_corel(&evolution).unwrap().unwrap();
+///
+/// assert_eq!(corel.as_cospan().left_to_middle().len(), 1);
+/// assert_eq!(corel.as_cospan().right_to_middle().len(), 2);
+/// let dom_mid = 1 + corel.as_cospan().middle().len();
+/// assert!(corel.merges(dom_mid, dom_mid + 1));
+///
+/// let mut root_only: MultiwayEvolutionGraph<i32, ()> = MultiwayEvolutionGraph::new();
+/// root_only.add_root(0);
+/// assert!(evolution_corel(&root_only).unwrap().is_none());
+/// ```
 pub fn evolution_corel<S: Clone + Hash, T: Clone>(
     graph: &MultiwayEvolutionGraph<S, T>,
 ) -> Result<Option<Corel<u32>>, CatgraphError> {
