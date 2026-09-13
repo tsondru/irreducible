@@ -7,24 +7,26 @@ version = "0.7.0"
 edition = "2024"
 # Measured cross-feature maximum (`cargo +<v> check --workspace --all-targets
 # --locked` per feature lane): the default lane builds on 1.90; `dc-geometry`
-# and everything above it need 1.93 (deep_causality_*). Re-measure whenever a
-# dependency moves.
-rust-version = "1.93"
+# and everything above it need 1.93 (deep_causality_*); the `persist` lanes
+# need 1.94 (catgraph-surreal, fastnum). Re-measure whenever a dependency
+# moves.
+rust-version = "1.94"
 license = "MIT"
 authors = ["tsondru", "Claude <noreply@anthropic.com>"]
 
 [workspace.dependencies]
 # Reboot lineage (sustia-llc, public, HTTPS). ONE tag string shared by all
-# three — see the dual-SHA note on the [patch] block below.
+# three — see the dual-SHA note on the [patch] block below. catgraph-surreal
+# resolves catgraph from the same git URL and pins the same tag (`v0.23.0`);
+# the two tag strings must move together, or the one URL resolves at two SHAs
+# and `Cospan<u32>` acquires two incompatible identities.
 catgraph = { git = "https://github.com/sustia-llc/catgraph", tag = "v0.23.0" }
 catgraph-applied = { git = "https://github.com/sustia-llc/catgraph", tag = "v0.23.0" }
 catgraph-physics = { git = "https://github.com/sustia-llc/catgraph", tag = "v0.23.0" }
-# NOTE: the `persist` feature (catgraph-surreal + surrealdb + tokio) was
-# removed pending the catgraph-surreal reboot — the pre-reboot catgraph-surreal
-# pins the retired tsondru/catgraph lineage, which is a type-identity mismatch
-# with reboot catgraph AND drags two more private git sources into the lock
-# (breaking CI fetch). Restore the feature once catgraph-surreal is realigned;
-# see the persistence-realignment GitHub issue.
+# The `persist` feature stores hypergraph evolution cospan chains in SurrealDB.
+# `default-features = false` drops the store's default `rocksdb` engine, so the
+# engine is chosen by `persist-mem` / `persist-rocksdb`.
+catgraph-surreal = { git = "https://github.com/sustia-llc/catgraph-surreal", tag = "v0.2.0", default-features = false }
 # Pre-release deep_causality (topology 0.6.1 / tensor 0.4.4 / sparse 0.2.0 are
 # not on crates.io yet). ONE rev string shared by all three (same dual-SHA
 # rationale as catgraph). Swap back to crates.io versions once released.
@@ -54,11 +56,18 @@ manifold-curvature = ["dc-geometry", "dep:nalgebra"]
 lapack = ["dep:nalgebra-lapack", "manifold-curvature"]
 dec = ["dc-geometry", "dep:nalgebra"]
 dc-geometry = ["dep:deep_causality_topology", "dep:deep_causality_tensor", "dep:deep_causality_sparse"]
+# `persist` brings in the store and the persistence module; it selects no
+# engine, so it alone cannot open a connection. `persist-mem` and
+# `persist-rocksdb` add one.
+persist = ["dep:catgraph-surreal"]
+persist-mem = ["persist", "catgraph-surreal/mem"]
+persist-rocksdb = ["persist", "catgraph-surreal/rocksdb"]
 
 [dependencies]
 catgraph.workspace = true
 catgraph-applied.workspace = true
 catgraph-physics.workspace = true
+catgraph-surreal = { workspace = true, optional = true }
 rust_decimal.workspace = true
 nalgebra = { version = "0.35", optional = true }
 nalgebra-lapack = { version = "0.28", optional = true, default-features = false, features = ["lapack-openblas"] }
@@ -70,6 +79,13 @@ serde_json.workspace = true
 
 [dev-dependencies]
 proptest = "1"
+# The persistence surface is async. The library itself spawns no runtime and
+# takes no tokio dependency; only its tests and example drive one.
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+
+[[example]]
+name = "persist_evolution"
+required-features = ["persist-mem"]
 
 # ---------------------------------------------------------------------------
 # Local development override (uncomment in lock-step cross-repo edits)

@@ -6,7 +6,7 @@ Computational irreducibility as functoriality in Rust, implementing Jonathan Gor
 
 irreducible is the **example consumer of the [catgraph](https://github.com/sustia-llc/catgraph) core + physics layer** (v0.23.0): [catgraph](https://github.com/sustia-llc/catgraph) supplies the Fong-Spivak categorical infrastructure (cospans, spans, hypergraph categories, cospan-algebras), catgraph-applied the Petri-net substrate, and catgraph-physics the hypergraph DPO rewriting, multiway evolution graphs, confluence diamond detection, and branchial spectral analysis. irreducible owns the computation-facing layer -- interval algebra, adjunctions, monoidal coherence, discrete exterior calculus, trace analysis -- plus the computation models (TM, CA, SRS, NTM, Petri nets).
 
-Zero clippy warnings at `-D warnings`. Rust 2024 edition, MSRV 1.93 (measured cross-feature maximum; the default feature set builds on 1.90, the `dc-geometry` tiers need 1.93).
+Zero clippy warnings at `-D warnings`. Rust 2024 edition, MSRV 1.94 (measured cross-feature maximum; the default feature set builds on 1.90, the `dc-geometry` tiers need 1.93, the `persist` tiers 1.94).
 
 ## Component Index
 
@@ -120,8 +120,16 @@ assert!(functorial && stokes_ok && frobenius_ok); // all agree
 | `dec` | Discrete exterior calculus on multiway complexes | `dc-geometry`, `nalgebra` |
 | `manifold-curvature` | Regge deficit-angle curvature on branchial complexes | `dc-geometry`, `nalgebra` |
 | `lapack` | LAPACK-accelerated eigendecomposition for MDS | `nalgebra-lapack` (implies `manifold-curvature`; requires `libopenblas-dev`) |
+| `persist` | SurrealDB storage for cospan chains (`machines::hypergraph::persistence`) | `catgraph-surreal` (no engine — add one of the two below) |
+| `persist-mem` | `persist` on the in-memory engine, endpoint `memory` | `catgraph-surreal/mem` |
+| `persist-rocksdb` | `persist` on the durable RocksDB engine, endpoint `rocksdb://path` | `catgraph-surreal/rocksdb` |
 
-> The former `persist` feature (SurrealDB evolution-trace storage) was removed pending the catgraph-surreal reboot; see issue [#15](https://github.com/tsondru/irreducible/issues/15) for the restore path.
+`persist` brings in `EvolutionPersistence`, which stores a `Vec<Cospan<u32>>`
+— from `HypergraphEvolution::to_cospan_chain` or `TemporalComplex::to_cospan_chain`
+— and loads it back. It selects no storage engine on its own, so a build needs
+`persist-mem` (endpoint `memory`, the store lives and dies with the process) or
+`persist-rocksdb` (endpoint `rocksdb://<path>`). The surface is async; the
+library takes no runtime dependency, so the caller supplies one.
 
 ## Examples
 
@@ -133,6 +141,7 @@ cargo run --example fong_spivak           # Fong-Spivak three-perspective agreem
 cargo run --example lattice_gauge         # Wilson loops, plaquette action
 cargo run --example multiway_coherence    # Non-confluent fragment failing coherence
 cargo run --example multiway_stokes --features dec  # Closed vs non-closed 1-forms
+cargo run --example persist_evolution --features persist-mem  # Store and reload a cospan chain
 ```
 
 ## Testing
@@ -141,6 +150,7 @@ cargo run --example multiway_stokes --features dec  # Closed vs non-closed 1-for
 cargo test --workspace                               # default features
 cargo test --workspace --features manifold-curvature,dec  # CI feature leg
 cargo test --features dc-geometry                    # dc_topology smoke + bridge tests
+cargo test --workspace --features persist-mem        # persistence against the in-memory engine
 cargo clippy --workspace --all-targets -- -D warnings  # CI gate
 cargo clippy --workspace -- -W clippy::pedantic      # advisory, zero warnings
 ```

@@ -4,6 +4,27 @@ All notable changes to this crate are documented in this file.
 
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this crate adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **`persist` feature restored** (#15) against the rebooted
+  `sustia-llc/catgraph-surreal` `v0.2.0`: `EvolutionPersistence`
+  (`machines::hypergraph::persistence`) stores a `Cospan<u32>` chain
+  through the store's cospan tier (content-addressed, one presentation
+  per morphism — a chain holding a second presentation of a stored
+  morphism resolves to the stored address, so the reloaded chain is
+  equal up to `canonical_form`) and an ordered chain record through the
+  document tier; `persist_evolution` feeds `to_cospan_chain()`;
+  `list_chains` names every stored chain. Engine
+  chosen by `persist-mem` / `persist-rocksdb`; CI runs the `persist-mem`
+  lane. No span tier (catgraph-surreal#9).
+
+### Changed
+
+- **`rust-version` 1.93 → 1.94**: the `persist` lanes refuse below 1.94
+  (`catgraph-surreal`, `fastnum`).
+
 ## [0.7.0] - 2026-09-13
 
 Reboot alignment: irreducible becomes the example consumer of the

@@ -21,14 +21,17 @@ cargo fmt   --all --check
 cargo run --example gorard_demo                              # 9-part paper walkthrough
 ```
 
-Rust 2024 edition, MSRV 1.93 (measured cross-feature maximum; the default
-feature set builds on 1.90).
+Rust 2024 edition, MSRV 1.94 (measured cross-feature maximum; the default
+feature set builds on 1.90, `dc-geometry` 1.93, `persist` 1.94).
 
 ## Dependencies
 
 - `catgraph` / `catgraph-applied` / `catgraph-physics` — git tag on the
   public `sustia-llc/catgraph` workspace (HTTPS). **ONE tag string shared by
   all three** (dual-SHA prevention; see the Cargo.toml comments).
+- `catgraph-surreal` — git tag on the public `sustia-llc/catgraph-surreal`
+  repo (HTTPS), optional behind `persist`. It resolves catgraph from the
+  same git URL, so its catgraph tag and the three above move together.
 - `deep_causality_{topology,tensor,sparse}` — currently git-rev-pinned
   pre-release (one shared rev string); swap to crates.io pins once released.
 - All git deps fetch over anonymous HTTPS; `Cargo.lock` is committed and CI
@@ -43,10 +46,9 @@ feature set builds on 1.90).
 | `manifold-curvature` | Regge deficit-angle curvature on branchial complexes |
 | `dec` | Discrete exterior calculus on multiway complexes |
 | `lapack` | LAPACK eigendecomposition (needs `libopenblas-dev`; not in CI) |
-
-`persist` (SurrealDB evolution-trace storage) was **removed** pending the
-catgraph-surreal reboot — pre-reboot catgraph-surreal pins the retired
-catgraph lineage (type-identity mismatch). Restore path: issue #15.
+| `persist` | SurrealDB cospan-chain storage; selects no engine |
+| `persist-mem` | `persist` on the in-memory engine (endpoint `memory`) |
+| `persist-rocksdb` | `persist` on the RocksDB engine (endpoint `rocksdb://path`) |
 
 ## Rules
 
