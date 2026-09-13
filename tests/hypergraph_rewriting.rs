@@ -595,3 +595,93 @@ fn merge_partition_apex_labels_are_class_minima() {
         corel.as_cospan().middle().len()
     );
 }
+
+/// Two rewrite steps out of node 0, whose children hold `child_a_vertices`
+/// and `child_b_vertices`, declared as one merge group.
+fn merge_group_graph(
+    child_a_vertices: &[u32],
+    child_b_vertices: &[u32],
+) -> irreducible::machines::hypergraph::MultiwayCospanGraph {
+    use catgraph::cospan::Cospan;
+    use irreducible::machines::hypergraph::{MultiwayCospan, MultiwayCospanGraph};
+
+    let edge = |child_id: usize, child_vertices: &[u32]| {
+        let mut middle: Vec<u32> = vec![10, 11];
+        middle.extend_from_slice(child_vertices);
+        let right: Vec<usize> = (2..middle.len()).collect();
+        MultiwayCospan {
+            parent_id: 0,
+            child_id,
+            cospan: Cospan::new(vec![0, 1], right, middle).expect("legs index the apex"),
+        }
+    };
+
+    MultiwayCospanGraph {
+        edges: vec![edge(1, child_a_vertices), edge(2, child_b_vertices)],
+        merge_points: vec![vec![1, 2]],
+    }
+}
+
+#[test]
+fn merge_states_of_equal_size_align_by_sorted_vertex_id() {
+    use irreducible::machines::hypergraph::MergesCorelExt;
+
+    // Control for the skip path below: one vertex each, so the alignment
+    // runs and identifies 20 with 30 under the smaller representative.
+    let graph = merge_group_graph(&[20], &[30]);
+    let corel = graph.merges_corel().expect("corelation builds");
+
+    assert_eq!(corel.as_cospan().left_to_middle().len(), 4);
+    assert_eq!(corel.as_cospan().middle(), &[10, 11, 20]);
+    assert!(
+        corel.merges(2, 3),
+        "aligned vertices 20 and 30 must share a class"
+    );
+}
+
+#[test]
+fn merge_states_of_unequal_size_are_skipped() {
+    use irreducible::machines::hypergraph::MergesCorelExt;
+
+    // One child carries one vertex, the other two: the alignment cannot pair
+    // them, so the group contributes no identification at all.
+    let graph = merge_group_graph(&[20], &[30, 31]);
+    let corel = graph.merges_corel().expect("corelation builds");
+
+    assert_eq!(corel.as_cospan().left_to_middle().len(), 5);
+    assert_eq!(
+        corel.as_cospan().middle(),
+        &[10, 11, 20, 30, 31],
+        "a differently-sized merge state leaves every vertex its own class"
+    );
+    assert!(!corel.merges(2, 3), "20 and 30 must not be identified");
+    assert!(!corel.merges(2, 4), "20 and 31 must not be identified");
+}
+
+#[test]
+fn merges_corel_over_admits_boundary_vertices_absent_from_the_evolution() {
+    use irreducible::machines::hypergraph::{MergesCorelExt, MultiwayCospanExt};
+
+    let rule = RewriteRule::wolfram_a_to_bb();
+    let graph = Hypergraph::from_edges(vec![vec![0, 1, 2]]);
+    let evolution = HypergraphEvolution::run_multiway(&graph, &[rule], 3, 50);
+    let cospan_graph = evolution.to_multiway_cospan_graph();
+
+    // 9999 appears in no cospan apex; it must still get a boundary position
+    // and a class of its own.
+    let corel = cospan_graph
+        .merges_corel_over(&[0, 1, 2, 9999])
+        .expect("corelation builds");
+
+    assert_eq!(corel.as_cospan().left_to_middle().len(), 4);
+    assert_eq!(corel.as_cospan().middle(), &[0, 1, 2, 9999]);
+    assert!(
+        !corel.merges(0, 3),
+        "an absent vertex joins no existing class"
+    );
+
+    // Domain and codomain are the same boundary, so each position merges with
+    // its own image.
+    let codomain_start = 4 + corel.as_cospan().middle().len();
+    assert!(corel.merges(3, codomain_start + 3));
+}

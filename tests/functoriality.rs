@@ -4,9 +4,11 @@
 //! to sequences of DiscreteIntervals, verifying contiguity, composition,
 //! and agreement between domain-specific and generic trace analysis.
 
+use irreducible::machines::multiway::MultiwayEvolutionGraph;
 use irreducible::{
     DiscreteInterval, ElementaryCA, Generation, IrreducibilityFunctor, StepTrace,
-    StokesIrreducibility, TuringMachine, analyze_trace,
+    StokesIrreducibility, TuringMachine, analyze_trace, evolution_corel,
+    verify_frobenius_preservation,
 };
 
 // ---------------------------------------------------------------------------
@@ -315,6 +317,104 @@ fn three_way_agreement_reducible() {
     // At minimum: trace says reducible, and functor + Stokes agree with each other.
     assert_eq!(functor_irreducible, stokes_irreducible);
     assert!(!trace.is_irreducible);
+}
+
+// ---------------------------------------------------------------------------
+// Five-way agreement: the categorical perspectives join the matrix
+// ---------------------------------------------------------------------------
+
+/// Lift a linear execution trace into a single-track multiway graph, the
+/// shape the categorical surfaces consume.
+fn linear_graph(fingerprints: &[u64]) -> MultiwayEvolutionGraph<u64, ()> {
+    let mut graph = MultiwayEvolutionGraph::new();
+    let mut node = graph.add_root(fingerprints[0]);
+    for &fp in &fingerprints[1..] {
+        node = graph.add_sequential_step(node, fp, ());
+    }
+    graph
+}
+
+/// The two categorical perspectives on a single-track execution: every step
+/// is one sequential event, and the whole trace composes to one causal class
+/// from the initial position to the final one.
+fn assert_single_track_perspectives(fingerprints: &[u64], name: &str) {
+    let graph = linear_graph(fingerprints);
+    let expected_steps = fingerprints.len() - 1;
+
+    // Perspective 4: Frobenius event census.
+    let frobenius = verify_frobenius_preservation(&graph).expect("verification runs");
+    assert!(frobenius.all_hold(), "{name}: {frobenius:?}");
+    assert_eq!(
+        frobenius.per_step.len(),
+        expected_steps,
+        "{name}: step count"
+    );
+    for check in &frobenius.per_step {
+        assert_eq!(
+            check.components_checked, 1,
+            "{name}: a single track is one event per step"
+        );
+    }
+
+    // Perspective 5: corel merge partition.
+    let corel = evolution_corel(&graph)
+        .expect("composition succeeds")
+        .unwrap_or_else(|| panic!("{name}: trace has steps"));
+    assert_eq!(
+        corel.as_cospan().left_to_middle().len(),
+        1,
+        "{name}: one start"
+    );
+    assert_eq!(
+        corel.as_cospan().right_to_middle().len(),
+        1,
+        "{name}: one end"
+    );
+    let dom_mid = 1 + corel.as_cospan().middle().len();
+    assert!(
+        corel.merges(0, dom_mid),
+        "{name}: start and end are causally connected"
+    );
+}
+
+#[test]
+fn five_way_agreement_irreducible_tm() {
+    let bb = TuringMachine::busy_beaver_2_2();
+    let history = bb.run("", 20);
+    let intervals = history.to_intervals();
+
+    // The three established perspectives.
+    assert!(IrreducibilityFunctor::is_sequence_irreducible(&intervals));
+    assert!(analyze_trace(&history).is_irreducible);
+    assert!(
+        StokesIrreducibility::analyze(&intervals)
+            .unwrap()
+            .is_irreducible()
+    );
+
+    // BB(2,2) halts after 6 steps, so the trace carries 7 states.
+    let fingerprints = history.state_fingerprints();
+    assert_eq!(fingerprints.len(), 7, "busy beaver 2,2 runs six steps");
+    assert_single_track_perspectives(&fingerprints, "busy beaver 2,2");
+}
+
+#[test]
+fn five_way_agreement_irreducible_ca() {
+    let ca = ElementaryCA::rule_30(21);
+    let history = ca.run(ca.single_cell_initial(), 20);
+    let intervals = history.to_intervals();
+
+    assert!(IrreducibilityFunctor::is_sequence_irreducible(&intervals));
+    assert!(analyze_trace(&history).is_irreducible);
+    assert!(
+        StokesIrreducibility::analyze(&intervals)
+            .unwrap()
+            .is_irreducible()
+    );
+
+    let fingerprints = history.state_fingerprints();
+    assert_eq!(fingerprints.len(), 21, "twenty steps plus the seed");
+    assert_single_track_perspectives(&fingerprints, "rule 30");
 }
 
 #[test]
