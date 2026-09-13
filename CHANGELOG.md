@@ -15,7 +15,7 @@ rebooted catgraph's core + physics layer, re-pinned to catgraph
 - **catgraph triple re-pinned `v0.2.0` → `v0.23.0`** (#28). Shapes that
   reach this crate's public surface through `pub use` change with it:
   `Cospan::new` / `PetriNet::new` return `Result` (`new_unchecked` is
-  the old body; `PetriNet::new` also takes `left`/`right` boundary
+  the drop-in unchecked constructor; `PetriNet::new` also takes `left`/`right` boundary
   legs — `PetriBuilder` builds a closed net with empty legs),
   `Cospan::structurally_equal` is gone (`==` is the same predicate),
   `HypergraphLattice::new` takes `link_dim`, and the lattice
@@ -491,7 +491,8 @@ Phase 2.5 — coherence + Stokes rewrite.
 - `multiway_stokes` example (closed vs non-closed 1-forms, gated on `dec`).
 - Symmetric monoidal coherence formalization-by-construction over multiway graphs.
 
-[Unreleased]: https://github.com/tsondru/irreducible/compare/v0.6.5...HEAD
+[Unreleased]: https://github.com/tsondru/irreducible/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/tsondru/irreducible/releases/tag/v0.7.0
 [0.6.5]: https://github.com/tsondru/irreducible/releases/tag/v0.6.5
 [0.6.4]: https://github.com/tsondru/irreducible/releases/tag/v0.6.4
 [0.6.3]: https://github.com/tsondru/irreducible/releases/tag/v0.6.3

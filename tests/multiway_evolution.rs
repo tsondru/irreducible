@@ -11,7 +11,8 @@ use irreducible::{
 use catgraph_physics::multiway::branchial_parallel_step_pairs;
 
 use irreducible::machines::multiway::{
-    branchial_to_parallel_intervals, extract_branchial_foliation, find_all_merge_points,
+    branch_intervals, branchial_to_parallel_intervals, extract_branchial_foliation,
+    find_all_merge_points,
 };
 
 use irreducible::machines::Direction;
@@ -143,6 +144,34 @@ fn branchial_to_parallel_intervals_drops_nodes_without_forward_edges() {
     assert_eq!(
         observed, upstream,
         "wrap must reproduce the upstream step pairs: observed {observed:?}, upstream {upstream:?}"
+    );
+}
+
+#[test]
+fn branch_intervals_skips_leaves_with_single_node_paths() {
+    let srs = StringRewriteSystem::new(vec![("AB", "BA"), ("A", "AA")]);
+
+    // Zero steps: the root is the only leaf and its path has one node.
+    let trivial = srs.run_multiway("AB", 0, 100);
+    let observed = branch_intervals(&trivial);
+    assert!(
+        observed.is_empty(),
+        "single-node paths contribute no entry: observed {observed:?}"
+    );
+
+    // Three steps: every leaf path has at least two nodes, one interval per
+    // consecutive pair.
+    let evolution = srs.run_multiway("AB", 3, 100);
+    let observed = branch_intervals(&evolution);
+    let expected: Vec<usize> = evolution
+        .leaves()
+        .iter()
+        .map(|&leaf| evolution.trace_path_to_root(leaf).len() - 1)
+        .collect();
+    let lengths: Vec<usize> = observed.iter().map(Vec::len).collect();
+    assert_eq!(
+        lengths, expected,
+        "intervals per leaf path: observed {lengths:?}, expected {expected:?}"
     );
 }
 

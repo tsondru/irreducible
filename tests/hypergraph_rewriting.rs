@@ -145,13 +145,20 @@ fn is_causally_invariant_convenience_method() {
 
 #[test]
 fn wilson_loop_computation() {
-    let rule = RewriteRule::wolfram_a_to_bb();
-    let graph = Hypergraph::from_edges(vec![vec![0, 1, 2]]);
+    // Two rules on two edges: the only fixture in this file whose branches
+    // merge (a single edge under `wolfram_a_to_bb` alone yields no loop).
+    let graph = Hypergraph::from_edges(vec![vec![0, 1, 2], vec![2, 3, 4]]);
+    let rules = [RewriteRule::wolfram_a_to_bb(), RewriteRule::edge_split()];
 
-    let evolution = HypergraphEvolution::run_multiway(&graph, &[rule], 4, 100);
+    let evolution = HypergraphEvolution::run_multiway(&graph, &rules, 5, 100);
     let loops = evolution.find_wilson_loops();
+    assert_eq!(
+        loops.len(),
+        1278,
+        "wilson loops on the two-rule fixture: observed {}",
+        loops.len()
+    );
 
-    // Wilson loops exist only when branches merge (same fingerprint).
     // Holonomy is the causal-graph comparison of the two branches, so it is
     // exactly 1.0 (isomorphic) or 0.0 — no intermediate value.
     for (i, wl) in loops.iter().enumerate() {
@@ -162,6 +169,13 @@ fn wilson_loop_computation() {
             wl.holonomy
         );
     }
+    let zero_holonomy = loops.iter().filter(|wl| wl.holonomy == 0.0).count();
+    assert_eq!(
+        zero_holonomy,
+        600,
+        "loops at holonomy 0.0: observed {zero_holonomy} of {}",
+        loops.len()
+    );
 }
 
 // ---------------------------------------------------------------------------
@@ -371,6 +385,10 @@ fn multiway_evolution_with_gauge_analysis_pipeline() {
 
     // 4. Compute Wilson loops
     let loops = evolution.find_wilson_loops();
+    assert!(
+        !loops.is_empty(),
+        "the two-rule fixture must merge branches; see wilson_loop_computation"
+    );
     // Wilson loops exist when branches merge; collect holonomies
     let holonomies: Vec<f64> = loops.iter().map(|wl| wl.holonomy).collect();
 

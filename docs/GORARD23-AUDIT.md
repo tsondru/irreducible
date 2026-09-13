@@ -1,8 +1,8 @@
-# Gorard 2023 Coverage Audit (irreducible v0.6.3)
+# Gorard 2023 Coverage Audit (irreducible v0.7.0)
 
 > **Paper:** Jonathan Gorard, *A Functorial Perspective on (Multi)computational Irreducibility* ([arXiv:2301.04690v1](https://arxiv.org/abs/2301.04690), 13 Oct 2022, dated Jan 2023).
-> **Library:** `irreducible` v0.6.5+ (audit doc landed in v0.6.4 at SHA `6b3d656`; tracking maintained as the crate evolves) — catgraph workspace tag `v0.23.0` ([sustia-llc/catgraph](https://github.com/sustia-llc/catgraph) reboot lineage; the audit's item mapping predates the reboot and is unaffected — the consumer surface carried over intact).
-> **Method:** read all 60 pages of the paper end-to-end (intro + §2 + §3 + §4 + §5 + references); cross-walked every numbered equation, definition, theorem, figure caption, and named concept against the irreducible source tree (`src/**`, `tests/**`, `examples/**`). Coverage attribution honours the v0.6.3 shim: implementations that physically live in `catgraph_physics::{interval,temporal_cospan_chain,trace}` are attributed to the irreducible surface (consumers see them as `irreducible::*`).
+> **Library:** `irreducible` v0.7.0+ (audit doc landed in v0.6.4 at SHA `6b3d656`; tracking maintained as the crate evolves) — catgraph workspace tag `v0.23.0` ([sustia-llc/catgraph](https://github.com/sustia-llc/catgraph) reboot lineage; the audit's item mapping predates the reboot and is unaffected — the consumer surface carried over intact).
+> **Method:** read all 60 pages of the paper end-to-end (intro + §2 + §3 + §4 + §5 + references); cross-walked every numbered equation, definition, theorem, figure caption, and named concept against the irreducible source tree (`src/**`, `tests/**`, `examples/**`). Implementations that live in `catgraph_physics::{interval,temporal_cospan_chain,trace}` are attributed to the irreducible surface, which re-exports them at the crate root.
 > **Update cadence:** maintained alongside the crate version. Add a row whenever a new paper item is implemented; flip status (e.g. ⏭️ → ✅) when an action item closes.
 >
 > **Status legend:**
@@ -206,11 +206,10 @@ Items intentionally not implemented in v0.6.x with rationale:
 
 | Target | Item | Notes |
 |---|---|---|
-| **v0.7.0** | Drop the three v0.6.3 deprecation shims (`interval`, `temporal_cospan_chain`, `trace`) per CHANGELOG promise | Not a paper-fidelity item; tracked in CHANGELOG. |
-| **v0.7.0** | Action item I-2: separate `DiscreteInterval::identity(s)` (singleton, Z'(id_X) per Eq 13) from `map_step(s)` (1-step interval) | Paper Eq 13. Wire through `catgraph_physics::interval::DiscreteInterval::singleton`. |
-| **v0.7.0** | Action item M-2: rename `Direction::Stay → Direction::Id` (or `Forward`) and emit `id` (or `F`) in `Display` to match paper Eqs 1, 8 | Naming gap. |
-| **v0.7.0** | Action item M-3: add explicit unit-law test on `Transition` per Eqs 5–7 | One test. |
-| **v0.7.0** | Action item M-10/M-11: add paper-fixture rules (rule 2506, rule 3506, set-substitution-Fig-12) as `TuringMachine` / `RewriteRule` constants | Lets the audit's Figures-as-tests gates flip ✅. |
+| **v0.8.0+** | Action item I-2: separate `DiscreteInterval::identity(s)` (singleton, Z'(id_X) per Eq 13) from `map_step(s)` (1-step interval) | Paper Eq 13. Wire through `catgraph_physics::interval::DiscreteInterval::singleton`. |
+| **v0.8.0+** | Action item M-2: rename `Direction::Stay → Direction::Id` (or `Forward`) and emit `id` (or `F`) in `Display` to match paper Eqs 1, 8 | Naming gap. |
+| **v0.8.0+** | Action item M-3: add explicit unit-law test on `Transition` per Eqs 5–7 | One test. |
+| **v0.8.0+** | Action item M-10/M-11: add paper-fixture rules (rule 2506, rule 3506, set-substitution-Fig-12) as `TuringMachine` / `RewriteRule` constants | Lets the audit's Figures-as-tests gates flip ✅. |
 | **v0.7.0** | Action item I-1: rename `is_irreducible` → `is_no_repeat_shortcut` OR document the gap from Def 1 | Naming / scope clarity. |
 | **v0.7.0** | Action item I-6: replace `Complexity::parallel = max` with paper-faithful subadditivity check (paper Eqs 67–69) | Largest paper-fidelity gap in §3; potentially blocking if a downstream consumer claims "this crate verifies multicomputational irreducibility per Gorard". |
 | **v0.8.0+** | Action item A-1: surface the architectural drift in `ZPrimeAdjunction` triangle identities. Either rename the trait or add a `caveat:` doc explaining the implementation is a one-sided self-roundtrip, not the paper's 𝒯 ⇄ 𝓥ect adjunction | Architectural. |
