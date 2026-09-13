@@ -63,7 +63,6 @@ pub mod hypergraph;
 pub mod multiway;
 pub mod petri;
 mod tape;
-pub mod trace;
 mod transition;
 mod turing;
 
@@ -85,7 +84,9 @@ pub use cellular_automaton::{
 pub use petri::{PetriBuilder, PetriExecutionHistory, PetriNetMachine, PetriTransitionRecord};
 
 // Trace analysis exports
-pub use trace::{RepeatDetection, StepTrace, TraceAnalysis, analyze_trace, detect_repeats};
+pub use catgraph_physics::trace::{
+    RepeatDetection, StepTrace, TraceAnalysis, analyze_trace, detect_repeats,
+};
 
 /// State identifier for Turing machines.
 pub type State = u32;

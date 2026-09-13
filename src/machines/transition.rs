@@ -7,7 +7,9 @@
 //! [`Direction`] encodes the three possible head movements (Left, Right, Stay).
 
 use super::Configuration;
-use crate::{complexity::StepCount, interval::DiscreteInterval};
+use catgraph_physics::interval::DiscreteInterval;
+
+use crate::complexity::StepCount;
 use std::fmt;
 
 /// Direction the head moves after a transition.

@@ -1,7 +1,8 @@
 //! [`PetriNetMachine`]: linear-trace wrapper around [`PetriNet`].
 //!
 //! The machine is intentionally thin — it owns a [`PetriNet`] and provides
-//! deterministic stepping semantics suitable for [`crate::trace::StepTrace`].
+//! deterministic stepping semantics suitable for
+//! [`catgraph_physics::trace::StepTrace`].
 //! For branching exploration, use [`super::run_multiway_reachability`].
 
 use std::fmt::Debug;
@@ -18,7 +19,7 @@ use super::history::{PetriExecutionHistory, PetriTransitionRecord};
 ///
 /// At each step, the enabled transition with the **smallest index** is fired.
 /// This is a non-obvious design choice: it produces a single deterministic
-/// trajectory suitable for [`crate::trace::StepTrace`], matching
+/// trajectory suitable for [`catgraph_physics::trace::StepTrace`], matching
 /// the TM/CA shape. If you want to explore every enabled firing (true
 /// non-determinism), use [`super::run_multiway_reachability`] instead.
 ///

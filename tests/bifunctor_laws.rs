@@ -8,7 +8,7 @@ use irreducible::bifunctor::{
     IntervalTransform, TensorProduct, tensor_bimap, tensor_first, tensor_second,
     verify_associativity, verify_symmetry, verify_unit_laws,
 };
-use irreducible::interval::{DiscreteInterval, ParallelIntervals};
+use irreducible::{DiscreteInterval, ParallelIntervals};
 
 // ---------------------------------------------------------------------------
 // Helpers

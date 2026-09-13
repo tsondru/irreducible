@@ -5,9 +5,9 @@
 //! those on the target side after applying Z', plus multiway systems with
 //! genuine fork/merge events.
 
+use irreducible::StepTrace;
 use irreducible::machines::multiway::MultiwayEvolutionGraph;
 use irreducible::machines::{ElementaryCA, TuringMachine};
-use irreducible::trace::StepTrace;
 use irreducible::{StringRewriteSystem, verify_frobenius_preservation};
 
 /// Lift a linear execution trace into a (single-track) multiway graph.

@@ -4,10 +4,39 @@ All notable changes to this crate are documented in this file.
 
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this crate adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.7.0] - 2026-09-13
 
 Reboot alignment: irreducible becomes the example consumer of the
-rebooted catgraph's core + physics layer.
+rebooted catgraph's core + physics layer, re-pinned to catgraph
+`v0.23.0`; the v0.6.3 shim modules and deprecated aliases are gone.
+
+### Changed — BREAKING
+
+- **catgraph triple re-pinned `v0.2.0` → `v0.23.0`** (#28). Shapes that
+  reach this crate's public surface through `pub use` change with it:
+  `Cospan::new` / `PetriNet::new` return `Result` (`new_unchecked` is
+  the old body; `PetriNet::new` also takes `left`/`right` boundary
+  legs — `PetriBuilder` builds a closed net with empty legs),
+  `Cospan::structurally_equal` is gone (`==` is the same predicate),
+  `HypergraphLattice::new` takes `link_dim`, and the lattice
+  `wilson_loop` / `is_causally_invariant` return `Option`.
+  `WilsonLoop::holonomy` is exactly `1.0` or `0.0`, so
+  `plaquette_action` is `f64::INFINITY` on a broken loop and
+  `total_action` is finite iff no loop carries holonomy `0.0`.
+  `examples/lattice_gauge.rs` records one identity link per plaquette
+  transition so its lattice half resolves.
+- **nalgebra `0.34` → `0.35`, nalgebra-lapack `0.27` → `0.28`**: one
+  nalgebra in the lock (catgraph-physics already pinned `0.35`).
+
+### Removed
+
+- **v0.6.3 shim modules and deprecated aliases** (#17): `interval`,
+  `trace`, `temporal_cospan_chain`, `machines::trace`, the
+  `IrreducibilityTrace` sub-trait and the `StokesError` alias. The
+  re-exported names (`DiscreteInterval`, `ParallelIntervals`,
+  `StepTrace`, `analyze_trace`, `TemporalComplex`,
+  `TemporalComplexError`, …) stay at the crate root, sourced from
+  `catgraph_physics` directly.
 
 ### Added
 
@@ -85,6 +114,9 @@ rebooted catgraph's core + physics layer.
 
 ### Changed
 
+- **`branchial_to_parallel_intervals`** wraps
+  `catgraph_physics::multiway::branchial_parallel_step_pairs` instead
+  of re-deriving the step pairs locally.
 - **Docs reboot-aligned**: root `CLAUDE.md` is now a real public file
   (purpose, build/test, feature matrix, durable rules) instead of a
   private include; `README.md` reflects the sustia-llc/catgraph v0.2.0

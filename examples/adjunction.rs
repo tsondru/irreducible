@@ -3,9 +3,9 @@
 //! Defines a concrete SimpleAdjunction implementing the Z' ⊣ Z adjunction,
 //! then verifies triangle identities and computes irreducibility indicators.
 
+use irreducible::DiscreteInterval;
 use irreducible::adjunction::{AdjunctionIrreducibility, AdjunctionVerification, ZPrimeOps};
 use irreducible::computation_state::ComputationState;
-use irreducible::interval::DiscreteInterval;
 
 // ============================================================================
 // Concrete Implementation

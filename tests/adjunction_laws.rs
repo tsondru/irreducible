@@ -4,9 +4,9 @@
 //! verifies triangle identities, verification sequence counts, and
 //! irreducibility indicators.
 
+use irreducible::DiscreteInterval;
 use irreducible::adjunction::{AdjunctionIrreducibility, AdjunctionVerification, ZPrimeOps};
 use irreducible::computation_state::ComputationState;
-use irreducible::interval::DiscreteInterval;
 
 // ---------------------------------------------------------------------------
 // Test fixture

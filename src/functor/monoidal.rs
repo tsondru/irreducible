@@ -25,7 +25,7 @@ use std::hash::Hash;
 
 use catgraph::cospan_algebra::CospanAlgebra;
 
-use crate::interval::{DiscreteInterval, ParallelIntervals};
+use catgraph_physics::interval::{DiscreteInterval, ParallelIntervals};
 use catgraph_physics::multiway::{
     BranchialGraph, MultiwayEvolutionGraph, extract_branchial_foliation,
 };

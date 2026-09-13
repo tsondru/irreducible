@@ -3,10 +3,10 @@
 //! Covers the four perspectives: linear trace, multiway reachability, cospan
 //! bridge round-trip, deadlock detection, and step-limit exhaustion.
 
+use irreducible::analyze_trace;
 use irreducible::machines::petri::{
     Marking, PetriBuilder, PetriNet, PetriNetMachine, PetriTransition, run_multiway_reachability,
 };
-use irreducible::trace::analyze_trace;
 use rust_decimal::Decimal;
 
 fn d(n: i64) -> Decimal {

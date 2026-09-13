@@ -60,10 +60,9 @@ pub use fong_spivak::{
     unname, verify_cospan_chain_frobenius,
 };
 
-use crate::{
-    complexity::{Complexity, StepCount},
-    interval::{DiscreteInterval, ParallelIntervals},
-};
+use catgraph_physics::interval::{DiscreteInterval, ParallelIntervals};
+
+use crate::complexity::{Complexity, StepCount};
 
 /// The irreducibility functor Z': T -> B.
 ///

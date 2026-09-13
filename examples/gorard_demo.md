@@ -136,7 +136,7 @@ This demo is designed to be self-explanatory for someone unfamiliar with Rust:
 | ------------- | -------------- |
 | Category 𝒯 | `TuringMachine`, `ElementaryCA`, `StringRewriteSystem`, `NondeterministicTM` |
 | Category ℬ | `DiscreteInterval`, `ParallelIntervals` |
-| Functor Z' | `IrreducibilityFunctor`, `IrreducibilityTrace` trait |
+| Functor Z' | `IrreducibilityFunctor`, `StepTrace` trait |
 | Adjunction Z' ⊣ Z | `ZPrimeAdjunction`, `ZPrimeOps` trait |
 | Coherence | `verify_associator_coherence()`, `verify_braiding_coherence()` |
 | Stokes integration | `StokesIrreducibility`, `TemporalComplex` |

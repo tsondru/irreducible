@@ -26,8 +26,8 @@
 //! Rule 30 with a single initial cell is conjectured to be irreducible
 //! (no known shortcut exists to compute generation n without computing 1..n-1).
 
-use super::trace::{self, StepTrace};
-use crate::interval::DiscreteInterval;
+use catgraph_physics::interval::DiscreteInterval;
+use catgraph_physics::trace::{self, StepTrace};
 use std::collections::hash_map::DefaultHasher;
 use std::fmt;
 use std::hash::{Hash, Hasher};
@@ -312,7 +312,8 @@ impl ElementaryCA {
 ///
 /// Stores the rule number, grid width, initial and final generations,
 /// and all intermediate transitions. Implements [`StepTrace`]
-/// for generic irreducibility analysis via [`analyze_trace`](super::trace::analyze_trace).
+/// for generic irreducibility analysis via
+/// [`analyze_trace`](catgraph_physics::trace::analyze_trace).
 #[derive(Clone, Debug)]
 pub struct CAExecutionHistory {
     /// The rule number
@@ -485,7 +486,8 @@ impl fmt::Display for CACycle {
 
 /// Result of irreducibility analysis for a cellular automaton evolution.
 ///
-/// Extends the generic [`TraceAnalysis`](super::trace::TraceAnalysis) with
+/// Extends the generic
+/// [`TraceAnalysis`](catgraph_physics::trace::TraceAnalysis) with
 /// CA-specific metrics: rule number, grid width, and population statistics
 /// (initial, final, average live cell counts).
 #[derive(Clone, Debug)]

@@ -45,7 +45,7 @@ use catgraph::cospan_algebra::CospanAlgebra;
 use catgraph::errors::CatgraphError;
 use catgraph_physics::multiway::{MultiwayEvolutionGraph, extract_branchial_foliation};
 
-use crate::interval::{DiscreteInterval, ParallelIntervals};
+use catgraph_physics::interval::{DiscreteInterval, ParallelIntervals};
 
 /// The cobordism side of Z' as a cospan-algebra (F&S Def 2.2).
 ///

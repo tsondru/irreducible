@@ -27,10 +27,7 @@ pub use catgraph_physics::multiway::{
     wasserstein_1,
 };
 
-// Local re-implementations of the interval-typed bridge helpers that used
-// to live in catgraph::multiway (removed in catgraph v0.10.5 when interval
-// moved to irreducible). Both walk catgraph's public `MultiwayEvolutionGraph`
-// API and wrap step numbers in irreducible's own interval types.
+// Interval-typed views of a multiway evolution graph.
 pub use interval_bridge::{branch_intervals, branchial_to_parallel_intervals};
 
 // Local computation models

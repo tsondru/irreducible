@@ -11,8 +11,8 @@ use std::hash::{Hash, Hasher};
 
 use catgraph_applied::petri_net::Marking;
 
-use crate::interval::DiscreteInterval;
-use crate::trace::{self, StepTrace};
+use catgraph_physics::interval::DiscreteInterval;
+use catgraph_physics::trace::{self, StepTrace};
 
 /// A single firing step in a Petri-net execution.
 ///
@@ -62,7 +62,8 @@ impl PetriExecutionHistory {
     /// Check whether this execution is irreducible.
     ///
     /// Mirrors [`crate::ExecutionHistory::is_irreducible`]: delegates to
-    /// [`crate::trace::analyze_trace`] and returns the `is_irreducible` verdict.
+    /// [`catgraph_physics::trace::analyze_trace`] and returns the
+    /// `is_irreducible` verdict.
     #[must_use]
     pub fn is_irreducible(&self) -> bool {
         trace::analyze_trace(self).is_irreducible

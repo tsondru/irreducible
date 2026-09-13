@@ -11,7 +11,9 @@ pub use crate::adjunction::{AdjunctionIrreducibility, AdjunctionVerification, ZP
 use crate::functor::fong_spivak::{
     CospanToFrobeniusFunctor, HypergraphCategory, HypergraphFunctor, name, unname,
 };
-use crate::{computation_state::ComputationState, interval::DiscreteInterval};
+use catgraph_physics::interval::DiscreteInterval;
+
+use crate::computation_state::ComputationState;
 use catgraph::category::{Composable, ComposableMutating, HasIdentity};
 use catgraph::cospan::Cospan;
 use catgraph::errors::CatgraphError;
@@ -24,7 +26,7 @@ use catgraph::monoidal::Monoidal;
 /// ```rust
 /// use irreducible::functor::{ZPrimeAdjunction, ZPrimeOps};
 /// use irreducible::computation_state::ComputationState;
-/// use irreducible::interval::DiscreteInterval;
+/// use irreducible::DiscreteInterval;
 ///
 /// // Map computation to interval (Z')
 /// let state = ComputationState::new(0, 5);

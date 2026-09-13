@@ -6,21 +6,18 @@ Computational irreducibility as functoriality in Rust, implementing Jonathan Gor
 
 irreducible is the **example consumer of the [catgraph](https://github.com/sustia-llc/catgraph) core + physics layer** (v0.23.0): [catgraph](https://github.com/sustia-llc/catgraph) supplies the Fong-Spivak categorical infrastructure (cospans, spans, hypergraph categories, cospan-algebras), catgraph-applied the Petri-net substrate, and catgraph-physics the hypergraph DPO rewriting, multiway evolution graphs, confluence diamond detection, and branchial spectral analysis. irreducible owns the computation-facing layer -- interval algebra, adjunctions, monoidal coherence, discrete exterior calculus, trace analysis -- plus the computation models (TM, CA, SRS, NTM, Petri nets).
 
-354 tests on default features (381 with `manifold-curvature,dec`), zero clippy warnings. Rust 2024 edition, MSRV 1.90.
+Zero clippy warnings at `-D warnings`. Rust 2024 edition, MSRV 1.90.
 
 ## Component Index
 
 | Module | Component | Purpose |
 |--------|-----------|---------|
-| `interval.rs` | `DiscreteInterval`, `ParallelIntervals` | Discrete interval algebra for the cobordism category B (re-export shim into `catgraph_physics::interval` as of v0.6.3) |
 | `complexity.rs` | `Complexity`, `StepCount` | Sequential/parallel complexity composition |
 | `computation_state.rs` | `ComputationState` | State lifecycle + interval-map bridge |
 | `adjunction.rs` | `ZPrimeOps`, `AdjunctionIrreducibility`, `AdjunctionVerification` | Abstract Z' ⊣ Z adjunction traits |
 | `bifunctor.rs` | `TensorProduct`, `IntervalTransform` | Bifunctor laws (associativity, unit, symmetry) |
 | `multiway_coherence.rs` | `AssociatorWitness`, `BraidingWitness`, `CoherenceError` | Non-strict SMC coherence over multiway graphs |
 | `multiway_stokes.rs` | `MultiwayComplex`, `OneForm`, `TwoForm` | Discrete exterior calculus on 2D multiway complexes (feature: `dec`) |
-| `temporal_cospan_chain.rs` | `TemporalComplex`, `ConservationResult`, `TemporalComplexError` (`StokesError` deprecated alias) | Cospan chain bridge for interval sequences (re-export shim into `catgraph_physics::temporal_cospan_chain` as of v0.6.3) |
-| `trace.rs` | `StepTrace`, `analyze_trace`, `RepeatDetection`, `is_irreducible` (`IrreducibilityTrace` deprecated alias) | Generic trace analysis, repeat detection (re-export shim into `catgraph_physics::trace` as of v0.6.3) |
 | `functor/mod.rs` | `IrreducibilityFunctor`, `MultiwayIrreducibilityResult` | Functor Z': T -> B, multiway branch analysis |
 | `functor/adjunction.rs` | `ZPrimeAdjunction`, `AdjunctionVerification`, `CompactClosedWitness` | Concrete Z' ⊣ Z adjunction + compact-closed (cup/cap zigzag, Prop 3.2) witnesses |
 | `functor/monoidal.rs` | `MonoidalFunctorResult`, `TensorCheck` | Symmetric monoidal functor verification |
@@ -32,7 +29,6 @@ irreducible is the **example consumer of the [catgraph](https://github.com/susti
 | `functor/stokes_integration.rs` | `StokesIrreducibility` | Stokes conservation analysis wrapper |
 | `machines/turing.rs` | `TuringMachine`, `ExecutionHistory` | Deterministic Turing machines |
 | `machines/cellular_automaton.rs` | `ElementaryCA`, `Generation` | 1D elementary cellular automata (256 rules) |
-| `machines/trace.rs` | `StepTrace`, `TraceAnalysis` (`IrreducibilityTrace` deprecated alias) | Generic trace analysis, repeat detection (proxy re-export of `crate::trace` shim) |
 | `machines/multiway/string_rewrite.rs` | `StringRewriteSystem`, `SRSState` | Pattern-based multiway string rewriting |
 | `machines/multiway/ntm.rs` | `NondeterministicTM`, `NTMBuilder` | Non-deterministic Turing machines |
 | `machines/multiway/manifold_bridge.rs` | `ManifoldCurvature`, `BranchialEmbedding` | Regge deficit-angle curvature on branchial complexes via dc_topology (feature-gated) |
@@ -59,11 +55,11 @@ Re-exports from catgraph v0.23.0 implementing [Fong & Spivak, *Hypergraph Catego
 
 | Paper Concept | Implementation | Location |
 |---|---|---|
-| Cobordism category B | `DiscreteInterval`, `ParallelIntervals` | irreducible::interval |
+| Cobordism category B | `DiscreteInterval`, `ParallelIntervals` | catgraph_physics::interval |
 | Functor Z': T -> B | `IrreducibilityFunctor` | functor/mod.rs |
 | Adjunction Z' ⊣ Z | `ZPrimeAdjunction`, triangle identities | functor/adjunction.rs |
 | Coherence (alpha, lambda, rho, sigma) | `verify_associator`, `verify_braiding`, `verify_all_coherence` | multiway_coherence.rs |
-| Stokes integration | `TemporalComplex`, `ConservationResult` | temporal_cospan_chain.rs |
+| Stokes integration | `TemporalComplex`, `ConservationResult` | catgraph_physics::temporal_cospan_chain |
 | Discrete exterior calculus | `MultiwayComplex`, `OneForm`, `TwoForm` | multiway_stokes.rs (feature: dec) |
 | Frobenius structure | `FrobeniusVerificationResult`, `verify_cospan_chain_frobenius` | functor/fong_spivak.rs |
 | DPO rewriting as spans | `RewriteRule::to_span()` | catgraph_physics::hypergraph |
@@ -81,7 +77,7 @@ irreducible = { git = "https://github.com/tsondru/irreducible" }
 
 ```rust
 use irreducible::machines::{TuringMachine, Direction};
-use irreducible::machines::trace::analyze_trace;
+use irreducible::analyze_trace;
 
 let bb = TuringMachine::busy_beaver_2_2();
 let history = bb.run("", 20);
@@ -142,8 +138,8 @@ cargo run --example multiway_stokes --features dec  # Closed vs non-closed 1-for
 ## Testing
 
 ```bash
-cargo test --workspace                               # 354 tests (default features)
-cargo test --workspace --features manifold-curvature,dec  # 381 tests (CI feature leg)
+cargo test --workspace                               # default features
+cargo test --workspace --features manifold-curvature,dec  # CI feature leg
 cargo test --features dc-geometry                    # dc_topology smoke + bridge tests
 cargo clippy --workspace --all-targets -- -D warnings  # CI gate
 cargo clippy --workspace -- -W clippy::pedantic      # advisory, zero warnings

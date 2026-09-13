@@ -8,6 +8,8 @@ use irreducible::{
     DiscreteCurvature, NondeterministicTM, OllivierRicciCurvature, StringRewriteSystem,
 };
 
+use catgraph_physics::multiway::branchial_parallel_step_pairs;
+
 use irreducible::machines::multiway::{
     branchial_to_parallel_intervals, extract_branchial_foliation, find_all_merge_points,
 };
@@ -115,6 +117,33 @@ fn branchial_to_parallel_intervals_produces_valid_structure() {
     for pi in &parallel_vec {
         assert!(pi.branch_count() >= 1);
     }
+}
+
+#[test]
+fn branchial_to_parallel_intervals_drops_nodes_without_forward_edges() {
+    // "AB" -> "X" kills a branch at step 1 while "B" -> "BB" keeps another
+    // alive, so a boundary carries both a terminal and a live node.
+    let srs = StringRewriteSystem::new(vec![("AB", "X"), ("B", "BB")]);
+    let evolution = srs.run_multiway("AB", 3, 100);
+
+    let observed: Vec<usize> = branchial_to_parallel_intervals(&evolution)
+        .iter()
+        .map(|pi| pi.branch_count())
+        .collect();
+    let upstream: Vec<usize> = branchial_parallel_step_pairs(&evolution)
+        .iter()
+        .map(Vec::len)
+        .collect();
+
+    assert_eq!(
+        observed,
+        vec![1, 1, 3],
+        "branch counts per foliation boundary: observed {observed:?}, expected [1, 1, 3]"
+    );
+    assert_eq!(
+        observed, upstream,
+        "wrap must reproduce the upstream step pairs: observed {observed:?}, upstream {upstream:?}"
+    );
 }
 
 // ---------------------------------------------------------------------------

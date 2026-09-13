@@ -1,10 +1,10 @@
 //! Integration tests for the temporal cospan chain bridge.
 
 use catgraph::category::Composable;
-use irreducible::temporal_cospan_chain::{
-    ConservationResult, TemporalComplex, TemporalComplexError,
+use irreducible::{
+    ConservationResult, DiscreteInterval, ElementaryCA, TemporalComplex, TemporalComplexError,
+    TuringMachine,
 };
-use irreducible::{DiscreteInterval, ElementaryCA, TuringMachine};
 
 #[test]
 fn build_temporal_complex_from_tm_execution() {
@@ -113,18 +113,6 @@ fn single_interval_complex() {
 fn empty_intervals_error() {
     let result = TemporalComplex::from_intervals(&[]);
     assert!(matches!(result, Err(TemporalComplexError::EmptyIntervals)));
-}
-
-/// v0.6.3 shim contract: confirms the deprecated `StokesError` alias still
-/// resolves to the renamed `TemporalComplexError`. v0.7.0 deletes this test
-/// alongside the alias.
-#[test]
-#[allow(deprecated)]
-fn deprecated_stokes_error_alias_round_trips() {
-    use irreducible::temporal_cospan_chain::StokesError;
-    let result = TemporalComplex::from_intervals(&[]);
-    let alias_match = matches!(result, Err(StokesError::EmptyIntervals));
-    assert!(alias_match);
 }
 
 #[test]

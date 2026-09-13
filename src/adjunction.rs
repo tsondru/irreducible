@@ -25,7 +25,7 @@
 //! 2. Z(`ε_i`) ∘ `η_{Z(i)}` = id_{Z(i)}
 
 use crate::computation_state::ComputationState;
-use crate::interval::DiscreteInterval;
+use catgraph_physics::interval::DiscreteInterval;
 
 /// Operations for a Z' ⊣ Z adjunction between computation and cobordism categories.
 ///
