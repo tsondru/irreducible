@@ -1,8 +1,10 @@
 //! Corelations for multiway merge events (F&S 2018 Ex 6.64; issue #14).
 //!
 //! A [`Corel`] is a jointly-surjective cospan — a partition of its boundary.
-//! Multiway step cospans ([`multiway_step_cospans`]) are jointly surjective
-//! by construction, so each step lifts to a corelation whose classes are the
+//! Multiway step cospans
+//! ([`multiway_step_cospans`](super::interval_algebra::multiway_step_cospans))
+//! are jointly surjective by construction, so each step lifts to a corelation
+//! whose classes are the
 //! step's events — and [`step_corels`] additionally **glues
 //! fingerprint-coincident states**: the multiway explorer keeps same-state
 //! nodes reached along different paths as distinct graph nodes, so merge
@@ -17,8 +19,9 @@
 //! fingerprint-identified events.
 //!
 //! The raw (merge-blind) event chain remains available via
-//! [`multiway_step_cospans`] — it is the substrate of the Frobenius event
-//! census (issue #12) and must reflect graph edges only.
+//! [`multiway_step_cospans`](super::interval_algebra::multiway_step_cospans)
+//! — it is the substrate of the Frobenius event census (issue #12) and must
+//! reflect graph edges only.
 //!
 //! The hypergraph-evolution counterpart (merge partition over hypergraph
 //! *vertex IDs*, cross-run comparison via
@@ -35,7 +38,8 @@ use catgraph::cospan::Cospan;
 use catgraph::errors::CatgraphError;
 use catgraph_physics::multiway::{MultiwayEvolutionGraph, extract_branchial_foliation};
 
-use super::interval_algebra::multiway_step_cospans;
+use super::interval_algebra::{Partition, renumber_first_seen, step_cospans_from_foliation};
+use union_find::UnionFind;
 
 /// Lift every multiway step cospan to a corelation, gluing
 /// fingerprint-coincident states of the target slice (merge events).
@@ -45,11 +49,32 @@ use super::interval_algebra::multiway_step_cospans;
 /// Returns [`CatgraphError::Corel`] if a quotiented step cospan is not
 /// jointly surjective — impossible by construction, so an error indicates a
 /// bug in the step-cospan or quotient construction.
+///
+/// # Examples
+///
+/// On the diamond `S → AB | BA`, both `→ Z`, the raw chain sees two separate
+/// step-1 events; the corelation glues them, so both parent branches land in
+/// one class:
+///
+/// ```rust
+/// use irreducible::{StringRewriteSystem, multiway_step_cospans, step_corels};
+///
+/// let srs = StringRewriteSystem::new(vec![("S", "AB"), ("S", "BA"), ("AB", "Z"), ("BA", "Z")]);
+/// let evolution = srs.run_multiway("S", 2, 16);
+///
+/// let raw = multiway_step_cospans(&evolution);
+/// let corels = step_corels(&evolution).unwrap();
+///
+/// assert_eq!(corels.len(), 2);
+/// assert_eq!(raw[1].middle().len(), 2);
+/// assert_eq!(corels[1].as_cospan().middle().len(), 1);
+/// assert!(corels[1].merges(0, 1));
+/// ```
 pub fn step_corels<S: Clone + Hash, T: Clone>(
     graph: &MultiwayEvolutionGraph<S, T>,
 ) -> Result<Vec<Corel<u32>>, CatgraphError> {
     let foliation = extract_branchial_foliation(graph);
-    multiway_step_cospans(graph)
+    step_cospans_from_foliation(graph, &foliation)
         .into_iter()
         .enumerate()
         .map(|(i, cospan)| {
@@ -66,6 +91,29 @@ pub fn step_corels<S: Clone + Hash, T: Clone>(
 /// # Errors
 ///
 /// Propagates [`CatgraphError`] from corelation composition (pushout).
+///
+/// # Examples
+///
+/// The diamond composes to one initial position, two final positions and a
+/// single class; a root-only evolution has no steps to compose:
+///
+/// ```rust
+/// use irreducible::machines::multiway::MultiwayEvolutionGraph;
+/// use irreducible::{StringRewriteSystem, evolution_corel};
+///
+/// let srs = StringRewriteSystem::new(vec![("S", "AB"), ("S", "BA"), ("AB", "Z"), ("BA", "Z")]);
+/// let evolution = srs.run_multiway("S", 2, 16);
+/// let corel = evolution_corel(&evolution).unwrap().unwrap();
+///
+/// assert_eq!(corel.as_cospan().left_to_middle().len(), 1);
+/// assert_eq!(corel.as_cospan().right_to_middle().len(), 2);
+/// let dom_mid = 1 + corel.as_cospan().middle().len();
+/// assert!(corel.merges(dom_mid, dom_mid + 1));
+///
+/// let mut root_only: MultiwayEvolutionGraph<i32, ()> = MultiwayEvolutionGraph::new();
+/// root_only.add_root(0);
+/// assert!(evolution_corel(&root_only).unwrap().is_none());
+/// ```
 pub fn evolution_corel<S: Clone + Hash, T: Clone>(
     graph: &MultiwayEvolutionGraph<S, T>,
 ) -> Result<Option<Corel<u32>>, CatgraphError> {
@@ -88,15 +136,7 @@ fn glue_fingerprint_merges<S: Clone + Hash, T: Clone>(
     target_slice: &catgraph_physics::multiway::BranchialGraph,
     cospan: &Cospan<u32>,
 ) -> Cospan<u32> {
-    let apex_count = cospan.middle().len();
-    let mut parent: Vec<usize> = (0..apex_count).collect();
-    fn find(parent: &mut [usize], mut i: usize) -> usize {
-        while parent[i] != i {
-            parent[i] = parent[parent[i]];
-            i = parent[i];
-        }
-        i
-    }
+    let mut classes = Partition::new(cospan.middle().len());
 
     let mut first_apex_of_fp: HashMap<u64, usize> = HashMap::new();
     for (pos, node_id) in target_slice.nodes.iter().enumerate() {
@@ -105,10 +145,7 @@ fn glue_fingerprint_merges<S: Clone + Hash, T: Clone>(
         };
         let apex = cospan.right_to_middle()[pos];
         if let Some(&seen) = first_apex_of_fp.get(&node.fingerprint) {
-            let (a, b) = (find(&mut parent, apex), find(&mut parent, seen));
-            if a != b {
-                parent[a] = b;
-            }
+            classes.union(apex, seen);
         } else {
             first_apex_of_fp.insert(node.fingerprint, apex);
         }
@@ -116,29 +153,26 @@ fn glue_fingerprint_merges<S: Clone + Hash, T: Clone>(
 
     // Rebuild with class representatives in first-seen order.
     let mut apex_of_root: HashMap<usize, usize> = HashMap::new();
-    let remap = |parent: &mut [usize], old: usize, apex_of_root: &mut HashMap<usize, usize>| {
-        let root = find(parent, old);
-        let next = apex_of_root.len();
-        *apex_of_root.entry(root).or_insert(next)
-    };
     let left: Vec<usize> = cospan
         .left_to_middle()
         .iter()
-        .map(|&m| remap(&mut parent, m, &mut apex_of_root))
+        .map(|&m| renumber_first_seen(&mut classes, m, &mut apex_of_root))
         .collect();
     let right: Vec<usize> = cospan
         .right_to_middle()
         .iter()
-        .map(|&m| remap(&mut parent, m, &mut apex_of_root))
+        .map(|&m| renumber_first_seen(&mut classes, m, &mut apex_of_root))
         .collect();
     let middle = vec![0u32; apex_of_root.len()];
-    // Correct by construction: every leg entry is a `remap` output, i.e. an
-    // index into `apex_of_root`, and `middle` has one vertex per class.
+    // Correct by construction: every leg entry is a `renumber_first_seen`
+    // output, i.e. an index into `apex_of_root`, and `middle` has one vertex
+    // per class.
     Cospan::new_unchecked(left, right, middle)
 }
 
 #[cfg(test)]
 mod tests {
+    use super::super::interval_algebra::multiway_step_cospans;
     use super::*;
     use crate::machines::multiway::StringRewriteSystem;
 

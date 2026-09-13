@@ -38,12 +38,16 @@
 //! functoriality `a(c₁ ; c₂) = a(c₂) ∘ a(c₁)` testable against pushout
 //! composition.
 
+use std::collections::HashMap;
 use std::hash::Hash;
 
 use catgraph::cospan::Cospan;
 use catgraph::cospan_algebra::CospanAlgebra;
 use catgraph::errors::CatgraphError;
-use catgraph_physics::multiway::{MultiwayEvolutionGraph, extract_branchial_foliation};
+use catgraph_physics::multiway::{
+    BranchialGraph, MultiwayEvolutionGraph, MultiwayNodeId, extract_branchial_foliation,
+};
+use union_find::{QuickUnionUf, UnionBySize, UnionFind};
 
 use catgraph_physics::interval::{DiscreteInterval, ParallelIntervals};
 
@@ -72,6 +76,26 @@ impl CospanAlgebra<u32> for IntervalCospanAlgebra {
     /// - a right-boundary node's apex component contains no left-boundary
     ///   node (a spontaneous branch has no interval history to transport;
     ///   multiway step cospans never produce this).
+    ///
+    /// # Examples
+    ///
+    /// A merge — both left-boundary nodes share the single apex vertex —
+    /// hands the surviving branch the hull of its parents' intervals:
+    ///
+    /// ```rust
+    /// use catgraph::cospan::Cospan;
+    /// use irreducible::{CospanAlgebra, DiscreteInterval, IntervalCospanAlgebra, ParallelIntervals};
+    ///
+    /// let merge = Cospan::new(vec![0, 0], vec![0], vec![0u32]).unwrap();
+    ///
+    /// let mut parents = ParallelIntervals::new();
+    /// parents.add_branch(DiscreteInterval::new(0, 2));
+    /// parents.add_branch(DiscreteInterval::new(1, 4));
+    ///
+    /// let child = IntervalCospanAlgebra.map_cospan(&merge, &parents).unwrap();
+    /// assert_eq!(child.branch_count(), 1);
+    /// assert_eq!(child.branches[0], DiscreteInterval::new(0, 4));
+    /// ```
     fn map_cospan(
         &self,
         cospan: &Cospan<u32>,
@@ -134,65 +158,91 @@ impl CospanAlgebra<u32> for IntervalCospanAlgebra {
 /// Adjacent cospans in the returned chain are composable: the right boundary
 /// arity of step `i` equals the left boundary arity of step `i + 1` (both
 /// are the branchial slice at `i + 1`, in the same node order).
+///
+/// # Examples
+///
+/// The diamond `S → AB | BA`, both `→ Z`, gives a fork at step 0 (one apex
+/// vertex, two right-boundary nodes) and two sequential events at step 1:
+///
+/// ```rust
+/// use irreducible::{StringRewriteSystem, multiway_step_cospans};
+///
+/// let srs = StringRewriteSystem::new(vec![("S", "AB"), ("S", "BA"), ("AB", "Z"), ("BA", "Z")]);
+/// let evolution = srs.run_multiway("S", 2, 16);
+/// let chain = multiway_step_cospans(&evolution);
+///
+/// assert_eq!(chain.len(), 2);
+/// assert_eq!(chain[0].left_to_middle(), &[0]);
+/// assert_eq!(chain[0].right_to_middle(), &[0, 0]);
+/// assert_eq!(chain[1].middle().len(), 2);
+/// ```
 #[must_use]
 pub fn multiway_step_cospans<S: Clone + Hash, T: Clone>(
     graph: &MultiwayEvolutionGraph<S, T>,
 ) -> Vec<Cospan<u32>> {
-    let foliation = extract_branchial_foliation(graph);
-    let mut cospans = Vec::new();
+    step_cospans_from_foliation(graph, &extract_branchial_foliation(graph))
+}
+
+/// [`multiway_step_cospans`] over a foliation the caller already extracted.
+pub(super) fn step_cospans_from_foliation<S: Clone + Hash, T: Clone>(
+    graph: &MultiwayEvolutionGraph<S, T>,
+    foliation: &[BranchialGraph],
+) -> Vec<Cospan<u32>> {
+    let mut cospans = Vec::with_capacity(foliation.len().saturating_sub(1));
 
     for window in foliation.windows(2) {
         let (slice_t, slice_next) = (&window[0], &window[1]);
         let n_left = slice_t.nodes.len();
         let n_right = slice_next.nodes.len();
 
-        // Union-find over left ∪ right node positions.
-        let mut parent: Vec<usize> = (0..n_left + n_right).collect();
-        fn find(parent: &mut [usize], mut i: usize) -> usize {
-            while parent[i] != i {
-                parent[i] = parent[parent[i]];
-                i = parent[i];
-            }
-            i
+        // Position of each target-slice node, matching the first occurrence.
+        let mut pos_in_next: HashMap<MultiwayNodeId, usize> = HashMap::with_capacity(n_right);
+        for (ri, node) in slice_next.nodes.iter().enumerate() {
+            pos_in_next.entry(*node).or_insert(ri);
         }
 
+        // Union-find over left ∪ right node positions.
+        let mut classes = Partition::new(n_left + n_right);
         for (li, node) in slice_t.nodes.iter().enumerate() {
             if let Some(edges) = graph.get_forward_edges(node) {
                 for edge in edges {
-                    if let Some(ri) = slice_next.nodes.iter().position(|n| *n == edge.to) {
-                        let (a, b) = (find(&mut parent, li), find(&mut parent, n_left + ri));
-                        parent[a] = b;
+                    if let Some(&ri) = pos_in_next.get(&edge.to) {
+                        classes.union(li, n_left + ri);
                     }
                 }
             }
         }
 
-        // Number components in first-seen order for a canonical apex.
-        let mut apex_of_root: std::collections::HashMap<usize, usize> =
-            std::collections::HashMap::new();
-        let assign =
-            |parent: &mut [usize],
-             i: usize,
-             apex_of_root: &mut std::collections::HashMap<usize, usize>| {
-                let root = find(parent, i);
-                let next = apex_of_root.len();
-                *apex_of_root.entry(root).or_insert(next)
-            };
-
+        let mut apex_of_root: HashMap<usize, usize> = HashMap::new();
         let left: Vec<usize> = (0..n_left)
-            .map(|i| assign(&mut parent, i, &mut apex_of_root))
+            .map(|i| renumber_first_seen(&mut classes, i, &mut apex_of_root))
             .collect();
         let right: Vec<usize> = (0..n_right)
-            .map(|i| assign(&mut parent, n_left + i, &mut apex_of_root))
+            .map(|i| renumber_first_seen(&mut classes, n_left + i, &mut apex_of_root))
             .collect();
         let middle = vec![0u32; apex_of_root.len()];
 
-        // Correct by construction: every leg entry is an `assign` output, i.e.
-        // an index into `apex_of_root`, and `middle` has one vertex per class.
+        // Correct by construction: every leg entry is a `renumber_first_seen`
+        // output, i.e. an index into `apex_of_root`, and `middle` has one
+        // vertex per class.
         cospans.push(Cospan::new_unchecked(left, right, middle));
     }
 
     cospans
+}
+
+/// Union-find over the dense positions the apex constructions partition.
+pub(super) type Partition = QuickUnionUf<UnionBySize>;
+
+/// The apex index of `i`'s class, minting indices in order of first request.
+pub(super) fn renumber_first_seen(
+    classes: &mut Partition,
+    i: usize,
+    apex_of_root: &mut HashMap<usize, usize>,
+) -> usize {
+    let root = classes.find(i);
+    let next = apex_of_root.len();
+    *apex_of_root.entry(root).or_insert(next)
 }
 
 #[cfg(test)]
@@ -325,6 +375,69 @@ mod tests {
             staged.exactly_equal(&direct),
             "a(c1;c2) must equal a(c2)∘a(c1): staged {staged:?} vs direct {direct:?}"
         );
+    }
+
+    #[test]
+    fn step_cospan_legs_are_numbered_first_seen() {
+        // Apex indices are minted in order of first request over the left
+        // boundary then the right. Pinned verbatim: rotating the
+        // target-position map gives step 1 `[1, 0, 1, 1]`, and numbering the
+        // left boundary in reverse gives `[1, 0, 0, 0]`.
+        let srs = StringRewriteSystem::new(vec![("AB", "BA"), ("A", "AA")]);
+        let evolution = srs.run_multiway("AB", 4, 64);
+        let chain = multiway_step_cospans(&evolution);
+
+        let legs: Vec<(Vec<usize>, Vec<usize>)> = chain
+            .iter()
+            .take(3)
+            .map(|c| (c.left_to_middle().to_vec(), c.right_to_middle().to_vec()))
+            .collect();
+        assert_eq!(
+            legs,
+            vec![
+                (vec![0], vec![0, 0]),
+                (vec![0, 1], vec![0, 1, 1, 1]),
+                (
+                    vec![0, 1, 2, 3],
+                    vec![0, 0, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3]
+                ),
+            ]
+        );
+    }
+
+    #[test]
+    fn step_cospans_share_an_apex_across_every_graph_edge() {
+        // Every forward edge from a slice-t node to a slice-(t+1) node puts
+        // the two positions in one apex class. The target position is read
+        // back with the linear scan the position map replaced.
+        let srs = StringRewriteSystem::new(vec![("AB", "BA"), ("A", "AA")]);
+        let evolution = srs.run_multiway("AB", 4, 64);
+        let foliation = extract_branchial_foliation(&evolution);
+        let chain = multiway_step_cospans(&evolution);
+
+        let mut edges_checked = 0;
+        for (t, cospan) in chain.iter().enumerate() {
+            let (slice_t, slice_next) = (&foliation[t], &foliation[t + 1]);
+            for (li, node) in slice_t.nodes.iter().enumerate() {
+                let Some(edges) = evolution.get_forward_edges(node) else {
+                    continue;
+                };
+                for edge in edges {
+                    let Some(ri) = slice_next.nodes.iter().position(|n| *n == edge.to) else {
+                        continue;
+                    };
+                    edges_checked += 1;
+                    assert_eq!(
+                        cospan.left_to_middle()[li],
+                        cospan.right_to_middle()[ri],
+                        "step {t}: edge {li} -> {ri} spans apex {} and {}",
+                        cospan.left_to_middle()[li],
+                        cospan.right_to_middle()[ri]
+                    );
+                }
+            }
+        }
+        assert_eq!(edges_checked, 73, "fixture edge census drifted");
     }
 
     #[test]

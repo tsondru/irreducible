@@ -10,6 +10,7 @@ use std::collections::HashMap;
 use catgraph::corel::Corel;
 use catgraph::cospan::Cospan;
 use catgraph::errors::CatgraphError;
+use union_find::{QuickUnionUf, UnionBySize, UnionFind};
 
 pub use catgraph_physics::hypergraph::multiway_cospan::{
     CospanInvarianceResult, CospanMergeDetail, MultiwayCospan, MultiwayCospanExt,
@@ -113,35 +114,19 @@ fn merge_classes(graph: &MultiwayCospanGraph) -> HashMap<u32, u32> {
         });
     }
 
-    fn find(parent: &mut HashMap<u32, u32>, v: u32) -> u32 {
-        let mut root = v;
-        while let Some(&p) = parent.get(&root) {
-            if p == root {
-                break;
-            }
-            root = p;
-        }
-        // Path compression.
-        let mut cur = v;
-        while let Some(&p) = parent.get(&cur) {
-            if p == root {
-                break;
-            }
-            parent.insert(cur, root);
-            cur = p;
-        }
-        root
-    }
-    fn union(parent: &mut HashMap<u32, u32>, a: u32, b: u32) {
-        let (ra, rb) = (find(parent, a), find(parent, b));
-        if ra != rb {
-            // Keep the minimum ID as representative.
-            let (lo, hi) = if ra < rb { (ra, rb) } else { (rb, ra) };
-            parent.insert(hi, lo);
-        }
+    // Dense union-find key per vertex ID the alignment touches.
+    fn key(
+        classes: &mut QuickUnionUf<UnionBySize>,
+        key_of_vertex: &mut HashMap<u32, usize>,
+        v: u32,
+    ) -> usize {
+        *key_of_vertex
+            .entry(v)
+            .or_insert_with(|| classes.insert(UnionBySize::default()))
     }
 
-    let mut parent: HashMap<u32, u32> = HashMap::new();
+    let mut classes: QuickUnionUf<UnionBySize> = QuickUnionUf::new(0);
+    let mut key_of_vertex: HashMap<u32, usize> = HashMap::new();
     for group in &graph.merge_points {
         let Some((first, rest)) = group.split_first() else {
             continue;
@@ -161,18 +146,30 @@ fn merge_classes(graph: &MultiwayCospanGraph) -> HashMap<u32, u32> {
             let mut vs_sorted = vs.clone();
             vs_sorted.sort_unstable();
             for (&a, &b) in base_sorted.iter().zip(vs_sorted.iter()) {
-                union(&mut parent, a, b);
+                let (ka, kb) = (
+                    key(&mut classes, &mut key_of_vertex, a),
+                    key(&mut classes, &mut key_of_vertex, b),
+                );
+                classes.union(ka, kb);
             }
         }
     }
 
-    // Resolve every touched vertex to its representative.
-    let touched: Vec<u32> = parent.keys().copied().collect();
-    let mut out = HashMap::new();
-    for v in touched {
-        let rep = find(&mut parent, v);
-        out.insert(v, rep);
-        out.insert(rep, rep);
+    // Resolve every touched vertex to its class representative, the minimum
+    // vertex ID of the class.
+    let roots: Vec<(u32, usize)> = key_of_vertex
+        .iter()
+        .map(|(&v, &k)| (v, classes.find(k)))
+        .collect();
+    let mut rep_of_root: HashMap<usize, u32> = HashMap::new();
+    for &(v, root) in &roots {
+        rep_of_root
+            .entry(root)
+            .and_modify(|rep| *rep = (*rep).min(v))
+            .or_insert(v);
     }
-    out
+    roots
+        .iter()
+        .map(|&(v, root)| (v, rep_of_root.get(&root).copied().unwrap_or(v)))
+        .collect()
 }

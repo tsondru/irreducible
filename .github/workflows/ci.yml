@@ -29,6 +29,8 @@ jobs:
       - run: cargo test --workspace --locked
       - run: cargo run --locked --example lattice_gauge
       - run: cargo run --locked --example gorard_demo
+      - run: cargo run --locked --example categorical_toolkit
+      - run: cargo run --locked --example confluence_corel
       # Feature-matrix leg. `lapack` is excluded: needs libopenblas-dev and adds
       # no logic coverage.
       - run: cargo clippy --workspace --all-targets --locked --features manifold-curvature,dec -- -D warnings

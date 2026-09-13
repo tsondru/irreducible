@@ -19,11 +19,36 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this c
   `list_chains` names every stored chain. Engine
   chosen by `persist-mem` / `persist-rocksdb`; CI runs the `persist-mem`
   lane. No span tier (catgraph-surreal#9).
+- **Examples for the categorical toolkit** (#24): `categorical_toolkit`
+  (the diamond SRS through step cospans, algebra transport, Frobenius
+  census and corel merge partition), `confluence_corel` (two hypergraph
+  rule orderings under `coarsest_common_refinement` beside the
+  Wilson-loop verdict), three `gorard_demo` parts (Frobenius census,
+  corel merge partition, compact-closed witness), rustdoc examples on
+  `multiway_step_cospans`, `IntervalCospanAlgebra::map_cospan`,
+  `verify_frobenius_preservation`, `step_corels`, `evolution_corel`.
+  CI runs every example.
+- **Integration coverage for the categorical stack** (#25): NTM and
+  Petri reachability graphs through step cospans, Frobenius census and
+  step corels; zero-step and `max_branches`-truncated chains;
+  `MergesCorelExt` size-mismatch skip and absent boundary vertices;
+  `map_cospan` over a truncated chain; five-way agreement (functor,
+  trace, Stokes, Frobenius census, merge partition) on busy beaver and
+  rule 30. The Frobenius-census and corel-partition perspectives do not
+  separate the reducible trace (both are per-step-local); pinned as
+  such.
 
 ### Changed
 
 - **`rust-version` 1.93 → 1.94**: the `persist` lanes refuse below 1.94
   (`catgraph-surreal`, `fastnum`).
+- **Categorical-stack cleanups** (#26), output-identical on every
+  fixture: interval bundles fold by value, slice positions are indexed
+  per window, the three hand-rolled union-finds are the `union-find`
+  crate (class representative stays the minimum vertex ID),
+  `renumber_first_seen` is shared, `step_corels` extracts the foliation
+  once, `spider_recipe` is memoized per `verify_frobenius_preservation`
+  call.
 
 ## [0.7.0] - 2026-09-13
 

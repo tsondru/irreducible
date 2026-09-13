@@ -4,9 +4,11 @@
 //! to sequences of DiscreteIntervals, verifying contiguity, composition,
 //! and agreement between domain-specific and generic trace analysis.
 
+use irreducible::machines::multiway::MultiwayEvolutionGraph;
 use irreducible::{
     DiscreteInterval, ElementaryCA, Generation, IrreducibilityFunctor, StepTrace,
-    StokesIrreducibility, TuringMachine, analyze_trace,
+    StokesIrreducibility, TuringMachine, analyze_trace, evolution_corel, step_corels,
+    verify_frobenius_preservation,
 };
 
 // ---------------------------------------------------------------------------
@@ -315,6 +317,158 @@ fn three_way_agreement_reducible() {
     // At minimum: trace says reducible, and functor + Stokes agree with each other.
     assert_eq!(functor_irreducible, stokes_irreducible);
     assert!(!trace.is_irreducible);
+}
+
+// ---------------------------------------------------------------------------
+// Five-way agreement: the categorical perspectives join the matrix
+// ---------------------------------------------------------------------------
+
+/// Lift a linear execution trace into a single-track multiway graph, the
+/// shape the categorical surfaces consume.
+fn linear_graph(fingerprints: &[u64]) -> MultiwayEvolutionGraph<u64, ()> {
+    let mut graph = MultiwayEvolutionGraph::new();
+    let mut node = graph.add_root(fingerprints[0]);
+    for &fp in &fingerprints[1..] {
+        node = graph.add_sequential_step(node, fp, ());
+    }
+    graph
+}
+
+/// The two categorical perspectives on a single-track execution: every step
+/// is one sequential event, and the whole trace composes to one causal class
+/// from the initial position to the final one.
+///
+/// These values do **not** separate irreducible from reducible traces — see
+/// [`categorical_perspectives_do_not_separate_the_reducible_trace`], which
+/// pins the same values on rule 0. They pin the single-track *shape*: a fork
+/// or a truncation would move them.
+fn assert_single_track_perspectives(fingerprints: &[u64], name: &str) {
+    let graph = linear_graph(fingerprints);
+    let expected_steps = fingerprints.len() - 1;
+
+    // Perspective 4: Frobenius event census.
+    let frobenius = verify_frobenius_preservation(&graph).expect("verification runs");
+    assert!(frobenius.all_hold(), "{name}: {frobenius:?}");
+    assert_eq!(
+        frobenius.per_step.len(),
+        expected_steps,
+        "{name}: step count"
+    );
+    for check in &frobenius.per_step {
+        assert_eq!(
+            check.components_checked, 1,
+            "{name}: a single track is one event per step"
+        );
+    }
+
+    // Perspective 5: corel merge partition. One class per step (nothing to
+    // glue in a one-node slice), and the composite is a single causal line.
+    let per_step: Vec<usize> = step_corels(&graph)
+        .expect("step cospans are jointly surjective")
+        .iter()
+        .map(|c| c.as_cospan().middle().len())
+        .collect();
+    assert_eq!(
+        per_step,
+        vec![1; expected_steps],
+        "{name}: per-step class counts"
+    );
+
+    let corel = evolution_corel(&graph)
+        .expect("composition succeeds")
+        .unwrap_or_else(|| panic!("{name}: trace has steps"));
+    assert_eq!(
+        corel.as_cospan().left_to_middle().len(),
+        1,
+        "{name}: one start"
+    );
+    assert_eq!(
+        corel.as_cospan().right_to_middle().len(),
+        1,
+        "{name}: one end"
+    );
+    assert_eq!(
+        corel.as_cospan().middle().len(),
+        1,
+        "{name}: the whole trace is one causal class"
+    );
+    let dom_mid = 1 + corel.as_cospan().middle().len();
+    assert!(
+        corel.merges(0, dom_mid),
+        "{name}: start and end are causally connected"
+    );
+}
+
+#[test]
+fn five_way_agreement_irreducible_tm() {
+    let bb = TuringMachine::busy_beaver_2_2();
+    let history = bb.run("", 20);
+    let intervals = history.to_intervals();
+
+    // The three established perspectives.
+    assert!(IrreducibilityFunctor::is_sequence_irreducible(&intervals));
+    assert!(analyze_trace(&history).is_irreducible);
+    assert!(
+        StokesIrreducibility::analyze(&intervals)
+            .unwrap()
+            .is_irreducible()
+    );
+
+    // BB(2,2) halts after 6 steps, so the trace carries 7 states.
+    let fingerprints = history.state_fingerprints();
+    assert_eq!(fingerprints.len(), 7, "busy beaver 2,2 runs six steps");
+    assert_single_track_perspectives(&fingerprints, "busy beaver 2,2");
+}
+
+#[test]
+fn five_way_agreement_irreducible_ca() {
+    let ca = ElementaryCA::rule_30(21);
+    let history = ca.run(ca.single_cell_initial(), 20);
+    let intervals = history.to_intervals();
+
+    assert!(IrreducibilityFunctor::is_sequence_irreducible(&intervals));
+    assert!(analyze_trace(&history).is_irreducible);
+    assert!(
+        StokesIrreducibility::analyze(&intervals)
+            .unwrap()
+            .is_irreducible()
+    );
+
+    let fingerprints = history.state_fingerprints();
+    assert_eq!(fingerprints.len(), 21, "twenty steps plus the seed");
+    assert_single_track_perspectives(&fingerprints, "rule 30");
+}
+
+#[test]
+fn categorical_perspectives_do_not_separate_the_reducible_trace() {
+    // Measured null, pinned so a future change that DOES make perspectives 4
+    // and 5 sensitive to repetition is noticed here.
+    //
+    // Rule 0 kills every cell after one step and then repeats the all-dead
+    // state: 11 states, only 2 distinct. Perspectives 4 and 5 read exactly
+    // the same on it as on busy beaver and rule 30, because both are
+    // per-step-local — the Frobenius census counts apex arities, and
+    // `step_corels` glues fingerprint-coincident nodes *within one branchial
+    // slice*, which a single track never has two of. Repetition across
+    // slices is invisible to both by construction; detecting it is
+    // perspective 2's job (`analyze_trace`).
+    let ca = ElementaryCA::new(0, 5);
+    let initial = Generation::new(vec![true, false, true, false, true], 0);
+    let history = ca.run(initial, 10);
+
+    // Perspective 2 separates: the trace repeats.
+    assert!(!analyze_trace(&history).is_irreducible);
+    let fingerprints = history.state_fingerprints();
+    let distinct: std::collections::HashSet<u64> = fingerprints.iter().copied().collect();
+    assert_eq!(fingerprints.len(), 11, "ten steps plus the seed");
+    assert_eq!(distinct.len(), 2, "seed, then the all-dead fixed point");
+    assert!(
+        distinct.len() < fingerprints.len(),
+        "a reducible trace revisits states"
+    );
+
+    // Perspectives 4 and 5 do not: identical to the irreducible fixtures.
+    assert_single_track_perspectives(&fingerprints, "rule 0 (reducible)");
 }
 
 #[test]

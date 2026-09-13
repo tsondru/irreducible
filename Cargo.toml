@@ -36,6 +36,9 @@ deep_causality_sparse = { git = "https://github.com/deepcausality-rs/deep_causal
 rust_decimal = "1"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+# Already resolved in Cargo.lock through catgraph; pinned to that version so
+# declaring it directly adds no package to the lock.
+union-find = "0.4.4"
 
 [package]
 name = "irreducible"
@@ -76,6 +79,7 @@ deep_causality_tensor = { workspace = true, optional = true }
 deep_causality_sparse = { workspace = true, optional = true }
 serde.workspace = true
 serde_json.workspace = true
+union-find.workspace = true
 
 [dev-dependencies]
 proptest = "1"

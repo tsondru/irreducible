@@ -91,6 +91,34 @@ Text-based visualization of non-deterministic computation structure:
 - **Branchial curvature**: geometric complexity indicator per step
 - **NTM branching**: non-deterministic Turing machine fork points
 
+### 10. Frobenius Structure: Multiway Events ARE the Generators
+
+Under the free-hypergraph-category encoding (Thm 3.14), the Frobenius generators of 𝒯 are exactly the multiway event types:
+
+| Generator | Multiway event |
+| --------- | -------------- |
+| μ multiplication | merge — two branches reach one state |
+| δ comultiplication | fork — one state rewrites two ways |
+| ε counit | branch death — no continuation |
+| η unit | branch birth — the root, never mid-evolution |
+
+On the diamond `S → AB | BA`, both `→ Z`, the demo prints the per-step event census and checks that every event factors through its Frobenius generator recipe (Prop 3.8), alongside Eq. 12 on the four generators.
+
+### 11. Corelation Merge Partition
+
+A corelation is a jointly-surjective cospan — a partition of its boundary. Each step lifts to one whose classes are the step's events.
+
+The multiway explorer keeps same-state nodes reached along different paths as **distinct graph nodes**, so a merge exists only at the fingerprint level. The corelation is what records it: on the diamond, the raw chain sees two separate step-1 events while the corelation glues them into one class. `evolution_corel` composes the chain by pushout into a single partition from the initial branchial slice to the final one.
+
+### 12. Compact Closure
+
+The Z' ⊣ Z adjunction of section 4 has a string-diagram counterpart: in a compact closed category every object is its own dual, witnessed by cup and cap satisfying the snake identities.
+
+- right snake: `(id ⊗ cup) ; (cap ⊗ id) = id`
+- left snake: `(cup ⊗ id) ; (id ⊗ cap) = id`
+
+`verify_compact_closed_witness` checks both at every boundary label of Z'(state)'s cospan, plus the Prop 3.2 name/unname round-trip on its Frobenius decomposition. The round-trip is checked at the boundary level only: the free hypergraph category carries no diagram normal form upstream, so full string-diagram equality is not decidable there.
+
 ## Key Concepts from the Paper
 
 ```text
@@ -144,6 +172,10 @@ This demo is designed to be self-explanatory for someone unfamiliar with Rust:
 | catgraph bridge | `RewriteRule::to_span()`, `HypergraphEvolution::to_cospan_chain()` |
 | Multiway branching | `MultiwayEvolutionGraph`, `BranchialGraph`, `CurvatureFoliation` |
 | Causal invariance | `analyze_causal_invariance()`, Wilson loop holonomy |
+| Step cospans | `multiway_step_cospans()`, `IntervalCospanAlgebra` |
+| Frobenius structure | `verify_frobenius_preservation()` |
+| Merge partitions | `step_corels()`, `evolution_corel()`, `MergesCorelExt` |
+| Compact closure | `ZPrimeAdjunction::verify_compact_closed_witness()` |
 
 ## Integration Test Cross-Reference
 
@@ -155,9 +187,19 @@ Each demo section has corresponding assertions in `tests/`:
 | 4. Adjunction Z' ⊣ Z | `tests/adjunction_laws.rs` |
 | 5. Monoidal structure | `tests/monoidal_coherence.rs` |
 | 6. Coherence conditions | `tests/monoidal_coherence.rs` |
-| 7. Stokes integration | `tests/stokes_integration.rs` |
+| 7. Categorical hypergraph rewriting + Stokes | `tests/hypergraph_rewriting.rs`, `tests/fong_spivak.rs`, `tests/functoriality.rs` |
 | 8. Hypergraph rewriting | `tests/hypergraph_rewriting.rs`, `tests/catgraph_bridge.rs` |
 | 9. Multiway branching | `tests/multiway_evolution.rs` |
+| 10. Frobenius structure | `tests/frobenius_preservation.rs`, `tests/categorical_stack.rs` |
+| 11. Corelation merge partition | `tests/multiway_evolution.rs`, `tests/categorical_stack.rs` |
+| 12. Compact closure | `tests/adjunction_laws.rs` |
+
+## Companion Examples
+
+Two focused examples cover the same surfaces with assertions rather than prose:
+
+- `cargo run --example categorical_toolkit` — the diamond SRS through step cospans, interval transport, the Frobenius census and the merge partition.
+- `cargo run --example confluence_corel` — two hypergraph rule orderings compared via `coarsest_common_refinement`, with the Wilson-loop verdict beside it.
 
 ## Reference
 
