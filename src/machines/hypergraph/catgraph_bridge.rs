@@ -84,7 +84,9 @@ impl MergesCorelExt for MultiwayCospanGraph {
             left.push(apex);
         }
 
-        Corel::new(Cospan::new(left.clone(), left, middle))
+        // Correct by construction: every `left` entry is an `apex_of_rep`
+        // value, and `middle` gains a vertex whenever a new one is minted.
+        Corel::new(Cospan::new_unchecked(left.clone(), left, middle))
     }
 }
 

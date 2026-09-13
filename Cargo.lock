@@ -186,8 +186,8 @@ checksum = "8ae3f5d315924270530207e2a68396c3cc547f6dca3fbdca317cfb1a51edb593"
 
 [[package]]
 name = "catgraph"
-version = "0.2.0"
-source = "git+https://github.com/sustia-llc/catgraph?tag=v0.2.0#a7f8ff2d894a1bfdb7e1082321b546b56f9a2b2d"
+version = "0.23.0"
+source = "git+https://github.com/sustia-llc/catgraph?tag=v0.23.0#c1859e6db4f2f013c7daaad64ca16ef1fdf870c4"
 dependencies = [
  "either",
  "itertools 0.15.0",
@@ -195,32 +195,31 @@ dependencies = [
  "permutations",
  "rayon",
  "thiserror 2.0.18",
- "ultragraph",
  "union-find",
 ]
 
 [[package]]
 name = "catgraph-applied"
-version = "0.2.0"
-source = "git+https://github.com/sustia-llc/catgraph?tag=v0.2.0#a7f8ff2d894a1bfdb7e1082321b546b56f9a2b2d"
+version = "0.23.0"
+source = "git+https://github.com/sustia-llc/catgraph?tag=v0.23.0#c1859e6db4f2f013c7daaad64ca16ef1fdf870c4"
 dependencies = [
  "catgraph",
- "deep_causality_num 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "either",
  "itertools 0.15.0",
  "num",
  "permutations",
- "rand 0.10.2",
+ "rand_core 0.10.1",
  "rayon",
  "rayon-cond",
  "rust_decimal",
- "ultragraph",
+ "thiserror 2.0.18",
+ "union-find",
 ]
 
 [[package]]
 name = "catgraph-physics"
-version = "0.2.0"
-source = "git+https://github.com/sustia-llc/catgraph?tag=v0.2.0#a7f8ff2d894a1bfdb7e1082321b546b56f9a2b2d"
+version = "0.23.0"
+source = "git+https://github.com/sustia-llc/catgraph?tag=v0.23.0#c1859e6db4f2f013c7daaad64ca16ef1fdf870c4"
 dependencies = [
  "catgraph",
  "nalgebra 0.35.0",
@@ -314,7 +313,7 @@ name = "deep_causality_fft"
 version = "0.1.0"
 source = "git+https://github.com/deepcausality-rs/deep_causality?rev=00ba8c0e766033f8658a2a8701402e04aaae8026#00ba8c0e766033f8658a2a8701402e04aaae8026"
 dependencies = [
- "deep_causality_num 0.3.3 (git+https://github.com/deepcausality-rs/deep_causality?rev=00ba8c0e766033f8658a2a8701402e04aaae8026)",
+ "deep_causality_num",
  "deep_causality_par",
 ]
 
@@ -335,15 +334,9 @@ source = "git+https://github.com/deepcausality-rs/deep_causality?rev=00ba8c0e766
 dependencies = [
  "deep_causality_haft",
  "deep_causality_metric",
- "deep_causality_num 0.3.3 (git+https://github.com/deepcausality-rs/deep_causality?rev=00ba8c0e766033f8658a2a8701402e04aaae8026)",
+ "deep_causality_num",
  "deep_causality_tensor",
 ]
-
-[[package]]
-name = "deep_causality_num"
-version = "0.3.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ce092b6d554b543466f17c6e116fb512cd71bef43318b3e4fe350e4b3ccb6ae7"
 
 [[package]]
 name = "deep_causality_num"
@@ -360,7 +353,7 @@ name = "deep_causality_rand"
 version = "0.1.16"
 source = "git+https://github.com/deepcausality-rs/deep_causality?rev=00ba8c0e766033f8658a2a8701402e04aaae8026#00ba8c0e766033f8658a2a8701402e04aaae8026"
 dependencies = [
- "deep_causality_num 0.3.3 (git+https://github.com/deepcausality-rs/deep_causality?rev=00ba8c0e766033f8658a2a8701402e04aaae8026)",
+ "deep_causality_num",
 ]
 
 [[package]]
@@ -369,7 +362,7 @@ version = "0.2.0"
 source = "git+https://github.com/deepcausality-rs/deep_causality?rev=00ba8c0e766033f8658a2a8701402e04aaae8026#00ba8c0e766033f8658a2a8701402e04aaae8026"
 dependencies = [
  "deep_causality_haft",
- "deep_causality_num 0.3.3 (git+https://github.com/deepcausality-rs/deep_causality?rev=00ba8c0e766033f8658a2a8701402e04aaae8026)",
+ "deep_causality_num",
 ]
 
 [[package]]
@@ -379,7 +372,7 @@ source = "git+https://github.com/deepcausality-rs/deep_causality?rev=00ba8c0e766
 dependencies = [
  "deep_causality_ast",
  "deep_causality_haft",
- "deep_causality_num 0.3.3 (git+https://github.com/deepcausality-rs/deep_causality?rev=00ba8c0e766033f8658a2a8701402e04aaae8026)",
+ "deep_causality_num",
 ]
 
 [[package]]
@@ -391,7 +384,7 @@ dependencies = [
  "deep_causality_haft",
  "deep_causality_metric",
  "deep_causality_multivector",
- "deep_causality_num 0.3.3 (git+https://github.com/deepcausality-rs/deep_causality?rev=00ba8c0e766033f8658a2a8701402e04aaae8026)",
+ "deep_causality_num",
  "deep_causality_par",
  "deep_causality_rand",
  "deep_causality_sparse",
@@ -1828,12 +1821,6 @@ name = "typenum"
 version = "1.20.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b6f5e870be6c3b371b77fe0ee0bafb859fa4964b4404c27de1d380043c4dda20"
-
-[[package]]
-name = "ultragraph"
-version = "0.9.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "26e467b3b8bf455e454657176193c2dd73bde91263e2fc163ef739a8f783142c"
 
 [[package]]
 name = "unarray"

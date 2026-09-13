@@ -5,6 +5,7 @@
 //!
 //! Run: `cargo run --example lattice_gauge`
 
+use catgraph_physics::hypergraph::LinkVariable;
 use irreducible::machines::hypergraph::{
     Hypergraph, HypergraphEvolution, HypergraphLattice, HypergraphRewriteGroup,
     RewriteRule as HypergraphRewriteRule, plaquette_action, total_action,
@@ -43,7 +44,7 @@ fn wilson_loops_from_evolution() {
 /// 2D lattice with gauge group and site states.
 fn lattice_gauge_field() {
     let group = HypergraphRewriteGroup::new(4);
-    let mut lattice: HypergraphLattice<2> = HypergraphLattice::new([3, 3], group, vec![]);
+    let mut lattice: HypergraphLattice<2> = HypergraphLattice::new([3, 3], group, vec![], 1);
 
     // Populate lattice sites with small hypergraphs
     for x in 0..3_usize {
@@ -64,15 +65,26 @@ fn lattice_gauge_field() {
     lattice.apply_rewrite(&[2, 2], 2);
     println!("  Steps:       {}", lattice.step_count());
 
-    // Check a Wilson loop around a plaquette
+    // Check a Wilson loop around a plaquette. `apply_rewrite` records no
+    // inter-site link, so the loop's four links are declared here: one
+    // identity link per lattice transition around the cycle.
     let path: Vec<[usize; 2]> = vec![[0, 0], [1, 0], [1, 1], [0, 1]];
+    for (i, from) in path.iter().enumerate() {
+        let to = path[(i + 1) % path.len()];
+        let identity = LinkVariable::identity(lattice.link_dim())
+            .expect("invariant: link_dim is 1, and every positive dimension has an identity");
+        lattice.record_transition(from, &to, identity);
+    }
+
     let path_refs: Vec<&[usize; 2]> = path.iter().collect();
-    let h = lattice.wilson_loop(&path_refs);
-    println!("  Plaquette holonomy (0,0)->(1,0)->(1,1)->(0,1): {h:.4}");
-    println!(
-        "  Causally invariant: {}",
-        lattice.is_causally_invariant(&path_refs)
-    );
+    match lattice.wilson_loop(&path_refs) {
+        Some(h) => println!("  Plaquette holonomy (0,0)->(1,0)->(1,1)->(0,1): {h:.4}"),
+        None => println!("  Plaquette holonomy (0,0)->(1,0)->(1,1)->(0,1): unrecorded link"),
+    }
+    match lattice.is_causally_invariant(&path_refs) {
+        Some(invariant) => println!("  Causally invariant: {invariant}"),
+        None => println!("  Causally invariant: unrecorded link"),
+    }
 }
 
 /// Plaquette action from holonomy values.

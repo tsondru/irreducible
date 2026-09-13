@@ -127,7 +127,9 @@ impl ZPrimeAdjunction {
     #[allow(clippy::cast_possible_truncation)]
     pub fn zprime_cospan(state: &ComputationState) -> Cospan<u32> {
         let interval = Self::zprime(state);
-        Cospan::new(
+        // Correct by construction: legs 0 and 1 index the two-element apex
+        // built on the same line.
+        Cospan::new_unchecked(
             vec![0],
             vec![1],
             vec![interval.start as u32, interval.end as u32],
@@ -155,7 +157,7 @@ impl ZPrimeAdjunction {
         second.monoidal(cap);
         let left = first.compose(&second)?;
 
-        Ok((right.structurally_equal(&id), left.structurally_equal(&id)))
+        Ok((right == id, left == id))
     }
 
     /// Compute the full compact-closed witness at a state: snake

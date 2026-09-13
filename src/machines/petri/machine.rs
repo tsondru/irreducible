@@ -141,7 +141,10 @@ mod tests {
                 vec![(0, Decimal::ONE)],
                 vec![(1, Decimal::ONE)],
             )],
-        );
+            vec![],
+            vec![],
+        )
+        .unwrap();
         PetriNetMachine::new(net)
     }
 
@@ -167,7 +170,10 @@ mod tests {
                 Transition::new(vec![(0, Decimal::ONE)], vec![(2, Decimal::ONE)]),
                 Transition::new(vec![(1, Decimal::ONE)], vec![(3, Decimal::ONE)]),
             ],
-        );
+            vec![],
+            vec![],
+        )
+        .unwrap();
         let machine = PetriNetMachine::new(net);
         let history = machine.run(Marking::from_vec(vec![(0, d(1)), (1, d(1))]), 5);
 

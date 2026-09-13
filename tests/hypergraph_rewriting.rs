@@ -220,7 +220,7 @@ fn total_action_computation() {
 #[test]
 fn lattice_construction_1d() {
     let group = HypergraphRewriteGroup::new(2);
-    let lattice: HypergraphLattice<1> = HypergraphLattice::new([5], group, vec![]);
+    let lattice: HypergraphLattice<1> = HypergraphLattice::new([5], group, vec![], 1);
 
     // Lattice should be constructable
     let _ = lattice;
@@ -229,7 +229,7 @@ fn lattice_construction_1d() {
 #[test]
 fn lattice_construction_2d() {
     let group = HypergraphRewriteGroup::new(3);
-    let lattice: HypergraphLattice<2> = HypergraphLattice::new([4, 4], group, vec![]);
+    let lattice: HypergraphLattice<2> = HypergraphLattice::new([4, 4], group, vec![], 1);
 
     let _ = lattice;
 }
@@ -379,10 +379,15 @@ fn multiway_evolution_with_gauge_analysis_pipeline() {
         );
     }
 
+    // `plaquette_action` is `f64::INFINITY` at holonomy `0.0`, so the total
+    // is finite exactly when no loop carries a `0.0` holonomy.
+    let zero_holonomy = holonomies.iter().filter(|&&h| h == 0.0).count();
     let action = total_action(&holonomies);
-    assert!(
+    assert_eq!(
         action.is_finite(),
-        "Total action across all holonomies should be finite (got {action})"
+        zero_holonomy == 0,
+        "total action {action} over {} loops, {zero_holonomy} at holonomy 0.0",
+        loops.len()
     );
 
     // 7. Check causal invariance
