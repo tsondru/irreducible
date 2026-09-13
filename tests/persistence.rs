@@ -257,6 +257,7 @@ async fn list_chains_reports_every_stored_name() {
             "gamma",
             "not_a_cospan_chain",
             &CospanChainRecord {
+                kind: "not_a_cospan_chain".to_owned(),
                 name: "gamma".to_owned(),
                 addrs: vec![],
             },
@@ -267,6 +268,56 @@ async fn list_chains_reports_every_stored_name() {
     let mut names = persistence.list_chains().await.expect("listing chains");
     names.sort();
     assert_eq!(names, vec!["alpha".to_owned(), "beta".to_owned()]);
+
+    // The load path agrees with the listing: the other kind is refused.
+    let error = persistence
+        .load_cospan_chain("gamma")
+        .await
+        .expect_err("a record of another kind is not a chain");
+    assert!(
+        matches!(error, StoreError::Corrupt { .. }),
+        "expected StoreError::Corrupt, got {error:?}"
+    );
+}
+
+/// The stored kind string is `"cospan_chain"`: a record written with that
+/// literal, through a handle that never saw the crate's constant, loads and
+/// lists.
+#[tokio::test]
+async fn the_chain_kind_is_the_literal_cospan_chain() {
+    let (store, persistence) = persistence("irreducible_test", "kindliteral").await;
+
+    let addr = persistence
+        .persist_cospan_chain("seed", &[wire()])
+        .await
+        .expect("persisting the seed chain")
+        .remove(0);
+
+    let chains: DocStore<CospanChainRecord> = DocStore::open(store)
+        .await
+        .expect("opening a second document-tier handle");
+    chains
+        .put(
+            "literal",
+            "cospan_chain",
+            &CospanChainRecord {
+                kind: "cospan_chain".to_owned(),
+                name: "literal".to_owned(),
+                addrs: vec![addr.as_str().to_owned()],
+            },
+        )
+        .await
+        .expect("writing the record with the literal kind");
+
+    let loaded = persistence
+        .load_cospan_chain("literal")
+        .await
+        .expect("a record under the literal kind loads");
+    assert_eq!(loaded.as_deref(), Some(&[wire()][..]));
+
+    let mut names = persistence.list_chains().await.expect("listing chains");
+    names.sort();
+    assert_eq!(names, vec!["literal".to_owned(), "seed".to_owned()]);
 }
 
 /// A record whose `name` field disagrees with the id it is filed under is
@@ -283,6 +334,7 @@ async fn a_record_whose_name_disagrees_with_its_id_is_corrupt() {
             "misnamed",
             "cospan_chain",
             &CospanChainRecord {
+                kind: "cospan_chain".to_owned(),
                 name: "other".to_owned(),
                 addrs: vec![],
             },
@@ -313,6 +365,7 @@ async fn a_record_with_a_malformed_address_is_corrupt() {
             "malformed",
             "cospan_chain",
             &CospanChainRecord {
+                kind: "cospan_chain".to_owned(),
                 name: "malformed".to_owned(),
                 addrs: vec!["not-an-address".to_owned()],
             },
@@ -396,6 +449,7 @@ async fn a_record_naming_an_unstored_cospan_is_corrupt() {
             "orphan",
             "cospan_chain",
             &CospanChainRecord {
+                kind: "cospan_chain".to_owned(),
                 name: "orphan".to_owned(),
                 addrs: vec![ORPHAN_ADDR.to_owned()],
             },

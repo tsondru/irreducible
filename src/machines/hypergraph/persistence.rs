@@ -50,6 +50,10 @@ const CHAIN_KIND: &str = "cospan_chain";
 /// re-validates the format at the same time.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct CospanChainRecord {
+    /// The document kind, `"cospan_chain"`; repeated inside the payload
+    /// because the document tier's `get` does not filter on its `kind` column,
+    /// and a load must refuse a record of another kind.
+    pub kind: String,
     /// The caller-supplied name the chain is stored under; also its record id.
     pub name: String,
     /// The chain's cospan addresses, in order.
@@ -130,6 +134,7 @@ impl EvolutionPersistence {
         }
 
         let record = CospanChainRecord {
+            kind: CHAIN_KIND.to_owned(),
             name: name.to_owned(),
             addrs: addrs.iter().map(|addr| addr.as_str().to_owned()).collect(),
         };
@@ -161,14 +166,20 @@ impl EvolutionPersistence {
     ///
     /// # Errors
     ///
-    /// [`StoreError::Corrupt`] if the record's `name` differs from the id it
-    /// was read under, or if it names an address that is not well-formed or
-    /// that the cospan tier does not hold; otherwise a read or revalidation
-    /// failure from either tier.
+    /// [`StoreError::Corrupt`] if the record's `kind` is not the chain kind,
+    /// if its `name` differs from the id it was read under, or if it names an
+    /// address that is not well-formed or that the cospan tier does not hold;
+    /// otherwise a read or revalidation failure from either tier.
     pub async fn load_cospan_chain(&self, name: &str) -> Result<Option<Vec<Cospan<u32>>>> {
         let Some(record) = self.chains.get(name).await? else {
             return Ok(None);
         };
+        if record.kind != CHAIN_KIND {
+            return Err(StoreError::Corrupt {
+                context: format!("cospan chain `{name}`"),
+                detail: format!("record kind is `{}`", record.kind),
+            });
+        }
         if record.name != name {
             return Err(StoreError::Corrupt {
                 context: format!("cospan chain `{name}`"),
@@ -195,7 +206,7 @@ impl EvolutionPersistence {
         Ok(Some(chain))
     }
 
-    /// The names of every stored chain, in the document tier's order.
+    /// The names of every stored chain, unordered.
     ///
     /// # Errors
     ///
