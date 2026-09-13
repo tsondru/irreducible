@@ -6,12 +6,11 @@
 //! as a [`CospanChainRecord`]. Loading walks the record's addresses back
 //! through the cospan tier, so a chain comes back in the order it was written.
 //!
-//! Both producers of a `Vec<Cospan<u32>>` in this crate's dependency surface
-//! feed the same `&[Cospan<u32>]` entry point:
-//! `HypergraphEvolution::to_cospan_chain` (wrapped as
-//! [`EvolutionPersistence::persist_evolution`]) and
-//! [`TemporalComplex::to_cospan_chain`](crate::TemporalComplex::to_cospan_chain),
-//! which is passed to [`EvolutionPersistence::persist_cospan_chain`] directly.
+//! `HypergraphEvolution::to_cospan_chain` is wrapped as
+//! [`EvolutionPersistence::persist_evolution`]; any other `Vec<Cospan<u32>>`
+//! ([`TemporalComplex::to_cospan_chain`](crate::TemporalComplex::to_cospan_chain),
+//! [`multiway_step_cospans`](crate::multiway_step_cospans), …) is passed to
+//! [`EvolutionPersistence::persist_cospan_chain`] directly.
 //!
 //! # A reloaded chain is equal up to `canonical_form`
 //!
@@ -88,18 +87,28 @@ impl EvolutionPersistence {
     /// the round trip. Storing under a name that is already in use replaces the
     /// document-tier record; the cospans it pointed at stay where they are.
     ///
+    /// The two tiers are not written atomically: a failure on the record write
+    /// leaves the chain's cospans stored (content-addressed, so a retry lands
+    /// on the same rows) with no record naming them.
+    ///
     /// # Errors
     ///
-    /// Fails if a cospan cannot be encoded or written, if a refused duplicate
-    /// cannot then be found by its canonical key (reported as
-    /// [`StoreError::Corrupt`], since the index refused the write on the
-    /// grounds that the morphism is there), or if the chain record cannot be
-    /// written.
+    /// [`StoreError::Corrupt`] if `name` is empty (refused before any write)
+    /// or if a refused duplicate cannot then be found by its canonical key
+    /// (the index refused the write on the grounds that the morphism is
+    /// there); otherwise a cospan encoding or write failure, or a record write
+    /// failure.
     pub async fn persist_cospan_chain(
         &self,
         name: &str,
         chain: &[Cospan<u32>],
     ) -> Result<Vec<CospanAddr>> {
+        if name.is_empty() {
+            return Err(StoreError::Corrupt {
+                context: "cospan chain".to_owned(),
+                detail: "chain name is empty".to_owned(),
+            });
+        }
         let mut addrs = Vec::with_capacity(chain.len());
         for (position, cospan) in chain.iter().enumerate() {
             let addr = match self.cospans.put(cospan).await {
@@ -152,13 +161,20 @@ impl EvolutionPersistence {
     ///
     /// # Errors
     ///
-    /// [`StoreError::Corrupt`] if the record names an address that is not
-    /// well-formed or that the cospan tier does not hold; otherwise a read or
-    /// revalidation failure from either tier.
+    /// [`StoreError::Corrupt`] if the record's `name` differs from the id it
+    /// was read under, or if it names an address that is not well-formed or
+    /// that the cospan tier does not hold; otherwise a read or revalidation
+    /// failure from either tier.
     pub async fn load_cospan_chain(&self, name: &str) -> Result<Option<Vec<Cospan<u32>>>> {
         let Some(record) = self.chains.get(name).await? else {
             return Ok(None);
         };
+        if record.name != name {
+            return Err(StoreError::Corrupt {
+                context: format!("cospan chain `{name}`"),
+                detail: format!("record is named `{}`", record.name),
+            });
+        }
 
         let mut chain = Vec::with_capacity(record.addrs.len());
         for (position, raw) in record.addrs.iter().enumerate() {
@@ -177,5 +193,15 @@ impl EvolutionPersistence {
             chain.push(cospan);
         }
         Ok(Some(chain))
+    }
+
+    /// The names of every stored chain, in the document tier's order.
+    ///
+    /// # Errors
+    ///
+    /// A read or revalidation failure from the document tier.
+    pub async fn list_chains(&self) -> Result<Vec<String>> {
+        let records = self.chains.list(CHAIN_KIND).await?;
+        Ok(records.into_iter().map(|record| record.name).collect())
     }
 }

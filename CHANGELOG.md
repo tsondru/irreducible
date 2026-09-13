@@ -15,7 +15,8 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this c
   per morphism — a chain holding a second presentation of a stored
   morphism resolves to the stored address, so the reloaded chain is
   equal up to `canonical_form`) and an ordered chain record through the
-  document tier; `persist_evolution` feeds `to_cospan_chain()`. Engine
+  document tier; `persist_evolution` feeds `to_cospan_chain()`;
+  `list_chains` names every stored chain. Engine
   chosen by `persist-mem` / `persist-rocksdb`; CI runs the `persist-mem`
   lane. No span tier (catgraph-surreal#9).
 

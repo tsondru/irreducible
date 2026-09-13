@@ -7,7 +7,7 @@
 #![cfg(feature = "persist-mem")]
 
 use catgraph::cospan::Cospan;
-use catgraph_surreal::{DocStore, Store, StoreBuilder, StoreError};
+use catgraph_surreal::{CospanStore, DocStore, Store, StoreBuilder, StoreError};
 use irreducible::machines::hypergraph::persistence::{CospanChainRecord, EvolutionPersistence};
 use irreducible::machines::hypergraph::{Hypergraph, HypergraphEvolution, RewriteRule};
 
@@ -104,6 +104,230 @@ async fn an_evolution_chain_round_trips() {
         .await
         .expect("loading a chain that was just written");
     assert_eq!(loaded_ordered.as_deref(), Some(ordered.as_slice()));
+}
+
+/// `edge_split` (`{{x,y}} → {{x,z},{z,y}}`) re-fires on its own output, so
+/// three steps give a three-cospan chain that must come back whole.
+#[tokio::test]
+async fn a_multi_step_evolution_round_trips() {
+    let (_store, persistence) = persistence("irreducible_test", "multistep").await;
+
+    let evolution = HypergraphEvolution::run(
+        &Hypergraph::from_edges(vec![vec![0, 1]]),
+        &[RewriteRule::edge_split()],
+        3,
+    );
+    let chain = evolution.to_cospan_chain();
+    assert_eq!(chain.len(), 3, "edge_split fires at every step");
+
+    let addrs = persistence
+        .persist_evolution("split", &evolution)
+        .await
+        .expect("persisting an evolution");
+    assert_eq!(addrs.len(), 3);
+
+    let loaded = persistence
+        .load_cospan_chain("split")
+        .await
+        .expect("loading a chain that was just written");
+    assert_eq!(loaded.as_deref(), Some(chain.as_slice()));
+}
+
+/// A duplicate presentation in the middle of a chain keeps its position: the
+/// addresses read `[a, a, b]`, the loaded chain has three entries whose
+/// canonical forms match the written ones, and the middle entry reloads as the
+/// stored presentation.
+#[tokio::test]
+async fn a_duplicate_mid_chain_keeps_its_position() {
+    let (_store, persistence) = persistence("irreducible_test", "midchain").await;
+
+    let written = [wire(), wire_swapped(), braid()];
+    let addrs = persistence
+        .persist_cospan_chain("midchain", &written)
+        .await
+        .expect("the duplicate morphism resolves to the stored presentation");
+    assert_eq!(addrs.len(), 3);
+    assert_eq!(
+        addrs[0], addrs[1],
+        "the duplicate resolves to the first's address"
+    );
+    assert_ne!(addrs[1], addrs[2]);
+
+    let loaded = persistence
+        .load_cospan_chain("midchain")
+        .await
+        .expect("loading a chain that was just written")
+        .expect("the chain was written under this name");
+    let loaded_forms: Vec<_> = loaded.iter().map(Cospan::canonical_form).collect();
+    let written_forms: Vec<_> = written.iter().map(Cospan::canonical_form).collect();
+    assert_eq!(
+        loaded_forms, written_forms,
+        "morphism sequence is preserved"
+    );
+    assert_eq!(
+        loaded[1],
+        wire(),
+        "the middle entry reloads as the stored presentation"
+    );
+    assert_ne!(loaded[1], wire_swapped());
+}
+
+/// Re-persisting under a name replaces the record; the cospans the old record
+/// pointed at stay stored.
+#[tokio::test]
+async fn re_persisting_a_name_replaces_the_record() {
+    let (store, persistence) = persistence("irreducible_test", "replace").await;
+
+    let first = persistence
+        .persist_cospan_chain("same-name", &[wire(), braid(), merge()])
+        .await
+        .expect("persisting three morphisms");
+    assert_eq!(first.len(), 3);
+
+    let second = persistence
+        .persist_cospan_chain("same-name", &[braid()])
+        .await
+        .expect("re-persisting under the same name");
+    assert_eq!(second, vec![first[1].clone()]);
+
+    let loaded = persistence
+        .load_cospan_chain("same-name")
+        .await
+        .expect("loading the replaced chain");
+    assert_eq!(loaded.as_deref(), Some(&[braid()][..]));
+
+    let cospans: CospanStore<u32> = CospanStore::open(store)
+        .await
+        .expect("opening a cospan-tier handle");
+    for addr in &first {
+        assert!(
+            cospans.contains(addr).await.expect("existence query"),
+            "{addr:?} stays stored after the record is replaced"
+        );
+    }
+}
+
+/// An empty name is refused before any tier is written.
+#[tokio::test]
+async fn an_empty_name_is_refused_before_any_write() {
+    let (store, persistence) = persistence("irreducible_test", "emptyname").await;
+
+    let error = persistence
+        .persist_cospan_chain("", &[wire()])
+        .await
+        .expect_err("an empty name is refused");
+    assert!(
+        matches!(error, StoreError::Corrupt { .. }),
+        "expected StoreError::Corrupt, got {error:?}"
+    );
+
+    let cospans: CospanStore<u32> = CospanStore::open(store)
+        .await
+        .expect("opening a cospan-tier handle");
+    assert_eq!(
+        cospans
+            .find_by_canon(&wire())
+            .await
+            .expect("canonical lookup"),
+        None,
+        "nothing reached the cospan tier"
+    );
+}
+
+/// `list_chains` reports every name filed under the chain kind and nothing
+/// filed under another kind.
+#[tokio::test]
+async fn list_chains_reports_every_stored_name() {
+    let (store, persistence) = persistence("irreducible_test", "listing").await;
+
+    persistence
+        .persist_cospan_chain("alpha", &[wire()])
+        .await
+        .expect("persisting alpha");
+    persistence
+        .persist_cospan_chain("beta", &[braid()])
+        .await
+        .expect("persisting beta");
+
+    let other: DocStore<CospanChainRecord> = DocStore::open(store)
+        .await
+        .expect("opening a second document-tier handle");
+    other
+        .put(
+            "gamma",
+            "not_a_cospan_chain",
+            &CospanChainRecord {
+                name: "gamma".to_owned(),
+                addrs: vec![],
+            },
+        )
+        .await
+        .expect("writing a record of another kind");
+
+    let mut names = persistence.list_chains().await.expect("listing chains");
+    names.sort();
+    assert_eq!(names, vec!["alpha".to_owned(), "beta".to_owned()]);
+}
+
+/// A record whose `name` field disagrees with the id it is filed under is
+/// corrupt.
+#[tokio::test]
+async fn a_record_whose_name_disagrees_with_its_id_is_corrupt() {
+    let (store, persistence) = persistence("irreducible_test", "misnamed").await;
+
+    let chains: DocStore<CospanChainRecord> = DocStore::open(store)
+        .await
+        .expect("opening a second document-tier handle");
+    chains
+        .put(
+            "misnamed",
+            "cospan_chain",
+            &CospanChainRecord {
+                name: "other".to_owned(),
+                addrs: vec![],
+            },
+        )
+        .await
+        .expect("writing the record itself is a plain document write");
+
+    let error = persistence
+        .load_cospan_chain("misnamed")
+        .await
+        .expect_err("the record's name disagrees with its id");
+    assert!(
+        matches!(error, StoreError::Corrupt { .. }),
+        "expected StoreError::Corrupt, got {error:?}"
+    );
+}
+
+/// A chain record holding a string that is not a cospan address is corrupt.
+#[tokio::test]
+async fn a_record_with_a_malformed_address_is_corrupt() {
+    let (store, persistence) = persistence("irreducible_test", "malformed").await;
+
+    let chains: DocStore<CospanChainRecord> = DocStore::open(store)
+        .await
+        .expect("opening a second document-tier handle");
+    chains
+        .put(
+            "malformed",
+            "cospan_chain",
+            &CospanChainRecord {
+                name: "malformed".to_owned(),
+                addrs: vec!["not-an-address".to_owned()],
+            },
+        )
+        .await
+        .expect("writing the record itself is a plain document write");
+
+    let error = persistence
+        .load_cospan_chain("malformed")
+        .await
+        .expect_err("the record holds a string that is not an address");
+    assert!(
+        matches!(error, StoreError::Corrupt { .. }),
+        "expected StoreError::Corrupt, got {error:?}"
+    );
 }
 
 /// Two presentations of one morphism: the cospan tier refuses the second, the

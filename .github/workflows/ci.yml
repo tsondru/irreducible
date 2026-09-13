@@ -41,3 +41,4 @@ jobs:
       # code against a durable engine and is not run here.
       - run: cargo clippy --workspace --all-targets --locked --features persist-mem -- -D warnings
       - run: cargo test --workspace --locked --features persist-mem
+      - run: cargo run --locked --example persist_evolution --features persist-mem
