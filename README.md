@@ -6,7 +6,7 @@ Computational irreducibility as functoriality in Rust, implementing Jonathan Gor
 
 irreducible is the **example consumer of the [catgraph](https://github.com/sustia-llc/catgraph) core + physics layer** (v0.23.0): [catgraph](https://github.com/sustia-llc/catgraph) supplies the Fong-Spivak categorical infrastructure (cospans, spans, hypergraph categories, cospan-algebras), catgraph-applied the Petri-net substrate, and catgraph-physics the hypergraph DPO rewriting, multiway evolution graphs, confluence diamond detection, and branchial spectral analysis. irreducible owns the computation-facing layer -- interval algebra, adjunctions, monoidal coherence, discrete exterior calculus, trace analysis -- plus the computation models (TM, CA, SRS, NTM, Petri nets).
 
-Zero clippy warnings at `-D warnings`. Rust 2024 edition, MSRV 1.90.
+Zero clippy warnings at `-D warnings`. Rust 2024 edition, MSRV 1.93 (measured cross-feature maximum; the default feature set builds on 1.90, the `dc-geometry` tiers need 1.93).
 
 ## Component Index
 

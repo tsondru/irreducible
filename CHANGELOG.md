@@ -27,6 +27,10 @@ rebooted catgraph's core + physics layer, re-pinned to catgraph
   transition so its lattice half resolves.
 - **nalgebra `0.34` → `0.35`, nalgebra-lapack `0.27` → `0.28`**: one
   nalgebra in the lock (catgraph-physics already pinned `0.35`).
+- **`rust-version` 1.90 → 1.93**, the measured cross-feature maximum:
+  the default lane builds on 1.90; the `dc-geometry` tiers refuse
+  below 1.93 (`deep_causality_*` declare 1.93.0), on the pre-pin tree
+  as well.
 
 ### Removed
 
