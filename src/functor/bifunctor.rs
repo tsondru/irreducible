@@ -5,7 +5,7 @@
 //! plus law verification (`verify_associativity`, `verify_symmetry`,
 //! `verify_unit_laws`).
 //!
-//! Re-exported from [`catgraph::bifunctor`].
+//! Re-exported from [`crate::bifunctor`].
 
 pub use crate::bifunctor::{
     IntervalTransform, TensorProduct, tensor_bimap, tensor_first, tensor_second,

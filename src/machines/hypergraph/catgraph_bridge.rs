@@ -1,7 +1,7 @@
 //! Multiway cospan analysis for hypergraph evolution.
 //!
 //! Core types and extension trait re-exported from
-//! [`catgraph::hypergraph::multiway_cospan`], plus the local
+//! [`catgraph_physics::hypergraph::multiway_cospan`], plus the local
 //! [`MergesCorelExt`] extension exposing the evolution's merge structure as
 //! a [`Corel`] (F&S 2018 Ex 6.64; issue #14).
 
@@ -84,7 +84,9 @@ impl MergesCorelExt for MultiwayCospanGraph {
             left.push(apex);
         }
 
-        Corel::new(Cospan::new(left.clone(), left, middle))
+        // Correct by construction: every `left` entry is an `apex_of_rep`
+        // value, and `middle` gains a vertex whenever a new one is minted.
+        Corel::new(Cospan::new_unchecked(left.clone(), left, middle))
     }
 }
 

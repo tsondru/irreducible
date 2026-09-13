@@ -27,6 +27,8 @@ jobs:
       - run: cargo fmt --all --check
       - run: cargo clippy --workspace --all-targets --locked -- -D warnings
       - run: cargo test --workspace --locked
+      - run: cargo run --locked --example lattice_gauge
+      - run: cargo run --locked --example gorard_demo
       # Feature-matrix leg. `persist` was removed pending the catgraph-surreal
       # reboot (pre-reboot catgraph-surreal = type-identity mismatch with
       # reboot catgraph + two unauthenticatable private git sources in the lock).

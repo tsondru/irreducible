@@ -132,7 +132,9 @@ fn glue_fingerprint_merges<S: Clone + Hash, T: Clone>(
         .map(|&m| remap(&mut parent, m, &mut apex_of_root))
         .collect();
     let middle = vec![0u32; apex_of_root.len()];
-    Cospan::new(left, right, middle)
+    // Correct by construction: every leg entry is a `remap` output, i.e. an
+    // index into `apex_of_root`, and `middle` has one vertex per class.
+    Cospan::new_unchecked(left, right, middle)
 }
 
 #[cfg(test)]

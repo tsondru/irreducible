@@ -5,7 +5,7 @@
 //! and the TensorProduct trait.
 
 use irreducible::bifunctor::TensorProduct;
-use irreducible::interval::{DiscreteInterval, ParallelIntervals};
+use irreducible::{DiscreteInterval, ParallelIntervals};
 
 // ============================================================================
 // Constructors

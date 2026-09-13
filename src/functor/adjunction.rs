@@ -11,7 +11,9 @@ pub use crate::adjunction::{AdjunctionIrreducibility, AdjunctionVerification, ZP
 use crate::functor::fong_spivak::{
     CospanToFrobeniusFunctor, HypergraphCategory, HypergraphFunctor, name, unname,
 };
-use crate::{computation_state::ComputationState, interval::DiscreteInterval};
+use catgraph_physics::interval::DiscreteInterval;
+
+use crate::computation_state::ComputationState;
 use catgraph::category::{Composable, ComposableMutating, HasIdentity};
 use catgraph::cospan::Cospan;
 use catgraph::errors::CatgraphError;
@@ -24,7 +26,7 @@ use catgraph::monoidal::Monoidal;
 /// ```rust
 /// use irreducible::functor::{ZPrimeAdjunction, ZPrimeOps};
 /// use irreducible::computation_state::ComputationState;
-/// use irreducible::interval::DiscreteInterval;
+/// use irreducible::DiscreteInterval;
 ///
 /// // Map computation to interval (Z')
 /// let state = ComputationState::new(0, 5);
@@ -88,7 +90,7 @@ impl AdjunctionIrreducibility for ZPrimeAdjunction {}
 /// structure.
 ///
 /// The snake identities are verified *semantically* — cospan composition
-/// via pushout, compared by [`Cospan::structurally_equal`]. The Prop 3.2
+/// via pushout, compared by [`Cospan`]'s `PartialEq`. The Prop 3.2
 /// name/unname round-trip on the Frobenius decomposition is verified at
 /// the boundary level only: the free hypergraph category carries no
 /// diagram normal form upstream, so full string-diagram equality is not
@@ -127,7 +129,9 @@ impl ZPrimeAdjunction {
     #[allow(clippy::cast_possible_truncation)]
     pub fn zprime_cospan(state: &ComputationState) -> Cospan<u32> {
         let interval = Self::zprime(state);
-        Cospan::new(
+        // Correct by construction: legs 0 and 1 index the two-element apex
+        // built on the same line.
+        Cospan::new_unchecked(
             vec![0],
             vec![1],
             vec![interval.start as u32, interval.end as u32],
@@ -155,7 +159,7 @@ impl ZPrimeAdjunction {
         second.monoidal(cap);
         let left = first.compose(&second)?;
 
-        Ok((right.structurally_equal(&id), left.structurally_equal(&id)))
+        Ok((right == id, left == id))
     }
 
     /// Compute the full compact-closed witness at a state: snake

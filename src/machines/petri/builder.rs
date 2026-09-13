@@ -83,9 +83,14 @@ where
                 }
             }
         }
-        Ok(PetriNetMachine::new(PetriNet::new(
+        // Correct by construction: the loop above rejects every arc whose
+        // place index is out of range, and the empty boundary legs index no
+        // place at all — a closed net.
+        Ok(PetriNetMachine::new(PetriNet::new_unchecked(
             self.places,
             self.transitions,
+            vec![],
+            vec![],
         )))
     }
 

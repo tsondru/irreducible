@@ -8,9 +8,9 @@
 //! Well-known instances: [`TuringMachine::busy_beaver_2_2`] (irreducible, 6 steps),
 //! [`TuringMachine::binary_incrementer`], [`TuringMachine::infinite_left_mover`] (reducible).
 
-use super::trace::{self, StepTrace};
 use super::{BuilderError, Configuration, Direction, State, Symbol, Transition};
-use crate::interval::DiscreteInterval;
+use catgraph_physics::interval::DiscreteInterval;
+use catgraph_physics::trace::{self, StepTrace};
 use std::collections::HashMap;
 
 /// Transition function type: (state, symbol) -> (`new_state`, `write_symbol`, direction)

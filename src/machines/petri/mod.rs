@@ -2,7 +2,7 @@
 //!
 //! A [`PetriNetMachine`] wraps [`catgraph_applied::petri_net::PetriNet`] and joins
 //! TM / CA / multiway as the fourth computation model implementing
-//! [`crate::trace::StepTrace`]. Markings are the objects of `𝒯`,
+//! [`catgraph_physics::trace::StepTrace`]. Markings are the objects of `𝒯`,
 //! transition firings are the morphisms, and the reachability graph lifts to the
 //! multiway evolution substrate used elsewhere in this crate.
 //!
@@ -10,8 +10,8 @@
 //!
 //! 1. **Linear trace** — [`PetriNetMachine::run`] picks the smallest-index enabled
 //!    transition at each step, producing a deterministic [`PetriExecutionHistory`]
-//!    that can be analysed with [`crate::trace::analyze_trace`] like any other
-//!    [`StepTrace`](crate::trace::StepTrace) implementor.
+//!    that can be analysed with [`catgraph_physics::trace::analyze_trace`] like
+//!    any other [`StepTrace`](catgraph_physics::trace::StepTrace) implementor.
 //! 2. **Multiway reachability** — [`run_multiway_reachability`] explores every
 //!    enabled firing at every step via
 //!    [`catgraph_physics::multiway::run_multiway_bfs`], yielding a

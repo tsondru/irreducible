@@ -5,11 +5,15 @@
 //! and max-limits enforcement.
 
 use irreducible::{
-    DiscreteCurvature, NondeterministicTM, OllivierRicciCurvature, StringRewriteSystem,
+    DiscreteCurvature, DiscreteInterval, NondeterministicTM, OllivierRicciCurvature,
+    StringRewriteSystem,
 };
 
+use catgraph_physics::multiway::branchial_parallel_step_pairs;
+
 use irreducible::machines::multiway::{
-    branchial_to_parallel_intervals, extract_branchial_foliation, find_all_merge_points,
+    branch_intervals, branchial_to_parallel_intervals, extract_branchial_foliation,
+    find_all_merge_points,
 };
 
 use irreducible::machines::Direction;
@@ -114,6 +118,70 @@ fn branchial_to_parallel_intervals_produces_valid_structure() {
     // Each entry should have some branches
     for pi in &parallel_vec {
         assert!(pi.branch_count() >= 1);
+    }
+}
+
+#[test]
+fn branchial_to_parallel_intervals_drops_nodes_without_forward_edges() {
+    // "AB" -> "X" kills a branch at step 1 while "B" -> "BB" keeps another
+    // alive, so a boundary carries both a terminal and a live node.
+    let srs = StringRewriteSystem::new(vec![("AB", "X"), ("B", "BB")]);
+    let evolution = srs.run_multiway("AB", 3, 100);
+
+    let observed: Vec<usize> = branchial_to_parallel_intervals(&evolution)
+        .iter()
+        .map(|pi| pi.branch_count())
+        .collect();
+    let upstream: Vec<usize> = branchial_parallel_step_pairs(&evolution)
+        .iter()
+        .map(Vec::len)
+        .collect();
+
+    assert_eq!(
+        observed,
+        vec![1, 1, 3],
+        "branch counts per foliation boundary: observed {observed:?}, expected [1, 1, 3]"
+    );
+    assert_eq!(
+        observed, upstream,
+        "wrap must reproduce the upstream step pairs: observed {observed:?}, upstream {upstream:?}"
+    );
+}
+
+#[test]
+fn branch_intervals_skips_leaves_with_single_node_paths() {
+    let srs = StringRewriteSystem::new(vec![("AB", "BA"), ("A", "AA")]);
+
+    // Zero steps: the root is the only leaf and its path has one node.
+    let trivial = srs.run_multiway("AB", 0, 100);
+    let observed = branch_intervals(&trivial);
+    assert!(
+        observed.is_empty(),
+        "single-node paths contribute no entry: observed {observed:?}"
+    );
+
+    // Three steps: `A -> AA` applies to every string, so every leaf sits at
+    // step 3 and its path is [0, 1, 2, 3] — one entry per leaf, each the
+    // three consecutive-step intervals.
+    let evolution = srs.run_multiway("AB", 3, 100);
+    let observed = branch_intervals(&evolution);
+    let per_leaf = vec![
+        DiscreteInterval::new(0, 1),
+        DiscreteInterval::new(1, 2),
+        DiscreteInterval::new(2, 3),
+    ];
+    let leaves = evolution.leaves().len();
+    assert_eq!(
+        observed.len(),
+        leaves,
+        "one entry per leaf: observed {} entries, {leaves} leaves",
+        observed.len()
+    );
+    for (i, intervals) in observed.iter().enumerate() {
+        assert_eq!(
+            intervals, &per_leaf,
+            "leaf {i} intervals: observed {intervals:?}, expected {per_leaf:?}"
+        );
     }
 }
 

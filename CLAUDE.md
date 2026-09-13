@@ -21,7 +21,8 @@ cargo fmt   --all --check
 cargo run --example gorard_demo                              # 9-part paper walkthrough
 ```
 
-Rust 2024 edition, MSRV 1.90.
+Rust 2024 edition, MSRV 1.93 (measured cross-feature maximum; the default
+feature set builds on 1.90).
 
 ## Dependencies
 

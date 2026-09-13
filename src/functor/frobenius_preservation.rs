@@ -4,7 +4,7 @@
 //!
 //! Both categories are structured as hypergraph categories **by encoding
 //! into the free one** (Thm 3.14): T-morphisms are the multiway step
-//! cospans of [`multiway_step_cospans`](super::interval_algebra::multiway_step_cospans)
+//! cospans of [`super::interval_algebra::multiway_step_cospans`]
 //! and B-morphisms are cobordism cospans — both `Cospan<u32>`, which
 //! carries the `HypergraphCategory` impl. Under this encoding the Frobenius
 //! generators of T **are the multiway event types**:
@@ -155,7 +155,9 @@ fn spider_recipe(l: usize, r: usize) -> Result<Cospan<u32>, CatgraphError> {
 /// The (l, r) spider as a single-apex cospan — the shape every multiway
 /// event takes inside a step cospan.
 fn spider_cospan(l: usize, r: usize) -> Cospan<u32> {
-    Cospan::new(vec![0; l], vec![0; r], vec![Z])
+    // Correct by construction: every leg entry is 0 and the apex built on the
+    // same line holds one vertex.
+    Cospan::new_unchecked(vec![0; l], vec![0; r], vec![Z])
 }
 
 /// Eq. 12 for one generator: the functor's image at the cospan level must
@@ -168,7 +170,7 @@ fn generator_preserved(
     target_frobenius: &FrobeniusMorphism<u32, ()>,
 ) -> Result<bool, CatgraphError> {
     let mapped: Cospan<u32> = functor.map_mor(source)?;
-    let cospan_level = mapped.structurally_equal(source);
+    let cospan_level = mapped == *source;
 
     let decomposed: FrobeniusMorphism<u32, ()> = decomposer.map_mor(&mapped)?;
     let frobenius_level = decomposed == *target_frobenius;
@@ -261,7 +263,7 @@ pub fn verify_frobenius_preservation<S: Clone + Hash, T: Clone>(
             }
             components_checked += 1;
             let recipe = spider_recipe(l, r)?;
-            if !recipe.structurally_equal(&spider_cospan(l, r)) {
+            if recipe != spider_cospan(l, r) {
                 factorizations_hold = false;
             }
         }
@@ -291,51 +293,19 @@ mod tests {
     #[test]
     fn generator_recipes_reproduce_spiders() {
         // Sequential event: identity wire.
-        assert!(
-            spider_recipe(1, 1)
-                .unwrap()
-                .structurally_equal(&spider_cospan(1, 1))
-        );
+        assert_eq!(spider_recipe(1, 1).unwrap(), spider_cospan(1, 1));
         // Fork: delta.
-        assert!(
-            spider_recipe(1, 2)
-                .unwrap()
-                .structurally_equal(&spider_cospan(1, 2))
-        );
+        assert_eq!(spider_recipe(1, 2).unwrap(), spider_cospan(1, 2));
         // Merge: mu.
-        assert!(
-            spider_recipe(2, 1)
-                .unwrap()
-                .structurally_equal(&spider_cospan(2, 1))
-        );
+        assert_eq!(spider_recipe(2, 1).unwrap(), spider_cospan(2, 1));
         // Branch death: epsilon.
-        assert!(
-            spider_recipe(1, 0)
-                .unwrap()
-                .structurally_equal(&spider_cospan(1, 0))
-        );
+        assert_eq!(spider_recipe(1, 0).unwrap(), spider_cospan(1, 0));
         // Wide events: 3-way fork, 3-way merge, merge-then-fork.
-        assert!(
-            spider_recipe(1, 3)
-                .unwrap()
-                .structurally_equal(&spider_cospan(1, 3))
-        );
-        assert!(
-            spider_recipe(3, 1)
-                .unwrap()
-                .structurally_equal(&spider_cospan(3, 1))
-        );
-        assert!(
-            spider_recipe(2, 2)
-                .unwrap()
-                .structurally_equal(&spider_cospan(2, 2))
-        );
+        assert_eq!(spider_recipe(1, 3).unwrap(), spider_cospan(1, 3));
+        assert_eq!(spider_recipe(3, 1).unwrap(), spider_cospan(3, 1));
+        assert_eq!(spider_recipe(2, 2).unwrap(), spider_cospan(2, 2));
         // Dying merge: two parents, no children.
-        assert!(
-            spider_recipe(2, 0)
-                .unwrap()
-                .structurally_equal(&spider_cospan(2, 0))
-        );
+        assert_eq!(spider_recipe(2, 0).unwrap(), spider_cospan(2, 0));
     }
 
     #[test]

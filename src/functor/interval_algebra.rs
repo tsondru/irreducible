@@ -45,7 +45,7 @@ use catgraph::cospan_algebra::CospanAlgebra;
 use catgraph::errors::CatgraphError;
 use catgraph_physics::multiway::{MultiwayEvolutionGraph, extract_branchial_foliation};
 
-use crate::interval::{DiscreteInterval, ParallelIntervals};
+use catgraph_physics::interval::{DiscreteInterval, ParallelIntervals};
 
 /// The cobordism side of Z' as a cospan-algebra (F&S Def 2.2).
 ///
@@ -187,7 +187,9 @@ pub fn multiway_step_cospans<S: Clone + Hash, T: Clone>(
             .collect();
         let middle = vec![0u32; apex_of_root.len()];
 
-        cospans.push(Cospan::new(left, right, middle));
+        // Correct by construction: every leg entry is an `assign` output, i.e.
+        // an index into `apex_of_root`, and `middle` has one vertex per class.
+        cospans.push(Cospan::new_unchecked(left, right, middle));
     }
 
     cospans
@@ -210,7 +212,7 @@ mod tests {
     #[test]
     fn map_cospan_sequential_step_extends_nothing() {
         // 1 → 1 sequential step: single apex vertex.
-        let c = Cospan::new(vec![0], vec![0], vec![0u32]);
+        let c = Cospan::new(vec![0], vec![0], vec![0u32]).unwrap();
         let alg = IntervalCospanAlgebra;
         let out = alg.map_cospan(&c, &bundle(&[(0, 1)])).unwrap();
         assert_eq!(out.branch_count(), 1);
@@ -220,7 +222,7 @@ mod tests {
     #[test]
     fn map_cospan_fork_duplicates_history() {
         // 1 → 2 fork: one apex vertex, two right nodes.
-        let c = Cospan::new(vec![0], vec![0, 0], vec![0u32]);
+        let c = Cospan::new(vec![0], vec![0, 0], vec![0u32]).unwrap();
         let alg = IntervalCospanAlgebra;
         let out = alg.map_cospan(&c, &bundle(&[(0, 3)])).unwrap();
         assert_eq!(out.branch_count(), 2);
@@ -234,7 +236,7 @@ mod tests {
     #[test]
     fn map_cospan_merge_takes_hull() {
         // 2 → 1 merge: both left nodes share the apex vertex.
-        let c = Cospan::new(vec![0, 0], vec![0], vec![0u32]);
+        let c = Cospan::new(vec![0, 0], vec![0], vec![0u32]).unwrap();
         let alg = IntervalCospanAlgebra;
         let out = alg.map_cospan(&c, &bundle(&[(0, 2), (1, 4)])).unwrap();
         assert_eq!(out.branch_count(), 1);
@@ -244,7 +246,7 @@ mod tests {
     #[test]
     fn map_cospan_dead_branch_drops_interval() {
         // 2 → 1: second left node is an isolated apex vertex (dead branch).
-        let c = Cospan::new(vec![0, 1], vec![0], vec![0u32, 0u32]);
+        let c = Cospan::new(vec![0, 1], vec![0], vec![0u32, 0u32]).unwrap();
         let alg = IntervalCospanAlgebra;
         let out = alg.map_cospan(&c, &bundle(&[(0, 2), (0, 5)])).unwrap();
         assert_eq!(out.branch_count(), 1);
@@ -253,7 +255,7 @@ mod tests {
 
     #[test]
     fn map_cospan_arity_mismatch_errors() {
-        let c = Cospan::new(vec![0], vec![0], vec![0u32]);
+        let c = Cospan::new(vec![0], vec![0], vec![0u32]).unwrap();
         let alg = IntervalCospanAlgebra;
         assert!(alg.map_cospan(&c, &bundle(&[(0, 1), (1, 2)])).is_err());
     }
@@ -261,7 +263,7 @@ mod tests {
     #[test]
     fn map_cospan_spontaneous_branch_errors() {
         // Right node whose apex vertex has no left preimage.
-        let c = Cospan::new(vec![0], vec![1], vec![0u32, 0u32]);
+        let c = Cospan::new(vec![0], vec![1], vec![0u32, 0u32]).unwrap();
         let alg = IntervalCospanAlgebra;
         assert!(alg.map_cospan(&c, &bundle(&[(0, 1)])).is_err());
     }
@@ -285,8 +287,8 @@ mod tests {
     fn lax_monoidal_naturality_square_componentwise() {
         // a(c_x ⊕ c_y)(e_x ⊗ e_y) = a(c_x)(e_x) ⊗ a(c_y)(e_y).
         let alg = IntervalCospanAlgebra;
-        let cx = Cospan::new(vec![0], vec![0, 0], vec![0u32]); // fork
-        let cy = Cospan::new(vec![0, 0], vec![0], vec![0u32]); // merge
+        let cx = Cospan::new(vec![0], vec![0, 0], vec![0u32]).unwrap(); // fork
+        let cy = Cospan::new(vec![0, 0], vec![0], vec![0u32]).unwrap(); // merge
         let ex = bundle(&[(0, 1)]);
         let ey = bundle(&[(0, 2), (1, 3)]);
 

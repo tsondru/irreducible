@@ -145,19 +145,38 @@ fn is_causally_invariant_convenience_method() {
 
 #[test]
 fn wilson_loop_computation() {
-    let rule = RewriteRule::wolfram_a_to_bb();
-    let graph = Hypergraph::from_edges(vec![vec![0, 1, 2]]);
+    // A single edge under `wolfram_a_to_bb` alone yields no Wilson loop; two
+    // rules on two edges merge. The 100-node cap binds before step 5, so the
+    // census below also pins upstream's BFS truncation order.
+    let graph = Hypergraph::from_edges(vec![vec![0, 1, 2], vec![2, 3, 4]]);
+    let rules = [RewriteRule::wolfram_a_to_bb(), RewriteRule::edge_split()];
 
-    let evolution = HypergraphEvolution::run_multiway(&graph, &[rule], 4, 100);
+    let evolution = HypergraphEvolution::run_multiway(&graph, &rules, 5, 100);
     let loops = evolution.find_wilson_loops();
+    assert_eq!(
+        loops.len(),
+        1278,
+        "wilson loops on the two-rule fixture: observed {}",
+        loops.len()
+    );
 
-    // Wilson loops exist only when branches merge (same fingerprint)
-    // We just verify the API works and returns valid structures
-    for wl in &loops {
-        assert!(!wl.path.is_empty());
-        assert!(wl.holonomy >= 0.0);
-        assert!(wl.holonomy <= 1.0);
+    // Holonomy is the causal-graph comparison of the two branches, so it is
+    // exactly 1.0 (isomorphic) or 0.0 — no intermediate value.
+    for (i, wl) in loops.iter().enumerate() {
+        assert!(!wl.path.is_empty(), "loop {i} has an empty path");
+        assert!(
+            wl.holonomy == 1.0 || wl.holonomy == 0.0,
+            "loop {i} holonomy is {}, neither 1.0 nor 0.0",
+            wl.holonomy
+        );
     }
+    let zero_holonomy = loops.iter().filter(|wl| wl.holonomy == 0.0).count();
+    assert_eq!(
+        zero_holonomy,
+        600,
+        "loops at holonomy 0.0: observed {zero_holonomy} of {}",
+        loops.len()
+    );
 }
 
 // ---------------------------------------------------------------------------
@@ -220,7 +239,7 @@ fn total_action_computation() {
 #[test]
 fn lattice_construction_1d() {
     let group = HypergraphRewriteGroup::new(2);
-    let lattice: HypergraphLattice<1> = HypergraphLattice::new([5], group, vec![]);
+    let lattice: HypergraphLattice<1> = HypergraphLattice::new([5], group, vec![], 1);
 
     // Lattice should be constructable
     let _ = lattice;
@@ -229,7 +248,7 @@ fn lattice_construction_1d() {
 #[test]
 fn lattice_construction_2d() {
     let group = HypergraphRewriteGroup::new(3);
-    let lattice: HypergraphLattice<2> = HypergraphLattice::new([4, 4], group, vec![]);
+    let lattice: HypergraphLattice<2> = HypergraphLattice::new([4, 4], group, vec![], 1);
 
     let _ = lattice;
 }
@@ -367,6 +386,10 @@ fn multiway_evolution_with_gauge_analysis_pipeline() {
 
     // 4. Compute Wilson loops
     let loops = evolution.find_wilson_loops();
+    assert!(
+        !loops.is_empty(),
+        "the two-rule fixture must merge branches; see wilson_loop_computation"
+    );
     // Wilson loops exist when branches merge; collect holonomies
     let holonomies: Vec<f64> = loops.iter().map(|wl| wl.holonomy).collect();
 
@@ -379,10 +402,15 @@ fn multiway_evolution_with_gauge_analysis_pipeline() {
         );
     }
 
+    // `plaquette_action` is `f64::INFINITY` at holonomy `0.0`, so the total
+    // is finite exactly when no loop carries a `0.0` holonomy.
+    let zero_holonomy = holonomies.iter().filter(|&&h| h == 0.0).count();
     let action = total_action(&holonomies);
-    assert!(
+    assert_eq!(
         action.is_finite(),
-        "Total action across all holonomies should be finite (got {action})"
+        zero_holonomy == 0,
+        "total action {action} over {} loops, {zero_holonomy} at holonomy 0.0",
+        loops.len()
     );
 
     // 7. Check causal invariance

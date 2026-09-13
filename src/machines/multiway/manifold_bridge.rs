@@ -23,12 +23,15 @@
 //!    This is a stand-in: it produces a valid 2D complex that matches the
 //!    existing test expectations (flat → zero curvature everywhere). Swapping
 //!    to confluence-diamond faces extracted from the underlying
-//!    [`MultiwayEvolutionGraph`] — the triangulation `multiway_stokes` now
+//!    [`catgraph_physics::multiway::MultiwayEvolutionGraph`] — the
+//!    triangulation `multiway_stokes` now
 //!    uses — is deferred to a follow-up plan (CLAUDE.md Deferred Work #9,
 //!    non-Euclidean embedding). Until then this curvature backend reports
 //!    zero on every flat-metric branchial.
-//! 3. Applies a flat [`ReggeGeometry`] (all edge lengths `1.0`) and calls
-//!    [`ReggeGeometry::calculate_ricci_curvature`] to obtain one deficit
+//! 3. Applies a flat [`deep_causality_topology::ReggeGeometry`] (all edge
+//!    lengths `1.0`) and calls
+//!    [`deep_causality_topology::ReggeGeometry::calculate_ricci_curvature`]
+//!    to obtain one deficit
 //!    angle per vertex bone.
 //! 4. Derives sectional curvature via 2D Gauss-Bonnet:
 //!    `K_{ij} = δ_k / A_{ijk}` where `k` is the third vertex of a triangle
@@ -41,7 +44,8 @@
 //! each vertex — the apex of a fan triangulation fails it (the link is a
 //! path, not a circle/disk in the expected Euler-char sense). Since we only
 //! need curvature and not DEC ops here, we call
-//! [`ReggeGeometry::calculate_ricci_curvature`] directly on the complex,
+//! [`deep_causality_topology::ReggeGeometry::calculate_ricci_curvature`]
+//! directly on the complex,
 //! bypassing the manifold-property check. Phase 2 (DEC port in
 //! `multiway_stokes`) uses `Manifold` on complexes that do satisfy the check
 //! (closed confluence diamonds).
@@ -227,7 +231,7 @@ const AREA_UNIT_EQUILATERAL: f64 = 0.433_012_701_892_219_3;
 /// `K_{ij} = δ_k / A_{ijk}` where:
 /// - `k` is the third vertex of a triangle containing both `i` and `j`.
 /// - `δ_k` is the deficit angle at `k` (as returned by
-///   [`ReggeGeometry::calculate_ricci_curvature`]).
+///   [`deep_causality_topology::ReggeGeometry::calculate_ricci_curvature`]).
 /// - `A_{ijk}` is the area of the triangle (`√3 / 4` for unit-edge
 ///   equilateral triangles, the only case the flat Regge baseline supports).
 ///
@@ -313,8 +317,11 @@ impl ManifoldCurvature {
     ///    vertex 0 into `n - 2` triangles.
     /// 3. Build a 2D [`deep_causality_topology::SimplicialComplex`] via
     ///    [`SimplicialComplexBuilder`].
-    /// 4. Apply a flat [`ReggeGeometry`] (all edge lengths `1.0`).
-    /// 5. Call [`ReggeGeometry::calculate_ricci_curvature`] to obtain one
+    /// 4. Apply a flat [`deep_causality_topology::ReggeGeometry`] (all edge
+    ///    lengths `1.0`).
+    /// 5. Call
+    ///    [`deep_causality_topology::ReggeGeometry::calculate_ricci_curvature`]
+    ///    to obtain one
     ///    deficit angle per vertex bone.
     /// 6. Derive sectional curvatures via 2D Gauss-Bonnet.
     /// 7. Scalar curvature = sum of deficit angles.

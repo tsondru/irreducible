@@ -1,12 +1,14 @@
 //! Stokes integration for computational irreducibility analysis.
 //!
 //! Core types (`TemporalComplex`, `ConservationResult`, `TemporalComplexError`)
-//! re-exported from the [`temporal_cospan_chain`](crate::temporal_cospan_chain) module.
+//! re-exported from [`catgraph_physics::temporal_cospan_chain`].
 //! This module provides the irreducibility-specific `StokesIrreducibility` wrapper.
 
-pub use crate::temporal_cospan_chain::{ConservationResult, TemporalComplex, TemporalComplexError};
+pub use catgraph_physics::temporal_cospan_chain::{
+    ConservationResult, TemporalComplex, TemporalComplexError,
+};
 
-use crate::interval::DiscreteInterval;
+use catgraph_physics::interval::DiscreteInterval;
 
 use super::fong_spivak::{FrobeniusVerificationResult, verify_cospan_chain_frobenius};
 

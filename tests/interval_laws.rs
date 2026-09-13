@@ -3,7 +3,7 @@
 //! Verifies associativity, identity, commutativity, and transitivity laws
 //! for `DiscreteInterval`, plus monoidal (tensor) laws for `ParallelIntervals`.
 
-use irreducible::interval::{DiscreteInterval, ParallelIntervals};
+use irreducible::{DiscreteInterval, ParallelIntervals};
 use proptest::prelude::*;
 
 // ---------------------------------------------------------------------------

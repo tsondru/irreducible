@@ -3,10 +3,10 @@
 //! Covers the four perspectives: linear trace, multiway reachability, cospan
 //! bridge round-trip, deadlock detection, and step-limit exhaustion.
 
+use irreducible::analyze_trace;
 use irreducible::machines::petri::{
     Marking, PetriBuilder, PetriNet, PetriNetMachine, PetriTransition, run_multiway_reachability,
 };
-use irreducible::trace::analyze_trace;
 use rust_decimal::Decimal;
 
 fn d(n: i64) -> Decimal {
@@ -68,13 +68,18 @@ fn multiway_branching() {
 fn cospan_bridge_roundtrip() {
     // 2 H + O → W: two tokens from place 0, one from place 1, produce two
     // tokens at place 2. The cospan round-trip should preserve arc weights.
-    let machine: PetriNetMachine<char> = PetriNetMachine::new(PetriNet::new(
-        vec!['H', 'O', 'W'],
-        vec![PetriTransition::new(
-            vec![(0, d(2)), (1, Decimal::ONE)],
-            vec![(2, d(2))],
-        )],
-    ));
+    let machine: PetriNetMachine<char> = PetriNetMachine::new(
+        PetriNet::new(
+            vec!['H', 'O', 'W'],
+            vec![PetriTransition::new(
+                vec![(0, d(2)), (1, Decimal::ONE)],
+                vec![(2, d(2))],
+            )],
+            vec![],
+            vec![],
+        )
+        .unwrap(),
+    );
 
     let cospan = machine.transition_as_cospan(0);
     let roundtrip = PetriNet::from_cospan(&cospan);

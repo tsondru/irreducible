@@ -14,7 +14,7 @@
 //! - **Unit**: I ⊗ ∅ ≅ I ≅ ∅ ⊗ I
 //! - **Symmetry**: I₁ ⊗ I₂ ≅ I₂ ⊗ I₁
 
-use crate::interval::{DiscreteInterval, ParallelIntervals};
+use catgraph_physics::interval::{DiscreteInterval, ParallelIntervals};
 
 // ============================================================================
 // Tensor Product Operations

@@ -7,7 +7,7 @@
 //!
 //! See also `examples/computation_state.rs`.
 
-use crate::interval::DiscreteInterval;
+use catgraph_physics::interval::DiscreteInterval;
 
 /// A computation state in category 𝒯.
 ///

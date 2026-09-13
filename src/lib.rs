@@ -9,15 +9,14 @@
 //! ## Modules
 //!
 //! - [`types`] - Core type definitions (`ComputationDomain`, `ComputationContext`, `CausalEffect`)
-//! - Category theory types (`Complexity`, `ComputationState`) — local; (`DiscreteInterval`,
-//!   `ParallelIntervals`, `TemporalComplex`, `StepTrace`) — re-exported from `catgraph_physics`
-//!   via the local `crate::interval` / `crate::temporal_cospan_chain` / `crate::trace` shim
-//!   modules introduced in v0.6.3 (shim modules + deprecated aliases removed in v0.7.0).
+//! - Category theory types: `Complexity` and `ComputationState` are local;
+//!   `DiscreteInterval`, `ParallelIntervals`, `TemporalComplex` and `StepTrace` are
+//!   re-exported at the crate root from
+//!   `catgraph_physics::{interval, temporal_cospan_chain, trace}`.
 //! - [`functor`] - The irreducibility functor Z': T -> B, adjunction, monoidal structure
 //! - [`machines`] - Computational machines (Turing machines, cellular automata, hypergraph rewriting)
 //! - [`multiway_coherence`] - Non-strict SMC coherence over multiway graphs
 //! - [`multiway_stokes`] - Discrete exterior calculus on 2D multiway complexes (feature `dec`)
-//! - [`temporal_cospan_chain`] - Cospan chain bridge for interval sequences
 //!
 //! ## Example: Analyzing Turing Machine Irreducibility
 //!
@@ -55,13 +54,10 @@ pub mod adjunction;
 pub mod bifunctor;
 pub mod complexity;
 pub mod computation_state;
-pub mod interval;
-pub mod trace;
 
 // Phase 2.5 modules — real coherence and exterior calculus on multiway substrate
 pub mod multiway_coherence;
 pub mod multiway_stokes;
-pub mod temporal_cospan_chain;
 
 // Phase 0 of the dc_topology substrate port (feature: dc-geometry).
 // Bridges multiway/branchial graphs to deep_causality_topology's simplicial
@@ -73,9 +69,9 @@ pub mod geometry;
 pub mod test_utils;
 
 // Category theory exports (now local modules)
+pub use catgraph_physics::interval::{DiscreteInterval, ParallelIntervals};
 pub use complexity::{Complexity, StepCount};
 pub use computation_state::ComputationState;
-pub use interval::{DiscreteInterval, ParallelIntervals};
 
 // Functor exports
 pub use functor::IrreducibilityFunctor;
@@ -105,11 +101,9 @@ pub use functor::{
     verify_associativity, verify_symmetry, verify_unit_laws,
 };
 
-// Temporal cospan chain exports (shim into catgraph_physics::temporal_cospan_chain;
-// `StokesError` is the deprecated alias for `TemporalComplexError`, dropped in v0.7.0).
-#[allow(deprecated)]
-pub use temporal_cospan_chain::{
-    ConservationResult, StokesError, TemporalComplex, TemporalComplexError,
+// Temporal cospan chain exports
+pub use catgraph_physics::temporal_cospan_chain::{
+    ConservationResult, TemporalComplex, TemporalComplexError,
 };
 
 // Stokes integration exports
@@ -133,12 +127,9 @@ pub use machines::petri::{
     PetriTransitionRecord, run_multiway_reachability,
 };
 
-// Trace analysis exports (shim into catgraph_physics::trace;
-// `IrreducibilityTrace` is the deprecated alias for `StepTrace`, dropped in v0.7.0).
-#[allow(deprecated)]
-pub use trace::{
-    IrreducibilityTrace, RepeatDetection, StepTrace, TraceAnalysis, analyze_trace, detect_repeats,
-    is_irreducible,
+// Trace analysis exports
+pub use catgraph_physics::trace::{
+    RepeatDetection, StepTrace, TraceAnalysis, analyze_trace, detect_repeats, is_irreducible,
 };
 
 // Multiway system exports
