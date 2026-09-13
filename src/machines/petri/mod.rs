@@ -6,7 +6,7 @@
 //! transition firings are the morphisms, and the reachability graph lifts to the
 //! multiway evolution substrate used elsewhere in this crate.
 //!
-//! ## Four perspectives
+//! ## Three perspectives
 //!
 //! 1. **Linear trace** — [`PetriNetMachine::run`] picks the smallest-index enabled
 //!    transition at each step, producing a deterministic [`PetriExecutionHistory`]
@@ -21,10 +21,6 @@
 //!    via [`PetriNetMachine::transition_as_cospan`]; this is the image under Z'
 //!    and lets Petri firings compose with the rest of the categorical
 //!    infrastructure (Fong-Spivak, Stokes, etc.).
-//! 4. **Persistence** (removed pending catgraph-surreal reboot) — the
-//!    underlying `PetriNet<Lambda>` was storable through catgraph-surreal's
-//!    `PetriNetStore`; the surface returns once catgraph-surreal is realigned
-//!    with reboot catgraph.
 
 mod builder;
 mod history;

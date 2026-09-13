@@ -27,8 +27,16 @@
 //! The [`catgraph_bridge`] module provides the multiway cospan interpretation
 //! using catgraph's `Span` and `Cospan` types. Core conversions (`to_span()`,
 //! `to_cospan_chain()`) are native methods on catgraph's hypergraph types.
+//!
+//! # Persistence (`persist`)
+//!
+//! The [`persistence`] module stores a cospan chain in SurrealDB through
+//! catgraph-surreal. It is behind the `persist` feature, which selects no
+//! engine on its own — `persist-mem` or `persist-rocksdb` adds one.
 
 pub mod catgraph_bridge;
+#[cfg(feature = "persist")]
+pub mod persistence;
 
 // Re-export core types from catgraph-physics
 pub use catgraph_physics::hypergraph::{
