@@ -145,8 +145,9 @@ fn is_causally_invariant_convenience_method() {
 
 #[test]
 fn wilson_loop_computation() {
-    // Two rules on two edges: the only fixture in this file whose branches
-    // merge (a single edge under `wolfram_a_to_bb` alone yields no loop).
+    // A single edge under `wolfram_a_to_bb` alone yields no Wilson loop; two
+    // rules on two edges merge. The 100-node cap binds before step 5, so the
+    // census below also pins upstream's BFS truncation order.
     let graph = Hypergraph::from_edges(vec![vec![0, 1, 2], vec![2, 3, 4]]);
     let rules = [RewriteRule::wolfram_a_to_bb(), RewriteRule::edge_split()];
 

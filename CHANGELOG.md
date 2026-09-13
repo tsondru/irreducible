@@ -14,8 +14,8 @@ rebooted catgraph's core + physics layer, re-pinned to catgraph
 
 - **catgraph triple re-pinned `v0.2.0` → `v0.23.0`** (#28). Shapes that
   reach this crate's public surface through `pub use` change with it:
-  `Cospan::new` / `PetriNet::new` return `Result` (`new_unchecked` is
-  the drop-in unchecked constructor; `PetriNet::new` also takes `left`/`right` boundary
+  `Cospan::new` / `PetriNet::new` return `Result` (`new_unchecked` takes
+  the same arguments without the check; `PetriNet::new` also takes `left`/`right` boundary
   legs — `PetriBuilder` builds a closed net with empty legs),
   `Cospan::structurally_equal` is gone (`==` is the same predicate),
   `HypergraphLattice::new` takes `link_dim`, and the lattice

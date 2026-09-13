@@ -5,7 +5,8 @@
 //! and max-limits enforcement.
 
 use irreducible::{
-    DiscreteCurvature, NondeterministicTM, OllivierRicciCurvature, StringRewriteSystem,
+    DiscreteCurvature, DiscreteInterval, NondeterministicTM, OllivierRicciCurvature,
+    StringRewriteSystem,
 };
 
 use catgraph_physics::multiway::branchial_parallel_step_pairs;
@@ -159,20 +160,29 @@ fn branch_intervals_skips_leaves_with_single_node_paths() {
         "single-node paths contribute no entry: observed {observed:?}"
     );
 
-    // Three steps: every leaf path has at least two nodes, one interval per
-    // consecutive pair.
+    // Three steps: `A -> AA` applies to every string, so every leaf sits at
+    // step 3 and its path is [0, 1, 2, 3] — one entry per leaf, each the
+    // three consecutive-step intervals.
     let evolution = srs.run_multiway("AB", 3, 100);
     let observed = branch_intervals(&evolution);
-    let expected: Vec<usize> = evolution
-        .leaves()
-        .iter()
-        .map(|&leaf| evolution.trace_path_to_root(leaf).len() - 1)
-        .collect();
-    let lengths: Vec<usize> = observed.iter().map(Vec::len).collect();
+    let per_leaf = vec![
+        DiscreteInterval::new(0, 1),
+        DiscreteInterval::new(1, 2),
+        DiscreteInterval::new(2, 3),
+    ];
+    let leaves = evolution.leaves().len();
     assert_eq!(
-        lengths, expected,
-        "intervals per leaf path: observed {lengths:?}, expected {expected:?}"
+        observed.len(),
+        leaves,
+        "one entry per leaf: observed {} entries, {leaves} leaves",
+        observed.len()
     );
+    for (i, intervals) in observed.iter().enumerate() {
+        assert_eq!(
+            intervals, &per_leaf,
+            "leaf {i} intervals: observed {intervals:?}, expected {per_leaf:?}"
+        );
+    }
 }
 
 // ---------------------------------------------------------------------------
