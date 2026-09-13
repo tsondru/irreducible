@@ -563,11 +563,14 @@ fn rule_ordering_confluence_via_coarsest_common_refinement() {
 fn merge_partition_apex_labels_are_class_minima() {
     use irreducible::machines::hypergraph::{MergesCorelExt, MultiwayCospanExt};
 
-    // edge_split mints fresh vertex IDs, so merged states align IDs that
-    // differ and the class representative is an observable choice.
-    let rules = vec![RewriteRule::edge_split(), RewriteRule::wolfram_a_to_bb()];
-    let graph = Hypergraph::from_edges(vec![vec![0, 1, 2]]);
-    let evolution = HypergraphEvolution::run_multiway(&graph, &rules, 3, 50);
+    // The two-edge pipeline under both rules: edge_split mints fresh vertex
+    // IDs, so merged states align IDs that differ and the class
+    // representative is an observable choice. Four of the nine classes hold
+    // more than one vertex — enough that dropping the minimum pass, which
+    // leaves whichever member is visited first, moves at least one label.
+    let rules = [RewriteRule::wolfram_a_to_bb(), RewriteRule::edge_split()];
+    let graph = Hypergraph::from_edges(vec![vec![0, 1, 2], vec![2, 3, 4]]);
+    let evolution = HypergraphEvolution::run_multiway(&graph, &rules, 5, 100);
 
     let cospan_graph = evolution.to_multiway_cospan_graph();
     let boundary: usize = {
@@ -584,9 +587,12 @@ fn merge_partition_apex_labels_are_class_minima() {
 
     assert_eq!(
         corel.as_cospan().middle(),
-        &[0, 1, 2, 3, 5],
-        "apex labels must be the minimum vertex ID of each class \
-         (maxima would give [0, 1, 2, 4, 10])"
+        &[0, 1, 2, 3, 4, 5, 13, 23, 54],
+        "apex labels must be the minimum vertex ID of each class"
+    );
+    assert_eq!(
+        boundary, 90,
+        "fixture vertex census drifted: {boundary} vertices"
     );
     assert!(
         boundary > corel.as_cospan().middle().len(),

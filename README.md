@@ -134,7 +134,7 @@ library takes no runtime dependency, so the caller supplies one.
 ## Examples
 
 ```bash
-cargo run --example gorard_demo           # 9-part presentation demo
+cargo run --example gorard_demo           # 12-part presentation demo
 cargo run --example builders              # TuringMachineBuilder + NTMBuilder
 cargo run --example bifunctor_tensor      # Tensor products, monoidal laws
 cargo run --example fong_spivak           # Fong-Spivak three-perspective agreement

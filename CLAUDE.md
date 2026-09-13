@@ -18,7 +18,7 @@ cargo test  --workspace --features manifold-curvature,dec    # feature leg (CI-g
 cargo clippy --workspace --all-targets -- -D warnings        # the CI gate
 cargo clippy --workspace --all-targets -- -W clippy::pedantic  # advisory local pass
 cargo fmt   --all --check
-cargo run --example gorard_demo                              # 9-part paper walkthrough
+cargo run --example gorard_demo                              # 12-part paper walkthrough
 ```
 
 Rust 2024 edition, MSRV 1.94 (measured cross-feature maximum; the default

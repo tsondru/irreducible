@@ -235,10 +235,6 @@ pub(super) fn step_cospans_from_foliation<S: Clone + Hash, T: Clone>(
 pub(super) type Partition = QuickUnionUf<UnionBySize>;
 
 /// The apex index of `i`'s class, minting indices in order of first request.
-///
-/// Successive cospans in a chain compose only when both number their shared
-/// boundary's classes this way, so both apex constructions
-/// ([`step_cospans_from_foliation`] and the corelation quotient) share it.
 pub(super) fn renumber_first_seen(
     classes: &mut Partition,
     i: usize,

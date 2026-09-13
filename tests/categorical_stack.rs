@@ -269,6 +269,29 @@ fn truncated_ntm_evolution() -> irreducible::machines::multiway::MultiwayEvoluti
 #[test]
 fn truncated_evolution_produces_a_counit_event() {
     let evolution = truncated_ntm_evolution();
+    let foliation = extract_branchial_foliation(&evolution);
+
+    // Derived from the graph, not from the cospans: the truncation leaves
+    // exactly one step-1 node without forward edges, and every other node at
+    // steps 0 and 1 forks in two. The cospan literals below follow from this
+    // shape, so a drift in the BFS truncation order fails here first.
+    let slice_widths: Vec<usize> = foliation.iter().map(|s| s.nodes.len()).collect();
+    assert_eq!(slice_widths, vec![1, 2, 2], "branchial slice widths");
+    let children_at_step_1: Vec<usize> = foliation[1]
+        .nodes
+        .iter()
+        .map(|n| evolution.get_forward_edges(n).map_or(0, Vec::len))
+        .collect();
+    let dead = children_at_step_1.iter().filter(|&&c| c == 0).count();
+    assert_eq!(
+        dead, 1,
+        "one step-1 node is truncated: {children_at_step_1:?}"
+    );
+    assert_eq!(
+        children_at_step_1.iter().sum::<usize>(),
+        2,
+        "the surviving step-1 node forks in two: {children_at_step_1:?}"
+    );
 
     assert_eq!(evolution.node_count(), 5, "root + 2 + 2");
     assert_eq!(evolution.max_step(), 2);

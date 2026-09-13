@@ -187,7 +187,7 @@ Each demo section has corresponding assertions in `tests/`:
 | 4. Adjunction Z' ⊣ Z | `tests/adjunction_laws.rs` |
 | 5. Monoidal structure | `tests/monoidal_coherence.rs` |
 | 6. Coherence conditions | `tests/monoidal_coherence.rs` |
-| 7. Stokes integration | `tests/stokes_integration.rs` |
+| 7. Categorical hypergraph rewriting + Stokes | `tests/hypergraph_rewriting.rs`, `tests/multiway_stokes.rs` |
 | 8. Hypergraph rewriting | `tests/hypergraph_rewriting.rs`, `tests/catgraph_bridge.rs` |
 | 9. Multiway branching | `tests/multiway_evolution.rs` |
 | 10. Frobenius structure | `tests/frobenius_preservation.rs`, `tests/categorical_stack.rs` |
