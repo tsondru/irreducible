@@ -45,6 +45,8 @@
 //! checked: branchial node order may interleave components, so reassembly
 //! requires braiding permutations — deferred until a consumer needs it.
 
+use std::collections::HashMap;
+use std::collections::hash_map::Entry;
 use std::hash::Hash;
 
 use catgraph::category::{Composable, ComposableMutating, HasIdentity};
@@ -225,6 +227,8 @@ pub fn verify_frobenius_preservation<S: Clone + Hash, T: Clone>(
     let chain = multiway_step_cospans(graph);
     let mut decomposition_boundaries_preserved = true;
     let mut per_step = Vec::with_capacity(chain.len());
+    // One recipe per distinct event arity, reused across components and steps.
+    let mut recipes: HashMap<(usize, usize), Cospan<u32>> = HashMap::new();
 
     for (step, cospan) in chain.iter().enumerate() {
         let image: Cospan<u32> = functor.map_mor(cospan)?;
@@ -262,8 +266,11 @@ pub fn verify_frobenius_preservation<S: Clone + Hash, T: Clone>(
                 });
             }
             components_checked += 1;
-            let recipe = spider_recipe(l, r)?;
-            if recipe != spider_cospan(l, r) {
+            let recipe = match recipes.entry((l, r)) {
+                Entry::Occupied(slot) => slot.into_mut(),
+                Entry::Vacant(slot) => slot.insert(spider_recipe(l, r)?),
+            };
+            if *recipe != spider_cospan(l, r) {
                 factorizations_hold = false;
             }
         }

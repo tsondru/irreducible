@@ -12,9 +12,11 @@
 //! on the actual multiway graph -- a real non-strict SMC where confluence is
 //! a falsifiable property.
 //!
-//! The per-step bundle assembly delegates to the cospan-algebra structure of
-//! Z' ([`IntervalCospanAlgebra`], F&S Def 2.2): `lax_monoidal` is the tensor
-//! `Z'(f) ⊕ Z'(g)` and `unit` the empty bundle. The per-step comparison
+//! The per-step bundle assembly uses the cospan-algebra structure of Z'
+//! ([`IntervalCospanAlgebra`], F&S Def 2.2): `unit` is the empty bundle and
+//! the fold's tensor `Z'(f) ⊕ Z'(g)` is
+//! [`ParallelIntervals::direct_sum`], the by-value form of `lax_monoidal`.
+//! The per-step comparison
 //! itself is a branch *survival* (totality) check — deliberately NOT the
 //! lax-monoidal coherence square, which holds by construction for the
 //! componentwise `map_cospan` transport; see the
@@ -243,10 +245,10 @@ impl IrreducibilityFunctor {
     fn compute_expected_parallel(branchial: &BranchialGraph, step: usize) -> ParallelIntervals {
         let algebra = IntervalCospanAlgebra;
         branchial.nodes.iter().fold(algebra.unit(), |acc, _| {
-            algebra.lax_monoidal(
-                &acc,
-                &ParallelIntervals::from_branch(DiscreteInterval::new(step, step + 1)),
-            )
+            acc.direct_sum(ParallelIntervals::from_branch(DiscreteInterval::new(
+                step,
+                step + 1,
+            )))
         })
     }
 
@@ -268,10 +270,10 @@ impl IrreducibilityFunctor {
                     .is_some_and(|e| !e.is_empty())
             })
             .fold(algebra.unit(), |acc, _| {
-                algebra.lax_monoidal(
-                    &acc,
-                    &ParallelIntervals::from_branch(DiscreteInterval::new(step, step + 1)),
-                )
+                acc.direct_sum(ParallelIntervals::from_branch(DiscreteInterval::new(
+                    step,
+                    step + 1,
+                )))
             })
     }
 }
@@ -297,6 +299,51 @@ mod tests {
         assert!(p1.structurally_equivalent(&p2));
         let p3 = crate::intervals![(0, 1)];
         assert!(!p1.structurally_equivalent(&p3));
+    }
+
+    #[test]
+    fn by_value_fold_equals_lax_monoidal_fold() {
+        // The by-value `direct_sum` fold in `compute_{expected,actual}_parallel`
+        // must agree branch-for-branch with the `lax_monoidal` fold it replaces.
+        let srs = StringRewriteSystem::new(vec![("A", "AB"), ("A", "BA")]);
+        let evolution = srs.run_multiway("A", 4, 64);
+        let foliation = extract_branchial_foliation(&evolution);
+        let algebra = IntervalCospanAlgebra;
+
+        for (step, branchial) in foliation.iter().enumerate() {
+            let reference = branchial.nodes.iter().fold(algebra.unit(), |acc, _| {
+                algebra.lax_monoidal(
+                    &acc,
+                    &ParallelIntervals::from_branch(DiscreteInterval::new(step, step + 1)),
+                )
+            });
+            let expected = IrreducibilityFunctor::compute_expected_parallel(branchial, step);
+            assert!(
+                expected.exactly_equal(&reference),
+                "step {step}: expected fold diverged ({expected:?} vs {reference:?})"
+            );
+
+            let surviving_reference = branchial
+                .nodes
+                .iter()
+                .filter(|node_id| {
+                    evolution
+                        .get_forward_edges(node_id)
+                        .is_some_and(|e| !e.is_empty())
+                })
+                .fold(algebra.unit(), |acc, _| {
+                    algebra.lax_monoidal(
+                        &acc,
+                        &ParallelIntervals::from_branch(DiscreteInterval::new(step, step + 1)),
+                    )
+                });
+            let actual =
+                IrreducibilityFunctor::compute_actual_parallel(&evolution, branchial, step);
+            assert!(
+                actual.exactly_equal(&surviving_reference),
+                "step {step}: actual fold diverged ({actual:?} vs {surviving_reference:?})"
+            );
+        }
     }
 
     #[test]

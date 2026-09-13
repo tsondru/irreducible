@@ -558,3 +558,40 @@ fn rule_ordering_confluence_via_coarsest_common_refinement() {
     assert!(corel_a.refines(&corel_b).expect("same boundary"));
     assert!(corel_b.refines(&corel_a).expect("same boundary"));
 }
+
+#[test]
+fn merge_partition_apex_labels_are_class_minima() {
+    use irreducible::machines::hypergraph::{MergesCorelExt, MultiwayCospanExt};
+
+    // edge_split mints fresh vertex IDs, so merged states align IDs that
+    // differ and the class representative is an observable choice.
+    let rules = vec![RewriteRule::edge_split(), RewriteRule::wolfram_a_to_bb()];
+    let graph = Hypergraph::from_edges(vec![vec![0, 1, 2]]);
+    let evolution = HypergraphEvolution::run_multiway(&graph, &rules, 3, 50);
+
+    let cospan_graph = evolution.to_multiway_cospan_graph();
+    let boundary: usize = {
+        let mut all: Vec<u32> = cospan_graph
+            .edges
+            .iter()
+            .flat_map(|e| e.cospan.middle().iter().copied())
+            .collect();
+        all.sort_unstable();
+        all.dedup();
+        all.len()
+    };
+    let corel = cospan_graph.merges_corel().expect("corelation builds");
+
+    assert_eq!(
+        corel.as_cospan().middle(),
+        &[0, 1, 2, 3, 5],
+        "apex labels must be the minimum vertex ID of each class \
+         (maxima would give [0, 1, 2, 4, 10])"
+    );
+    assert!(
+        boundary > corel.as_cospan().middle().len(),
+        "the fixture must merge distinct vertex IDs: {boundary} vertices, \
+         {} classes",
+        corel.as_cospan().middle().len()
+    );
+}
