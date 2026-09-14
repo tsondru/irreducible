@@ -2,9 +2,10 @@
 //! lengths.
 //!
 //! `deep_causality_topology::SimplicialComplexBuilder::build` produces a
-//! complex with empty `hodge_star_operators`. The DEC pipeline
-//! (`codifferential`, `laplacian`) requires those operators to be populated,
-//! so this module supplies them for the flat / unit-edge-length case.
+//! complex without coordinates, whose `hodge_star_operators()` is an error
+//! until operators are pre-supplied through `SimplicialComplex::new`. The DEC
+//! pipeline (`codifferential`, `laplacian`) reads those operators, so this
+//! module supplies them for the flat / unit-edge-length case.
 //!
 //! # Unit equilateral geometry
 //!
@@ -274,16 +275,20 @@ mod tests {
         assert_eq!(ops[0].shape(), (3, 3));
         assert_eq!(ops[1].shape(), (3, 3));
         assert_eq!(ops[2].shape(), (1, 1));
-        // One stored (diagonal) entry per row, every entry positive; on a
-        // single triangle every edge is a boundary edge, so ⋆₁ is
+        // One stored entry per row, on the diagonal, every entry positive; on
+        // a single triangle every edge is a boundary edge, so ⋆₁ is
         // DUAL_LEN_BOUNDARY throughout.
         for (k, (op, rows)) in ops.iter().zip([3usize, 3, 1]).enumerate() {
+            let diagonal: Vec<usize> = (0..rows).collect();
+            let row_pointers: Vec<usize> = (0..=rows).collect();
             assert_eq!(
                 op.values().len(),
                 rows,
                 "⋆{k} stores {} entries, expected {rows}",
                 op.values().len()
             );
+            assert_eq!(op.row_indices(), &row_pointers, "⋆{k} row pointers");
+            assert_eq!(op.col_indices(), &diagonal, "⋆{k} columns");
             assert!(
                 op.values().iter().all(|&v| v > 0.0),
                 "⋆{k} entries are not all positive: {:?}",
@@ -295,5 +300,20 @@ mod tests {
             "⋆₁ on a single triangle is DUAL_LEN_BOUNDARY per edge: {:?}",
             ops[1].values()
         );
+        // Numeric values of the unit equilateral geometry, independent of the
+        // module's constants: √3/12, 1/(2√3), 4/√3.
+        let expected = [
+            0.144_337_567_297_406_43,
+            0.288_675_134_594_812_9,
+            2.309_401_076_758_503_4,
+        ];
+        for (k, (op, want)) in ops.iter().zip(expected).enumerate() {
+            for &v in op.values() {
+                assert!(
+                    (v - want).abs() < 1e-15,
+                    "⋆{k} entry {v} differs from {want}"
+                );
+            }
+        }
     }
 }

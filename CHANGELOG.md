@@ -55,8 +55,8 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this c
   otherwise drop-in; every `dc-geometry` test value unchanged.
 - **`rust-version` 1.93 → 1.98**, the measured cross-feature maximum:
   the `persist` lanes refuse below 1.94 (`catgraph-surreal`, `fastnum`);
-  the `dc-geometry` tiers refuse below 1.98 (every `deep_causality_*`
-  crate at `0.10`).
+  the `dc-geometry` tiers refuse below 1.98 (all 16 `deep_causality_*`
+  crates in the lock declare `rust-version = 1.98.0`).
 
 ## [0.7.0] - 2026-09-13
 

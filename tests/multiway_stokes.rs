@@ -170,11 +170,11 @@ mod dec_tests {
 
     /// Build a small 2D simplicial complex by hand, attach a flat unit-edge
     /// Regge metric, wrap in a `Manifold`, and compute the Hodge Laplacian
-    /// on 0-forms via `manifold.laplacian(0)`. Under dc_topology 0.6 the
-    /// differential operators source Hodge ⋆ from the metric; the unit Hodge
-    /// operators pre-supplied on the complex only satisfy `with_metric`'s
-    /// eager validation. Densify the resulting linear operator and verify
-    /// the spectrum is PSD with a strictly positive top eigenvalue.
+    /// on 0-forms via `manifold.laplacian(0)`. Under deep_causality_topology
+    /// 0.10 the differential operators read the Hodge ⋆ operators
+    /// pre-supplied on the complex; `with_metric` requires a metric but the
+    /// metric's edge lengths do not enter the DEC operators. Densify the
+    /// resulting linear operator and pin its spectrum.
     #[test]
     fn hodge_laplacian_spectrum_is_nonneg() {
         use deep_causality_tensor::CausalTensor;
@@ -209,11 +209,10 @@ mod dec_tests {
             .sum();
         let v_count = complex.skeletons()[0].simplices().len();
 
-        // deep_causality_topology 0.6: the differential operators
-        // (codifferential, laplacian) source Hodge ⋆ from the Regge metric —
-        // a metric-less Manifold panics in `codifferential`. Flat unit edge
-        // lengths on the equilateral triangle keep the operator geometry
-        // trivial.
+        // deep_causality_topology 0.10: `codifferential` expects a metric to
+        // be present (a metric-less Manifold panics there) and reads ⋆ from
+        // the complex's pre-supplied operators; the metric's edge lengths do
+        // not enter the result.
         let metric = flat_regge_geometry(3).expect("flat metric on 3 edges");
 
         // Probe laplacian(0) column-by-column: apply to e_i (unit 0-form),
@@ -262,16 +261,23 @@ mod dec_tests {
             max_eig.is_finite(),
             "max eigenvalue must be finite: {max_eig}"
         );
-        // Guard against a silently-zero operator (e.g. a regression in the
-        // metric-sourced Hodge ⋆ path returning zero weights): the flat
-        // equilateral metric must produce a strictly positive doublet.
+        // Spectrum on the single unit triangle: one ~0 eigenvalue (the
+        // constant 0-form, nullspace of d) and the doublet {6, 6} fixed by
+        // the unit ⋆ weights (√3/12, 1/(2√3), 4/√3).
+        let mut eigenvalues: Vec<f64> = eigen.eigenvalues.iter().copied().collect();
+        eigenvalues.sort_by(|a, b| a.total_cmp(b));
+        assert_eq!(eigenvalues.len(), 3);
         assert!(
-            max_eig > 1e-12,
-            "Hodge Laplacian must be nonzero on the unit triangle; max eigenvalue = {max_eig}"
+            eigenvalues[0].abs() < 1e-12,
+            "constant 0-form eigenvalue: {}",
+            eigenvalues[0]
         );
-        // Spectrum shape on the single-unit-triangle complex: one ~0
-        // eigenvalue (the constant 0-form, nullspace of d) and a positive
-        // doublet whose value depends on the metric's Hodge ⋆ weights
-        // (was {0, 6, 6} under unit ⋆; the flat Regge metric rescales it).
+        for &lambda in &eigenvalues[1..] {
+            assert!(
+                (lambda - 6.0).abs() < 1e-9,
+                "doublet eigenvalue {lambda} differs from 6.0"
+            );
+        }
+        let _ = max_eig;
     }
 }

@@ -32,7 +32,7 @@ fn flat_triangle_has_euler_char_one_and_zero_curvature() {
         .expect("adding triangle should succeed");
     let base: SimplicialComplex<f64> = builder.build().expect("complex build");
 
-    // deep_causality_topology 0.6 validates the Hodge ⋆ surface eagerly at
+    // deep_causality_topology 0.10 validates the Hodge ⋆ surface eagerly at
     // `Manifold::with_metric`; a builder-built complex carries no coordinates,
     // so pre-supply unit Hodge operators (this smoke test asserts topology and
     // Regge curvature only — no assertion depends on ⋆ values).

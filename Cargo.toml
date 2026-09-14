@@ -5,11 +5,12 @@ members = []
 [workspace.package]
 version = "0.7.0"
 edition = "2024"
-# Measured cross-feature maximum (`cargo +<v> check --workspace --all-targets
-# --locked` per feature lane): the default lane builds on 1.90; the `persist`
-# lanes need 1.94 (catgraph-surreal, fastnum); `dc-geometry` and everything
-# above it need 1.98 (deep_causality_*). Re-measure whenever a dependency
-# moves.
+# Measured cross-feature maximum of the dependencies' declared
+# `rust-version`s (`cargo +<v> check --workspace --all-targets --locked
+# --ignore-rust-version` per feature lane, which lifts this crate's own
+# declaration): the default lane resolves on 1.90; the `persist` lanes need
+# 1.94 (catgraph-surreal, fastnum); `dc-geometry` and everything above it
+# need 1.98 (deep_causality_*). Re-measure whenever a dependency moves.
 rust-version = "1.98"
 license = "MIT"
 authors = ["tsondru", "Claude <noreply@anthropic.com>"]
