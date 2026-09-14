@@ -3,14 +3,15 @@ resolver = "2"
 members = []
 
 [workspace.package]
-version = "0.7.0"
+version = "0.8.0"
 edition = "2024"
-# Measured cross-feature maximum (`cargo +<v> check --workspace --all-targets
-# --locked` per feature lane): the default lane builds on 1.90; `dc-geometry`
-# and everything above it need 1.93 (deep_causality_*); the `persist` lanes
-# need 1.94 (catgraph-surreal, fastnum). Re-measure whenever a dependency
-# moves.
-rust-version = "1.94"
+# Measured cross-feature maximum of the dependencies' declared
+# `rust-version`s (`cargo +<v> check --workspace --all-targets --locked
+# --ignore-rust-version` per feature lane, which lifts this crate's own
+# declaration): the default lane resolves on 1.90; the `persist` lanes need
+# 1.94 (catgraph-surreal, fastnum); `dc-geometry` and everything above it
+# need 1.98 (deep_causality_*). Re-measure whenever a dependency moves.
+rust-version = "1.98"
 license = "MIT"
 authors = ["tsondru", "Claude <noreply@anthropic.com>"]
 
@@ -27,12 +28,11 @@ catgraph-physics = { git = "https://github.com/sustia-llc/catgraph", tag = "v0.2
 # `default-features = false` drops the store's default `rocksdb` engine, so the
 # engine is chosen by `persist-mem` / `persist-rocksdb`.
 catgraph-surreal = { git = "https://github.com/sustia-llc/catgraph-surreal", tag = "v0.2.0", default-features = false }
-# Pre-release deep_causality (topology 0.6.1 / tensor 0.4.4 / sparse 0.2.0 are
-# not on crates.io yet). ONE rev string shared by all three (same dual-SHA
-# rationale as catgraph). Swap back to crates.io versions once released.
-deep_causality_topology = { git = "https://github.com/deepcausality-rs/deep_causality", rev = "00ba8c0e766033f8658a2a8701402e04aaae8026" }
-deep_causality_tensor = { git = "https://github.com/deepcausality-rs/deep_causality", rev = "00ba8c0e766033f8658a2a8701402e04aaae8026" }
-deep_causality_sparse = { git = "https://github.com/deepcausality-rs/deep_causality", rev = "00ba8c0e766033f8658a2a8701402e04aaae8026" }
+# The `dc-geometry` substrate: Regge curvature, DEC operators, and the sparse
+# matrices the Hodge star stack is built from.
+deep_causality_topology = "0.10"
+deep_causality_tensor = "0.5"
+deep_causality_linear = "0.1"
 rust_decimal = "1"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
@@ -58,7 +58,7 @@ default = []
 manifold-curvature = ["dc-geometry", "dep:nalgebra"]
 lapack = ["dep:nalgebra-lapack", "manifold-curvature"]
 dec = ["dc-geometry", "dep:nalgebra"]
-dc-geometry = ["dep:deep_causality_topology", "dep:deep_causality_tensor", "dep:deep_causality_sparse"]
+dc-geometry = ["dep:deep_causality_topology", "dep:deep_causality_tensor", "dep:deep_causality_linear"]
 # `persist` brings in the store and the persistence module; it selects no
 # engine, so it alone cannot open a connection. `persist-mem` and
 # `persist-rocksdb` add one.
@@ -76,7 +76,7 @@ nalgebra = { version = "0.35", optional = true }
 nalgebra-lapack = { version = "0.28", optional = true, default-features = false, features = ["lapack-openblas"] }
 deep_causality_topology = { workspace = true, optional = true }
 deep_causality_tensor = { workspace = true, optional = true }
-deep_causality_sparse = { workspace = true, optional = true }
+deep_causality_linear = { workspace = true, optional = true }
 serde.workspace = true
 serde_json.workspace = true
 union-find.workspace = true
@@ -103,15 +103,9 @@ required-features = ["persist-mem"]
 # catgraph-applied resolving from the git tag would split the source identity
 # of the catgraph URL (path-patched vs git-tagged) and reproduce the
 # boundary-type mismatch on `Cospan<u32>` / `Span<u32>`. Same single-tag-string
-# (single-rev-string for deep_causality) convention as in the live
-# `[workspace.dependencies]` block above.
+# convention as in the live `[workspace.dependencies]` block above.
 #
 # [patch."https://github.com/sustia-llc/catgraph"]
 # catgraph = { path = "../../sustia-llc/catgraph/catgraph" }
 # catgraph-applied = { path = "../../sustia-llc/catgraph/catgraph-applied" }
 # catgraph-physics = { path = "../../sustia-llc/catgraph/catgraph-physics" }
-#
-# [patch."https://github.com/deepcausality-rs/deep_causality"]
-# deep_causality_topology = { path = "../../category/deep_causality/deep_causality_topology" }
-# deep_causality_tensor = { path = "../../category/deep_causality/deep_causality_tensor" }
-# deep_causality_sparse = { path = "../../category/deep_causality/deep_causality_sparse" }

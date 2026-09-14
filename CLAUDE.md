@@ -21,8 +21,8 @@ cargo fmt   --all --check
 cargo run --example gorard_demo                              # 12-part paper walkthrough
 ```
 
-Rust 2024 edition, MSRV 1.94 (measured cross-feature maximum; the default
-feature set builds on 1.90, `dc-geometry` 1.93, `persist` 1.94).
+Rust 2024 edition, MSRV 1.98 (measured cross-feature maximum; the default
+feature set builds on 1.90, `persist` 1.94, `dc-geometry` 1.98).
 
 ## Dependencies
 
@@ -32,8 +32,8 @@ feature set builds on 1.90, `dc-geometry` 1.93, `persist` 1.94).
 - `catgraph-surreal` — git tag on the public `sustia-llc/catgraph-surreal`
   repo (HTTPS), optional behind `persist`. It resolves catgraph from the
   same git URL, so its catgraph tag and the three above move together.
-- `deep_causality_{topology,tensor,sparse}` — currently git-rev-pinned
-  pre-release (one shared rev string); swap to crates.io pins once released.
+- `deep_causality_{topology,tensor,linear}` — crates.io pins
+  (`0.10` / `0.5` / `0.1`), optional behind `dc-geometry`.
 - All git deps fetch over anonymous HTTPS; `Cargo.lock` is committed and CI
   builds `--locked`.
 

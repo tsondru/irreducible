@@ -4,7 +4,10 @@ All notable changes to this crate are documented in this file.
 
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this crate adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.8.0] - 2026-09-13
+
+`persist` restored against catgraph-surreal `v0.2.0`, deep_causality on
+crates.io, and the categorical-stack follow-ups (#24–#26). MSRV 1.98.
 
 ### Added
 
@@ -40,8 +43,6 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this c
 
 ### Changed
 
-- **`rust-version` 1.93 → 1.94**: the `persist` lanes refuse below 1.94
-  (`catgraph-surreal`, `fastnum`).
 - **Categorical-stack cleanups** (#26), output-identical on every
   fixture: interval bundles fold by value, slice positions are indexed
   per window, the three hand-rolled union-finds are the `union-find`
@@ -49,6 +50,16 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this c
   `renumber_first_seen` is shared, `step_corels` extracts the foliation
   once, `spider_recipe` is memoized per `verify_frobenius_preservation`
   call.
+- **deep_causality on crates.io** (#17): `deep_causality_topology`
+  `0.10`, `deep_causality_tensor` `0.5`, `deep_causality_linear` `0.1`
+  replace the git-rev pre-release pins; `CsrMatrix` comes from
+  `deep_causality_linear` (the topology crate no longer depends on
+  `deep_causality_sparse`, which leaves the lock). Consumer surface
+  otherwise drop-in; every `dc-geometry` test value unchanged.
+- **`rust-version` 1.93 → 1.98**, the measured cross-feature maximum:
+  the `persist` lanes refuse below 1.94 (`catgraph-surreal`, `fastnum`);
+  the `dc-geometry` tiers refuse below 1.98 (all 16 `deep_causality_*`
+  crates in the lock declare `rust-version = 1.98.0`).
 
 ## [0.7.0] - 2026-09-13
 
@@ -537,7 +548,8 @@ Phase 2.5 — coherence + Stokes rewrite.
 - `multiway_stokes` example (closed vs non-closed 1-forms, gated on `dec`).
 - Symmetric monoidal coherence formalization-by-construction over multiway graphs.
 
-[Unreleased]: https://github.com/tsondru/irreducible/compare/v0.7.0...HEAD
+[Unreleased]: https://github.com/tsondru/irreducible/compare/v0.8.0...HEAD
+[0.8.0]: https://github.com/tsondru/irreducible/releases/tag/v0.8.0
 [0.7.0]: https://github.com/tsondru/irreducible/releases/tag/v0.7.0
 [0.6.5]: https://github.com/tsondru/irreducible/releases/tag/v0.6.5
 [0.6.4]: https://github.com/tsondru/irreducible/releases/tag/v0.6.4
