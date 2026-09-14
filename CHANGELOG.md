@@ -4,7 +4,10 @@ All notable changes to this crate are documented in this file.
 
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this crate adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.8.0] - 2026-09-13
+
+`persist` restored against catgraph-surreal `v0.2.0`, deep_causality on
+crates.io, and the categorical-stack follow-ups (#24–#26). MSRV 1.98.
 
 ### Added
 
@@ -545,7 +548,8 @@ Phase 2.5 — coherence + Stokes rewrite.
 - `multiway_stokes` example (closed vs non-closed 1-forms, gated on `dec`).
 - Symmetric monoidal coherence formalization-by-construction over multiway graphs.
 
-[Unreleased]: https://github.com/tsondru/irreducible/compare/v0.7.0...HEAD
+[Unreleased]: https://github.com/tsondru/irreducible/compare/v0.8.0...HEAD
+[0.8.0]: https://github.com/tsondru/irreducible/releases/tag/v0.8.0
 [0.7.0]: https://github.com/tsondru/irreducible/releases/tag/v0.7.0
 [0.6.5]: https://github.com/tsondru/irreducible/releases/tag/v0.6.5
 [0.6.4]: https://github.com/tsondru/irreducible/releases/tag/v0.6.4

@@ -1,7 +1,7 @@
-# Gorard 2023 Coverage Audit (irreducible v0.7.0)
+# Gorard 2023 Coverage Audit (irreducible v0.8.0)
 
 > **Paper:** Jonathan Gorard, *A Functorial Perspective on (Multi)computational Irreducibility* ([arXiv:2301.04690v1](https://arxiv.org/abs/2301.04690), 13 Oct 2022, dated Jan 2023).
-> **Library:** `irreducible` v0.7.0+ (audit doc landed in v0.6.4 at SHA `6b3d656`; tracking maintained as the crate evolves) — catgraph workspace tag `v0.23.0` ([sustia-llc/catgraph](https://github.com/sustia-llc/catgraph) reboot lineage; the audit's item mapping predates the reboot and is unaffected — the consumer surface carried over intact).
+> **Library:** `irreducible` v0.8.0+ (audit doc landed in v0.6.4 at SHA `6b3d656`; tracking maintained as the crate evolves) — catgraph workspace tag `v0.23.0` ([sustia-llc/catgraph](https://github.com/sustia-llc/catgraph) reboot lineage; the audit's item mapping predates the reboot and is unaffected — the consumer surface carried over intact).
 > **Method:** read all 60 pages of the paper end-to-end (intro + §2 + §3 + §4 + §5 + references); cross-walked every numbered equation, definition, theorem, figure caption, and named concept against the irreducible source tree (`src/**`, `tests/**`, `examples/**`). Implementations that live in `catgraph_physics::{interval,temporal_cospan_chain,trace}` are attributed to the irreducible surface, which re-exports them at the crate root.
 > **Update cadence:** maintained alongside the crate version. Add a row whenever a new paper item is implemented; flip status (e.g. ⏭️ → ✅) when an action item closes.
 >
@@ -74,8 +74,8 @@ The paper extends ℬ from discrete intervals to a full cobordism category (Eqs 
 
 | Item | Paper ref | Status | Location | Notes |
 |---|---|---|---|---|
-| Continuous-time variant `ob(ℬ) = ℝ` (Eq 15) | §2 Eq 15 | ⏭️ | (none) | Defer to v0.8.0+. The discrete (ℕ-valued) variant is the operational one for this crate; continuous `ℝ`-valued intervals are listed in the paper as making "the underlying topological intuition manifest" but with no algorithmic claim attached. |
-| Cobordism category triple ⟨ℬ, ∂, i⟩ (Eqs 22–25): initial object ∅, additive endofunctor ∂, natural transformation i: ∂ ⇒ Id_ℬ with ∂² = ∅ | §2 Eqs 16, 22–25 | ⚠️ | (partial) | `ParallelIntervals` plays the role of finite-coproduct ⊕ (Eq 21). However, the **boundary endofunctor ∂** is not implemented. There is no `boundary` operation on `DiscreteInterval` returning the pair `{n, m}` (the 0-dimensional manifold given by an interval's endpoints), nor any verifier for `∂(∂([n,m])) = ∅` (Eq 23, ∂² = 0). This is a non-trivial gap because the §4 adjunction with FQFT is conditioned on ℬ being a *cobordism* category, not just a discrete-interval poset. Action item I-3 (deferred to v0.8.0+ alongside §4 expansion). |
+| Continuous-time variant `ob(ℬ) = ℝ` (Eq 15) | §2 Eq 15 | ⏭️ | (none) | Defer to v0.9.0+. The discrete (ℕ-valued) variant is the operational one for this crate; continuous `ℝ`-valued intervals are listed in the paper as making "the underlying topological intuition manifest" but with no algorithmic claim attached. |
+| Cobordism category triple ⟨ℬ, ∂, i⟩ (Eqs 22–25): initial object ∅, additive endofunctor ∂, natural transformation i: ∂ ⇒ Id_ℬ with ∂² = ∅ | §2 Eqs 16, 22–25 | ⚠️ | (partial) | `ParallelIntervals` plays the role of finite-coproduct ⊕ (Eq 21). However, the **boundary endofunctor ∂** is not implemented. There is no `boundary` operation on `DiscreteInterval` returning the pair `{n, m}` (the 0-dimensional manifold given by an interval's endpoints), nor any verifier for `∂(∂([n,m])) = ∅` (Eq 23, ∂² = 0). This is a non-trivial gap because the §4 adjunction with FQFT is conditioned on ℬ being a *cobordism* category, not just a discrete-interval poset. Action item I-3 (deferred to v0.9.0+ alongside §4 expansion). |
 | Cobordism equivalence `M₁ ∼ M₂ ⇔ ∃V₁,V₂: M₁ ⊕ ∂V₁ ≅ M₂ ⊕ ∂V₂` (Eqs 30–32) | §2 Eqs 30–32 | ⏭️ | (none) | Requires ∂ first; deferred. |
 | Initial object ∅, coproduct injection morphisms i₁, i₂ universality (Eqs 17–21) | §2 Eqs 17–21 | ⚠️ | bifunctor.rs:39 (`TensorProduct::unit` for `ParallelIntervals`) | Unit element + tensor-as-coproduct exists but universality (the unique morphism `M₁ ⊕ M₂ → M*`) is not verified. Action item M-4. |
 
@@ -119,13 +119,13 @@ The paper's §4 is the headline-conceptual section: it argues that Z' : 𝒯 →
 
 | Item | Paper ref | Status | Location | Notes |
 |---|---|---|---|---|
-| Adjunction Z' ⊣ Z (Eqs 118–124) | §4 Eqs 118–124 | ⚠️ | adjunction.rs:34 (`ZPrimeOps`), functor/adjunction.rs:34 (`ZPrimeAdjunction`) | The implementation defines Z' : `ComputationState → DiscreteInterval` and Z : `DiscreteInterval → ComputationState`, then verifies "triangle identities" via `verify_triangle_1` / `verify_triangle_2` (functor/adjunction.rs:55–69). However: the paper's Z is not `DiscreteInterval → ComputationState`; it is `Z : 𝓑ord^Riem → 𝓥ect` — the *propagator* functor sending a manifold to its space-of-states, sending a cobordism to its Hilbert-space evolution operator. Calling `Z(interval)` "the computation state at that interval" is a categorical pun, not the paper's adjunction. The triangle identities therefore reduce to a tautological `to_interval ∘ z ∘ to_interval = to_interval` roundtrip on `(step, complexity)` pairs (verified in `tests/adjunction_laws.rs`). **This is the most architectural drift from the paper in v0.6.x.** Action item A-1 (architectural; surface in v0.8.0 plan). |
+| Adjunction Z' ⊣ Z (Eqs 118–124) | §4 Eqs 118–124 | ⚠️ | adjunction.rs:34 (`ZPrimeOps`), functor/adjunction.rs:34 (`ZPrimeAdjunction`) | The implementation defines Z' : `ComputationState → DiscreteInterval` and Z : `DiscreteInterval → ComputationState`, then verifies "triangle identities" via `verify_triangle_1` / `verify_triangle_2` (functor/adjunction.rs:55–69). However: the paper's Z is not `DiscreteInterval → ComputationState`; it is `Z : 𝓑ord^Riem → 𝓥ect` — the *propagator* functor sending a manifold to its space-of-states, sending a cobordism to its Hilbert-space evolution operator. Calling `Z(interval)` "the computation state at that interval" is a categorical pun, not the paper's adjunction. The triangle identities therefore reduce to a tautological `to_interval ∘ z ∘ to_interval = to_interval` roundtrip on `(step, complexity)` pairs (verified in `tests/adjunction_laws.rs`). **This is the most architectural drift from the paper in v0.6.x.** Action item A-1 (architectural; surface in v0.9.0 plan). |
 | Triangle identity 1: ε_{Z'(c)} ∘ Z'(η_c) = id_{Z'(c)} (Eq 122–123) | §4 Eqs 122–123 | ⚠️ | functor/adjunction.rs:55–61 | Tautological under the current Z definition. |
 | Triangle identity 2: Z(ε_i) ∘ η_{Z(i)} = id_{Z(i)} (Eq 124) | §4 Eq 124 | ⚠️ | functor/adjunction.rs:63–69 | Same. |
-| Quantum-mechanical time-evolution functor `Z : 𝓑ord_1^Riem → 𝓥ect` (Eqs 111–117) | §4 Eqs 111–117 | ⏭️ | (none) | Atiyah-Segal sewing laws (Eq 113) absent. No `Vect` or `Hilbert` types exist in irreducible; the paper takes them from categorical-quantum-mechanics literature (Abramsky-Coecke). Lattice-gauge infrastructure (Wilson-loop / Polyakov-loop / Bessel-ratio, e.g. `deep_causality_topology`'s lattice module) may seed a v0.8.0+ Z stub. Deferred. |
+| Quantum-mechanical time-evolution functor `Z : 𝓑ord_1^Riem → 𝓥ect` (Eqs 111–117) | §4 Eqs 111–117 | ⏭️ | (none) | Atiyah-Segal sewing laws (Eq 113) absent. No `Vect` or `Hilbert` types exist in irreducible; the paper takes them from categorical-quantum-mechanics literature (Abramsky-Coecke). Lattice-gauge infrastructure (Wilson-loop / Polyakov-loop / Bessel-ratio, e.g. `deep_causality_topology`'s lattice module) may seed a v0.9.0+ Z stub. Deferred. |
 | Atiyah-Segal sewing laws Z(M ∪ M') = Z(M') ∘ Z(M) (Eq 113) | §4 Eq 113 | ⏭️ | (none) | Same as above. |
 | Higher-dim adjunction `Z' : ⟨𝒯, ⊗, I⟩ → ⟨ℬ, ⊕, ∅⟩` ⊣ `Z : 𝓑ord_d^Riem → 𝓥ect` (Eq 125) | §4 Eq 125 | ⏭️ | (none) | Deferred. |
-| Dagger structure † (Eqs 129–137) — involutive contravariant endofunctor | §4 Eqs 129–137 | ⏭️ | (none) | Paper notes (Eq 137) that any Wolfram-style hypergraph rewrite rule has a canonical † given by `(L ← K → R) ↦ (R ← K → L)`; this could be implemented today on `RewriteRule` (~10 lines). Deferred to v0.8.0+. |
+| Dagger structure † (Eqs 129–137) — involutive contravariant endofunctor | §4 Eqs 129–137 | ⏭️ | (none) | Paper notes (Eq 137) that any Wolfram-style hypergraph rewrite rule has a canonical † given by `(L ← K → R) ↦ (R ← K → L)`; this could be implemented today on `RewriteRule` (~10 lines). Deferred to v0.9.0+. |
 | Compact closed structure (Eqs 138–144) — duals X*, η, ε, yanking | §4 Eqs 138–144 | ⏭️ | (none) | The cup/cap/name/unname infrastructure does exist in catgraph (`functor/fong_spivak.rs:28`, re-exporting `catgraph::compact_closed::*`) but it is anchored to F&S "Seven Sketches" §3.1 — a cospan-category compactness, not Vect-style FdVect compactness. The paper-fidelity claim (compact-closed Vect cf. Eq 138) is not exercised. ⚠️ partial-credit alternative: count this as ✅ if the F&S compact-closed surface is treated as a *witness* of the paper's compact-closed claim. Action item A-2 (architectural — clarify framing). |
 | Dagger-compact category (Eqs 143–148) — interplay σ ∘ ε† = η | §4 Eqs 143–148 | ⏭️ | (none) | Deferred. |
 | Hypergraph dual `H* = ⟨V* = E, E* = …⟩` (Eqs 147–148) | §4 Eqs 147–148 | ⏭️ | (none) | Could be added today via vertex-edge swap on `Hypergraph`; deferred. |
@@ -180,12 +180,12 @@ Quantitative checks the v0.6.3 surface should pass against paper claims. Modeled
 | 1 | Busy Beaver BB(2,2) halts at exactly 6 steps with four 1s on tape | ✅ | turing.rs:656 (`test_busy_beaver_2_2`) | §2 (text — example); known result. |
 | 2 | BB(2,2) is irreducible (no shortcuts; complexity ratio = 1.0) | ✅ | turing.rs:674 (`test_busy_beaver_irreducible`) | §2 Eq 12 functoriality predicate. |
 | 3 | Cycling TM on blank tape is reducible (shortcut found) | ✅ | turing.rs:709 (`test_cycling_tm`) | §2 Def 1. |
-| 4 | Adjunction triangle identities hold on a sequence of `ComputationState`s | ⚠️ | tests/adjunction_laws.rs (11 tests) | §4 Eqs 122–124 — but the implementation triangulates the *self-roundtrip* of `to_interval`, not the paper's 𝒯 ⇄ 𝓥ect adjunction. Passes by tautology. **Surface in v0.8.0 plan.** |
+| 4 | Adjunction triangle identities hold on a sequence of `ComputationState`s | ⚠️ | tests/adjunction_laws.rs (11 tests) | §4 Eqs 122–124 — but the implementation triangulates the *self-roundtrip* of `to_interval`, not the paper's 𝒯 ⇄ 𝓥ect adjunction. Passes by tautology. **Surface in v0.9.0 plan.** |
 | 5 | `verify_associativity / verify_unit_laws / verify_symmetry` on `ParallelIntervals` | ✅ | tests/bifunctor_laws.rs | §3 Eqs 40–55. Strict variant; passes by Vec-equality. |
 | 6 | Non-strict associator/braiding/unitor coherence on confluent multiway graph | ✅ | tests/multiway_coherence.rs (10 tests) | §3 Eqs 40–55 lifted to multiway substrate. |
 | 7 | Non-confluent fragment fails coherence | ✅ | examples/multiway_coherence.rs | §3 (negative falsifiability of monoidal hypothesis). |
 | 8 | Frobenius decomposition preserves composition on cospan chain (irreducible's three-perspective agreement) | ✅ | tests/fong_spivak.rs | F&S §2-3 (consumed via catgraph). |
-| 9 | NTM with subadditive parallel composition (paper-Fig-10 fixture) detects multicomputational *reducibility* | ❌ | (no test) | §3 Eqs 67–69. Missing because `Complexity::parallel = max` discards the subadditivity signal. **Blocking for "this crate verifies multicomputational irreducibility per the paper".** [Action item I-6](#7-action-items) — scheduled for **v0.8.0+** (path (a): patch `Complexity::parallel` to `+`, single paper-faithful model, breaking; ratified 2026-05-05). |
+| 9 | NTM with subadditive parallel composition (paper-Fig-10 fixture) detects multicomputational *reducibility* | ❌ | (no test) | §3 Eqs 67–69. Missing because `Complexity::parallel = max` discards the subadditivity signal. **Blocking for "this crate verifies multicomputational irreducibility per the paper".** [Action item I-6](#7-action-items) — scheduled for **v0.9.0+** (path (a): patch `Complexity::parallel` to `+`, single paper-faithful model, breaking; ratified 2026-05-05). |
 | 10 | Hypergraph DPO + Wilson-loop holonomy detects causal invariance | ✅ 🔗 | tests/hypergraph_rewriting.rs (21 tests) | §3 (DPO) + §5 future-work-via-anticipation. |
 | 11 | DEC `d² = 0` on confluence-diamond 2-complex (feature `dec`) | ✅ | tests/multiway_stokes.rs | §5 Stokes-perspective interpretation; goes beyond paper-explicit content. |
 
@@ -206,23 +206,23 @@ Items intentionally not implemented in v0.6.x with rationale:
 
 | Target | Item | Notes |
 |---|---|---|
-| **v0.8.0+** | Action item I-2: separate `DiscreteInterval::identity(s)` (singleton, Z'(id_X) per Eq 13) from `map_step(s)` (1-step interval) | Paper Eq 13. Wire through `catgraph_physics::interval::DiscreteInterval::singleton`. |
-| **v0.8.0+** | Action item M-2: rename `Direction::Stay → Direction::Id` (or `Forward`) and emit `id` (or `F`) in `Display` to match paper Eqs 1, 8 | Naming gap. |
-| **v0.8.0+** | Action item M-3: add explicit unit-law test on `Transition` per Eqs 5–7 | One test. |
-| **v0.8.0+** | Action item M-10/M-11: add paper-fixture rules (rule 2506, rule 3506, set-substitution-Fig-12) as `TuringMachine` / `RewriteRule` constants | Lets the audit's Figures-as-tests gates flip ✅. |
-| **v0.8.0+** | Action item I-1: rename `is_irreducible` → `is_no_repeat_shortcut` OR document the gap from Def 1 | Naming / scope clarity. |
-| **v0.8.0+** | Action item I-6: replace `Complexity::parallel = max` with paper-faithful subadditivity check (paper Eqs 67–69) | Largest paper-fidelity gap in §3; potentially blocking if a downstream consumer claims "this crate verifies multicomputational irreducibility per Gorard". |
-| **v0.8.0+** | Action item A-1: surface the architectural drift in `ZPrimeAdjunction` triangle identities. Either rename the trait or add a `caveat:` doc explaining the implementation is a one-sided self-roundtrip, not the paper's 𝒯 ⇄ 𝓥ect adjunction | Architectural. |
-| **v0.8.0+** | Action item A-2: clarify framing of `cup`/`cap`/`name`/`unname` re-exports — F&S compact-closed cospans vs paper's FdVect compact closure (Eqs 138–144) | Architectural. |
-| **v0.8.0+** | Action item I-3: implement boundary endofunctor ∂ + ∂² = ∅ verifier on `DiscreteInterval` per Eqs 22–23 | Required substrate for any honest §4 adjunction work. |
-| **v0.8.0+** | Action item I-4: explicit HALT unit object + ε coherence map (paper Eq 58, 59) | §3 paper-fidelity. |
-| **v0.8.0+** | Hypergraph dual `H*` per Eqs 147–148 (vertex-edge swap) | One-line addition; deferred for sequencing. |
-| **v0.8.0+** | Action item M-4: universality check for coproduct injection morphisms (Eqs 17–21) | One verifier. |
-| **v0.8.0+** | Action item M-5: explicit hexagon coherence test for braiding (Eq 50) on a fixture multiway graph | One test. |
-| **v0.8.0+** | Action item M-6: functor-coherence variant of Eq 66–67 (vs current multiway-graph variant) | One test. |
-| **v0.8.0+** | Action item M-7: per-machine `state_equivalence_complexity` annotation surfacing the paper's evolution-vs-equivalence orthogonality | API addition. |
-| **v0.8.0+** | Action item M-8: monomorphism check on `RewriteSpan::l, r` (Eqs 72–74) | One verifier. |
-| **v0.8.0+** | Action item M-9: first-class `concurrent_composition` and `parallel_composition` on `RewriteRule` (Eqs 109–110) | API + tests. |
+| **v0.9.0+** | Action item I-2: separate `DiscreteInterval::identity(s)` (singleton, Z'(id_X) per Eq 13) from `map_step(s)` (1-step interval) | Paper Eq 13. Wire through `catgraph_physics::interval::DiscreteInterval::singleton`. |
+| **v0.9.0+** | Action item M-2: rename `Direction::Stay → Direction::Id` (or `Forward`) and emit `id` (or `F`) in `Display` to match paper Eqs 1, 8 | Naming gap. |
+| **v0.9.0+** | Action item M-3: add explicit unit-law test on `Transition` per Eqs 5–7 | One test. |
+| **v0.9.0+** | Action item M-10/M-11: add paper-fixture rules (rule 2506, rule 3506, set-substitution-Fig-12) as `TuringMachine` / `RewriteRule` constants | Lets the audit's Figures-as-tests gates flip ✅. |
+| **v0.9.0+** | Action item I-1: rename `is_irreducible` → `is_no_repeat_shortcut` OR document the gap from Def 1 | Naming / scope clarity. |
+| **v0.9.0+** | Action item I-6: replace `Complexity::parallel = max` with paper-faithful subadditivity check (paper Eqs 67–69) | Largest paper-fidelity gap in §3; potentially blocking if a downstream consumer claims "this crate verifies multicomputational irreducibility per Gorard". |
+| **v0.9.0+** | Action item A-1: surface the architectural drift in `ZPrimeAdjunction` triangle identities. Either rename the trait or add a `caveat:` doc explaining the implementation is a one-sided self-roundtrip, not the paper's 𝒯 ⇄ 𝓥ect adjunction | Architectural. |
+| **v0.9.0+** | Action item A-2: clarify framing of `cup`/`cap`/`name`/`unname` re-exports — F&S compact-closed cospans vs paper's FdVect compact closure (Eqs 138–144) | Architectural. |
+| **v0.9.0+** | Action item I-3: implement boundary endofunctor ∂ + ∂² = ∅ verifier on `DiscreteInterval` per Eqs 22–23 | Required substrate for any honest §4 adjunction work. |
+| **v0.9.0+** | Action item I-4: explicit HALT unit object + ε coherence map (paper Eq 58, 59) | §3 paper-fidelity. |
+| **v0.9.0+** | Hypergraph dual `H*` per Eqs 147–148 (vertex-edge swap) | One-line addition; deferred for sequencing. |
+| **v0.9.0+** | Action item M-4: universality check for coproduct injection morphisms (Eqs 17–21) | One verifier. |
+| **v0.9.0+** | Action item M-5: explicit hexagon coherence test for braiding (Eq 50) on a fixture multiway graph | One test. |
+| **v0.9.0+** | Action item M-6: functor-coherence variant of Eq 66–67 (vs current multiway-graph variant) | One test. |
+| **v0.9.0+** | Action item M-7: per-machine `state_equivalence_complexity` annotation surfacing the paper's evolution-vs-equivalence orthogonality | API addition. |
+| **v0.9.0+** | Action item M-8: monomorphism check on `RewriteSpan::l, r` (Eqs 72–74) | One verifier. |
+| **v0.9.0+** | Action item M-9: first-class `concurrent_composition` and `parallel_composition` on `RewriteRule` (Eqs 109–110) | API + tests. |
 
 ---
 
@@ -232,15 +232,15 @@ Promoted from §2–§5 above. Triage classes:
 
 | # | Tag | Severity | Description | Cycle |
 |---|---|---|---|---|
-| I-1 | important | rename / scope | `is_irreducible` API approximates Def 1 only via cycle detection — overclaim risk | v0.8.0+ |
-| I-2 | important | paper-fidelity | `Z'(id_X)` should be singleton `[s,s]` (Eq 13), not `[s,s+1]` | v0.8.0+ |
-| I-3 | important | substrate | Boundary endofunctor ∂ on `DiscreteInterval` + ∂²=∅ verifier (Eqs 22–25) | v0.8.0+ |
-| I-4 | important | paper-fidelity | HALT unit object + ε coherence map (Eq 58, 59) | v0.8.0+ |
-| I-5 | important | naming | Lax / strong / strict monoidal functor flavour not surfaced in API | v0.8.0+ doc |
-| I-6 | **blocking-for-claim** | paper-fidelity | `Complexity::parallel = max` contradicts paper additivity (Eqs 67–69) | v0.8.0+ |
-| A-1 | architectural | adjunction | Triangle identities verify a self-roundtrip, not paper's 𝒯 ⇄ 𝓥ect | v0.8.0+ doc; fix later |
-| A-2 | architectural | naming | Compact-closed cup/cap re-exports anchored at F&S, not paper §4 Eqs 138–144 | v0.8.0+ doc |
-| M-1 through M-11 | minor | various | See "Deferred to future versions" | v0.8.0+ |
+| I-1 | important | rename / scope | `is_irreducible` API approximates Def 1 only via cycle detection — overclaim risk | v0.9.0+ |
+| I-2 | important | paper-fidelity | `Z'(id_X)` should be singleton `[s,s]` (Eq 13), not `[s,s+1]` | v0.9.0+ |
+| I-3 | important | substrate | Boundary endofunctor ∂ on `DiscreteInterval` + ∂²=∅ verifier (Eqs 22–25) | v0.9.0+ |
+| I-4 | important | paper-fidelity | HALT unit object + ε coherence map (Eq 58, 59) | v0.9.0+ |
+| I-5 | important | naming | Lax / strong / strict monoidal functor flavour not surfaced in API | v0.9.0+ doc |
+| I-6 | **blocking-for-claim** | paper-fidelity | `Complexity::parallel = max` contradicts paper additivity (Eqs 67–69) | v0.9.0+ |
+| A-1 | architectural | adjunction | Triangle identities verify a self-roundtrip, not paper's 𝒯 ⇄ 𝓥ect | v0.9.0+ doc; fix later |
+| A-2 | architectural | naming | Compact-closed cup/cap re-exports anchored at F&S, not paper §4 Eqs 138–144 | v0.9.0+ doc |
+| M-1 through M-11 | minor | various | See "Deferred to future versions" | v0.9.0+ |
 
 ---
 
