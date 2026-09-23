@@ -3,7 +3,7 @@ resolver = "2"
 members = []
 
 [workspace.package]
-version = "0.9.0"
+version = "0.10.0"
 edition = "2024"
 # Measured cross-feature maximum of the dependencies' declared
 # `rust-version`s (`cargo +<v> check --workspace --all-targets --locked
