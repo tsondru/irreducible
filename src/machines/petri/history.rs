@@ -1,13 +1,10 @@
 //! Execution history for [`super::PetriNetMachine`] and `StepTrace` impl.
 //!
 //! A [`PetriExecutionHistory`] records one [`PetriTransitionRecord`] per firing
-//! step, along with the initial and final [`Marking`]. Because markings are
-//! stored sparsely in a `HashMap<usize, Decimal>`, fingerprinting must sort by
-//! place index to be order-independent; the [`Hash`] impl on `Marking` already
-//! does this, so we reuse it via `DefaultHasher`.
-
-use std::collections::hash_map::DefaultHasher;
-use std::hash::{Hash, Hasher};
+//! step, along with the initial and final [`Marking`]. A marking's fingerprint
+//! is the [`catgraph::canonical_fingerprint`] of its
+//! [`CanonicalEncode`](catgraph::CanonicalEncode) bytes, which list the
+//! entries in ascending place order.
 
 use catgraph_applied::petri_net::Marking;
 
@@ -70,15 +67,10 @@ impl PetriExecutionHistory {
     }
 }
 
-/// Stable, order-independent fingerprint for a [`Marking`].
-///
-/// `Marking`'s own [`Hash`] impl sorts entries by place index, so we can
-/// feed it into a `DefaultHasher` directly and still get the same `u64` for
-/// two markings that were built by inserting tokens in different orders.
+/// The [`catgraph::canonical_fingerprint`] of `marking`'s
+/// [`CanonicalEncode`](catgraph::CanonicalEncode) bytes.
 fn marking_fingerprint(marking: &Marking) -> u64 {
-    let mut hasher = DefaultHasher::new();
-    marking.hash(&mut hasher);
-    hasher.finish()
+    catgraph::canonical_fingerprint(marking)
 }
 
 impl StepTrace for PetriExecutionHistory {
@@ -128,6 +120,18 @@ mod tests {
         m2.set(1, d(5));
 
         assert_eq!(marking_fingerprint(&m1), marking_fingerprint(&m2));
+    }
+
+    #[test]
+    fn marking_fingerprint_is_canonical_fingerprint() {
+        let marking = Marking::from_vec(vec![(0, d(3)), (2, d(7))]);
+        let expected = catgraph::canonical_fingerprint(&marking);
+        assert_eq!(
+            marking_fingerprint(&marking),
+            expected,
+            "fingerprint {} vs canonical_fingerprint {expected}",
+            marking_fingerprint(&marking)
+        );
     }
 
     #[test]

@@ -103,24 +103,11 @@ impl Tape {
         }
     }
 
-    /// Compute a hash fingerprint of the tape contents.
-    ///
-    /// Used for cycle detection in irreducibility analysis.
+    /// The [`catgraph::canonical_fingerprint`] of this tape's
+    /// [`CanonicalEncode`] bytes (blank symbol and non-blank cells).
     #[must_use]
     pub fn fingerprint(&self) -> u64 {
-        use std::collections::hash_map::DefaultHasher;
-        let mut hasher = DefaultHasher::new();
-
-        // Sort keys for deterministic hashing
-        let mut positions: Vec<_> = self.cells.keys().copied().collect();
-        positions.sort_unstable();
-
-        for pos in positions {
-            pos.hash(&mut hasher);
-            self.cells[&pos].hash(&mut hasher);
-        }
-
-        hasher.finish()
+        catgraph::canonical_fingerprint(self)
     }
 
     /// Count the number of non-blank cells.
@@ -252,6 +239,18 @@ mod tests {
         let tape1 = Tape::from_input("abc", '_');
         let tape2 = Tape::from_input("abd", '_');
         assert_ne!(tape1.fingerprint(), tape2.fingerprint());
+    }
+
+    #[test]
+    fn test_tape_fingerprint_is_canonical_fingerprint() {
+        let tape = Tape::from_input("abc", '_');
+        let expected = catgraph::canonical_fingerprint(&tape);
+        assert_eq!(
+            tape.fingerprint(),
+            expected,
+            "fingerprint {} vs canonical_fingerprint {expected}",
+            tape.fingerprint()
+        );
     }
 
     #[test]
