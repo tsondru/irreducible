@@ -453,8 +453,8 @@ fn demo_monoidal_structure() {
         }
     );
     println!(
-        "    All branches irreducible: {}",
-        if result.branches_irreducible {
+        "    All branches composable: {}",
+        if result.branches_composable {
             "YES ✓"
         } else {
             "no ✗"

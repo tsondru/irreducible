@@ -22,7 +22,7 @@ fn busy_beaver_produces_contiguous_interval_sequence() {
 
     let intervals = history.to_intervals();
     assert_eq!(intervals.len(), 6);
-    assert!(IrreducibilityFunctor::is_sequence_irreducible(&intervals));
+    assert!(IrreducibilityFunctor::is_composable_chain(&intervals));
 }
 
 #[test]
@@ -32,7 +32,7 @@ fn binary_incrementer_produces_contiguous_intervals() {
 
     assert!(history.halted);
     let intervals = history.to_intervals();
-    assert!(IrreducibilityFunctor::is_sequence_irreducible(&intervals));
+    assert!(IrreducibilityFunctor::is_composable_chain(&intervals));
     // Each interval should be [i, i+1]
     for (i, interval) in intervals.iter().enumerate() {
         assert_eq!(interval.start, i);
@@ -72,7 +72,7 @@ fn rule_30_produces_contiguous_intervals() {
 
     let intervals = history.to_intervals();
     assert_eq!(intervals.len(), 20);
-    assert!(IrreducibilityFunctor::is_sequence_irreducible(&intervals));
+    assert!(IrreducibilityFunctor::is_composable_chain(&intervals));
 }
 
 #[test]
@@ -213,7 +213,7 @@ fn functor_non_contiguous_intervals_not_irreducible() {
     // and the sequence should NOT be irreducible.
     let intervals = vec![DiscreteInterval::new(0, 2), DiscreteInterval::new(5, 7)];
 
-    assert!(!IrreducibilityFunctor::is_sequence_irreducible(&intervals));
+    assert!(!IrreducibilityFunctor::is_composable_chain(&intervals));
 
     // compose_sequence should return None for non-contiguous intervals
     let composed = IrreducibilityFunctor::compose_sequence(&intervals);
@@ -277,7 +277,7 @@ fn repeat_detection_maps_to_shortcuts_and_cycles() {
 
 /// Perspectives 1 and 3 on `intervals`, each with the values it read.
 fn functor_and_stokes(intervals: &[DiscreteInterval]) -> (bool, bool, f64, f64) {
-    let functor = IrreducibilityFunctor::is_sequence_irreducible(intervals);
+    let functor = IrreducibilityFunctor::is_composable_chain(intervals);
     let stokes = StokesIrreducibility::analyze(intervals).unwrap();
     (
         functor,
@@ -447,7 +447,7 @@ fn five_way_agreement_irreducible_tm() {
     let intervals = history.to_intervals();
 
     // The three established perspectives.
-    assert!(IrreducibilityFunctor::is_sequence_irreducible(&intervals));
+    assert!(IrreducibilityFunctor::is_composable_chain(&intervals));
     assert!(analyze_trace(&history).is_contiguous_without_repeats);
     assert!(
         StokesIrreducibility::analyze(&intervals)
@@ -467,7 +467,7 @@ fn five_way_agreement_irreducible_ca() {
     let history = ca.run(ca.single_cell_initial(), 20);
     let intervals = history.to_intervals();
 
-    assert!(IrreducibilityFunctor::is_sequence_irreducible(&intervals));
+    assert!(IrreducibilityFunctor::is_composable_chain(&intervals));
     assert!(analyze_trace(&history).is_contiguous_without_repeats);
     assert!(
         StokesIrreducibility::analyze(&intervals)
@@ -521,7 +521,7 @@ fn rule_110_turing_complete_produces_contiguous_intervals() {
 
     // Rule 110 is Turing-complete; from a single-cell seed it produces
     // complex non-repeating structure → contiguous and irreducible.
-    assert!(IrreducibilityFunctor::is_sequence_irreducible(&intervals));
+    assert!(IrreducibilityFunctor::is_composable_chain(&intervals));
 
     let trace = analyze_trace(&history);
     assert!(trace.is_contiguous_without_repeats);

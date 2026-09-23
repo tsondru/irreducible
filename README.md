@@ -97,8 +97,8 @@ let bb = TuringMachine::busy_beaver_2_2();
 let history = bb.run("", 20);
 let intervals = history.to_intervals();
 
-// 1. Functorial: contiguous intervals under Z'
-let functorial = IrreducibilityFunctor::is_sequence_irreducible(&intervals);
+// 1. Functorial: consecutive intervals compose under Eq 12
+let functorial = IrreducibilityFunctor::is_composable_chain(&intervals);
 
 // 2. Stokes: conservation laws hold
 let stokes = StokesIrreducibility::analyze(&intervals).unwrap();

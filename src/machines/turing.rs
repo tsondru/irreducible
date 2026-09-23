@@ -741,8 +741,8 @@ mod tests {
         assert_eq!(intervals[2], DiscreteInterval::new(2, 3));
         assert_eq!(intervals[3], DiscreteInterval::new(3, 4));
 
-        // Should be contiguous (irreducible in interval sense)
-        assert!(crate::functor::IrreducibilityFunctor::is_sequence_irreducible(&intervals));
+        // Should be contiguous (Eq 12 composable)
+        assert!(crate::functor::IrreducibilityFunctor::is_composable_chain(&intervals));
     }
 
     #[test]
