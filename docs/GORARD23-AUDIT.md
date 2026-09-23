@@ -221,7 +221,6 @@ Items intentionally not implemented in v0.6.x with rationale:
 | **v0.9.0+** | Action item M-5: explicit hexagon coherence test for braiding (Eq 50) on a fixture multiway graph | One test. |
 | **v0.9.0+** | Action item M-6: functor-coherence variant of Eq 66–67 (vs current multiway-graph variant) | One test. |
 | **v0.9.0+** | Action item M-7: per-machine `state_equivalence_complexity` annotation surfacing the paper's evolution-vs-equivalence orthogonality | API addition. |
-| **v0.9.0+** | Action item M-8: monomorphism check on `RewriteSpan::l, r` (Eqs 72–74) | Satisfied upstream (`RewriteSpan::try_new`, `RewriteSpan::to_span`); see §3 Hypergraph rewriting. |
 | **v0.9.0+** | Action item M-9: first-class `concurrent_composition` and `parallel_composition` on `RewriteRule` (Eqs 109–110) | API + tests. |
 
 ---
@@ -240,7 +239,7 @@ Promoted from §2–§5 above. Triage classes:
 | I-6 | **blocking-for-claim** | paper-fidelity | `Complexity::parallel = max` contradicts paper additivity (Eqs 67–69) | v0.9.0+ |
 | A-1 | architectural | adjunction | Triangle identities verify a self-roundtrip, not paper's 𝒯 ⇄ 𝓥ect | v0.9.0+ doc; fix later |
 | A-2 | architectural | naming | Compact-closed cup/cap re-exports anchored at F&S, not paper §4 Eqs 138–144 | v0.9.0+ doc |
-| M-1 through M-11 | minor | various | See "Deferred to future versions" | v0.9.0+ |
+| M-1 through M-11 except M-8 | minor | various | See "Deferred to future versions"; M-8 is satisfied upstream (§3 Hypergraph rewriting) | v0.9.0+ |
 
 ---
 
