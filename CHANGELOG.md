@@ -4,6 +4,28 @@ All notable changes to this crate are documented in this file.
 
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this crate adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.0] - 2026-09-23
+
+catgraph `v0.24.0` and catgraph-surreal `v0.4.0`.
+
+### Changed — BREAKING
+
+- catgraph, catgraph-applied, catgraph-physics pinned at git tag `v0.24.0`
+  (was `v0.23.0`); catgraph-surreal at `v0.4.0` (was `v0.2.0`).
+- Functions generic over a multiway state bound `S: Clone + CanonicalEncode`
+  (was `S: Clone + Hash`) in `functor::{corel, frobenius_preservation,
+  interval_algebra, monoidal}`, `machines::multiway::interval_bridge`,
+  `multiway_coherence` and `multiway_stokes`.
+- `is_irreducible` renamed to `is_contiguous_without_repeats` (#34): the
+  crate-root re-export of `catgraph_physics::trace`, the
+  `ExecutionHistory`, `CAExecutionHistory` and `PetriExecutionHistory`
+  methods, and the `IrreducibilityAnalysis` and `CAIrreducibilityAnalysis`
+  fields. The `Display` label reads `Contiguous without repeats:`.
+
+### Added
+
+- `catgraph::CanonicalEncode` for `Tape`, `Configuration` and `SRSState`.
+
 ## [0.8.0] - 2026-09-13
 
 `persist` restored against catgraph-surreal `v0.2.0`, deep_causality on
@@ -549,6 +571,7 @@ Phase 2.5 — coherence + Stokes rewrite.
 - Symmetric monoidal coherence formalization-by-construction over multiway graphs.
 
 [Unreleased]: https://github.com/tsondru/irreducible/compare/v0.8.0...HEAD
+[0.9.0]: https://github.com/tsondru/irreducible/releases/tag/v0.9.0
 [0.8.0]: https://github.com/tsondru/irreducible/releases/tag/v0.8.0
 [0.7.0]: https://github.com/tsondru/irreducible/releases/tag/v0.7.0
 [0.6.5]: https://github.com/tsondru/irreducible/releases/tag/v0.6.5
