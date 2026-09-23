@@ -294,7 +294,10 @@ fn three_way_agreement_irreducible_tm() {
     let intervals = history.to_intervals();
 
     let (functor, stokes, integrated, total) = functor_and_stokes(&intervals);
-    assert!(functor, "busy beaver 2,2: functor composability = false (expected true)");
+    assert!(
+        functor,
+        "busy beaver 2,2: functor composability = false (expected true)"
+    );
     assert!(
         analyze_trace(&history).is_contiguous_without_repeats,
         "busy beaver 2,2: trace revisits a state (expected none)"
@@ -318,7 +321,10 @@ fn three_way_agreement_reducible_by_repetition() {
     let intervals = history.to_intervals();
 
     let (functor, stokes, integrated, total) = functor_and_stokes(&intervals);
-    assert!(functor, "rule 0: functor composability = false (expected true)");
+    assert!(
+        functor,
+        "rule 0: functor composability = false (expected true)"
+    );
     assert!(
         stokes && (integrated - 10.0).abs() < 1e-10 && (total - 10.0).abs() < 1e-10,
         "rule 0: stokes = {stokes}, integrated = {integrated}, \
