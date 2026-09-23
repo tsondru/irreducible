@@ -106,7 +106,7 @@ The paper promotes 𝒯 and ℬ to symmetric monoidal categories ⟨𝒯, ⊗, I
 |---|---|---|---|---|
 | Directed hypergraph `H = ⟨V, E⟩`, `E ⊆ 𝒫(V)\{∅}` (Eq 70) | §3 Eq 70 | ✅ 🔗 | machines/hypergraph/mod.rs (re-exports `Hypergraph`, `Hyperedge` from catgraph-physics) | |
 | Hypergraph rewriting rule as span `L ← K → R` of monomorphisms (Eq 71) | §3 Eq 71 | ✅ 🔗 | machines/hypergraph/mod.rs (`RewriteRule`, `RewriteSpan`) + catgraph-physics rewrite_span.rs:46 (`RewriteRule::to_span()`) | The categorical `Span<u32>` representation is one method-call away from any `RewriteRule`. |
-| Mono left-cancellative property (Eqs 72–74) | §3 Eqs 72–74 | ⚠️ | (catgraph-physics `Span` does not separately enforce monomorphism) | The construction is type-named `Span` but the underlying maps `l: K → L`, `r: K → R` are not proven injective on insertion. Wolfram-style rewrite rules happen to be injective in practice but no run-time check. Action item M-8. |
+| Mono left-cancellative property (Eqs 72–74) | §3 Eqs 72–74 | ✅ 🔗 | catgraph-physics rewrite_rule.rs:166 (`RewriteSpan::try_new`), rewrite_span.rs:145 (`RewriteSpan::to_span`) | Both reject a non-injective `l: K → L` or `r: K → R` with `RewriteSpanError::NonInjectiveMap`. `RewriteRule::to_span` maps each distinct variable to its own index, so its legs are injective by construction. `RewriteSpan`'s fields are public; a struct-literal value is checked when it reaches `to_span`. Action item M-8. |
 | Double-pushout (DPO) construction (Eqs 75–81) | §3 Eqs 75–81 | ✅ | catgraph-physics::hypergraph::evolution.rs (HypergraphEvolution::run) | |
 | Adhesive category requirements (van-Kampen square, Eqs 82–108) | §3 Eqs 82–108 | ⏭️ | (none) | The paper acknowledges that the hypergraph category with subhypergraph inclusions is *not* strictly adhesive (full subcategory of an adhesive ambient via "selective adhesivity"). v0.6.3 does not verify any of the van-Kampen / pullback / pushout-along-mono conditions. Listed in §5 as future work; deferred. |
 | Concurrency theorem composition `p₁ *_E p₂` (Eq 109) — gives ∘ in 𝒯 | §3 Eq 109 | ⚠️ | machines/hypergraph/catgraph_bridge.rs (`MultiwayCospan::compose`) | Compositional structure is implicit in the multiway-evolution chain; no first-class `concurrent_composition` method on `RewriteRule`. Action item M-9 (deferred — cleaner once the §3 Eq 110 parallel-production surface lands). |
@@ -221,7 +221,7 @@ Items intentionally not implemented in v0.6.x with rationale:
 | **v0.9.0+** | Action item M-5: explicit hexagon coherence test for braiding (Eq 50) on a fixture multiway graph | One test. |
 | **v0.9.0+** | Action item M-6: functor-coherence variant of Eq 66–67 (vs current multiway-graph variant) | One test. |
 | **v0.9.0+** | Action item M-7: per-machine `state_equivalence_complexity` annotation surfacing the paper's evolution-vs-equivalence orthogonality | API addition. |
-| **v0.9.0+** | Action item M-8: monomorphism check on `RewriteSpan::l, r` (Eqs 72–74) | One verifier. |
+| **v0.9.0+** | Action item M-8: monomorphism check on `RewriteSpan::l, r` (Eqs 72–74) | Satisfied upstream (`RewriteSpan::try_new`, `RewriteSpan::to_span`); see §3 Hypergraph rewriting. |
 | **v0.9.0+** | Action item M-9: first-class `concurrent_composition` and `parallel_composition` on `RewriteRule` (Eqs 109–110) | API + tests. |
 
 ---
