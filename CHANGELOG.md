@@ -570,7 +570,7 @@ Phase 2.5 — coherence + Stokes rewrite.
 - `multiway_stokes` example (closed vs non-closed 1-forms, gated on `dec`).
 - Symmetric monoidal coherence formalization-by-construction over multiway graphs.
 
-[Unreleased]: https://github.com/tsondru/irreducible/compare/v0.8.0...HEAD
+[Unreleased]: https://github.com/tsondru/irreducible/compare/v0.9.0...HEAD
 [0.9.0]: https://github.com/tsondru/irreducible/releases/tag/v0.9.0
 [0.8.0]: https://github.com/tsondru/irreducible/releases/tag/v0.8.0
 [0.7.0]: https://github.com/tsondru/irreducible/releases/tag/v0.7.0
