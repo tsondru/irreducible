@@ -203,7 +203,7 @@ fn demo_turing_machine() {
     }
     println!();
 
-    if analysis.is_irreducible {
+    if analysis.is_contiguous_without_repeats {
         println!("  ✓ IRREDUCIBLE: Z' is functorial — no shortcuts exist!");
     } else {
         println!("  ✗ REDUCIBLE: Shortcuts found — computation can be predicted.");
@@ -257,8 +257,8 @@ fn demo_cellular_automata() {
     println!("    Generations: {}", analysis30.step_count);
     println!("    Cycles found: {}", analysis30.cycles.len());
     println!(
-        "    Irreducible: {}",
-        if analysis30.is_irreducible {
+        "    Contiguous without repeats: {}",
+        if analysis30.is_contiguous_without_repeats {
             "YES ✓"
         } else {
             "no"
@@ -282,8 +282,8 @@ fn demo_cellular_automata() {
         analysis0.cycles.len()
     );
     println!(
-        "    Irreducible: {}",
-        if analysis0.is_irreducible {
+        "    Contiguous without repeats: {}",
+        if analysis0.is_contiguous_without_repeats {
             "yes"
         } else {
             "NO ✗"

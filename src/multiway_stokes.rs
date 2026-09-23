@@ -49,10 +49,10 @@
 #[cfg(feature = "dec")]
 mod inner {
     use std::collections::HashMap;
-    use std::hash::Hash;
 
     use nalgebra::DVector;
 
+    use catgraph::CanonicalEncode;
     use catgraph_physics::multiway::{MultiwayEvolutionGraph, MultiwayNodeId};
     use deep_causality_topology::{
         Simplex, SimplicialComplex, SimplicialComplexBuilder, TopologyError,
@@ -141,7 +141,7 @@ mod inner {
         /// only 0-, 1-, and 2-simplices.
         #[must_use]
         #[allow(clippy::similar_names)]
-        pub fn from_evolution<S: Clone + Hash, T: Clone>(
+        pub fn from_evolution<S: Clone + CanonicalEncode, T: Clone>(
             graph: &MultiwayEvolutionGraph<S, T>,
         ) -> Self {
             // --- Step 1: Index vertices contiguously (0..n) in step-major order.

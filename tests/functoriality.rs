@@ -53,10 +53,10 @@ fn cycling_tm_is_not_irreducible() {
 
     let history = tm.run("", 10);
     assert!(!history.halted);
-    assert!(!history.is_irreducible());
+    assert!(!history.is_contiguous_without_repeats());
 
     let analysis = history.analyze_irreducibility();
-    assert!(!analysis.is_irreducible);
+    assert!(!analysis.is_contiguous_without_repeats);
     assert!(!analysis.shortcuts.is_empty());
 }
 
@@ -83,7 +83,7 @@ fn rule_0_all_die_produces_cycles_not_irreducible() {
 
     // Rule 0 kills everything, then repeats all-dead forever
     let analysis = history.analyze_irreducibility();
-    assert!(!analysis.is_irreducible);
+    assert!(!analysis.is_contiguous_without_repeats);
     assert!(!analysis.cycles.is_empty());
 }
 
@@ -120,7 +120,7 @@ fn empty_execution_zero_steps_edge_case() {
     assert_eq!(history.step_count(), 0);
     assert!(history.to_intervals().is_empty());
     assert!(history.total_interval().is_none());
-    assert!(history.is_irreducible());
+    assert!(history.is_contiguous_without_repeats());
 }
 
 // ---------------------------------------------------------------------------
@@ -136,8 +136,8 @@ fn analyze_trace_agrees_with_domain_specific_tm() {
     let trace_analysis = analyze_trace(&history);
 
     assert_eq!(
-        domain_analysis.is_irreducible,
-        trace_analysis.is_irreducible
+        domain_analysis.is_contiguous_without_repeats,
+        trace_analysis.is_contiguous_without_repeats
     );
     assert_eq!(
         domain_analysis.is_sequence_contiguous,
@@ -160,8 +160,8 @@ fn analyze_trace_agrees_with_domain_specific_ca() {
     let trace_analysis = analyze_trace(&history);
 
     assert_eq!(
-        domain_analysis.is_irreducible,
-        trace_analysis.is_irreducible
+        domain_analysis.is_contiguous_without_repeats,
+        trace_analysis.is_contiguous_without_repeats
     );
     assert_eq!(
         domain_analysis.is_sequence_contiguous,
@@ -176,7 +176,7 @@ fn long_run_rule_30_remains_irreducible() {
     let initial = ca.single_cell_initial();
     let history = ca.run(initial, 50);
 
-    assert!(history.is_irreducible());
+    assert!(history.is_contiguous_without_repeats());
     let analysis = history.analyze_irreducibility();
     assert_eq!(analysis.step_count, 50);
     assert!(analysis.cycles.is_empty());
@@ -280,7 +280,7 @@ fn three_way_agreement_irreducible_tm() {
 
     // Perspective 2: Trace analysis (contiguity + no repeats + complexity ratio)
     let trace = analyze_trace(&history);
-    assert!(trace.is_irreducible);
+    assert!(trace.is_contiguous_without_repeats);
 
     // Perspective 3: Stokes conservation law
     let stokes = StokesIrreducibility::analyze(&intervals).unwrap();
@@ -302,7 +302,7 @@ fn three_way_agreement_reducible() {
 
     // Perspective 2: Trace analysis detects state repetition → reducible
     let trace = analyze_trace(&history);
-    assert!(!trace.is_irreducible);
+    assert!(!trace.is_contiguous_without_repeats);
 
     // Perspective 3: Stokes — for contiguous intervals it may succeed,
     // but if intervals are non-contiguous it returns Err (also non-irreducible).
@@ -316,7 +316,7 @@ fn three_way_agreement_reducible() {
     // other but still correctly not imply full irreducibility.
     // At minimum: trace says reducible, and functor + Stokes agree with each other.
     assert_eq!(functor_irreducible, stokes_irreducible);
-    assert!(!trace.is_irreducible);
+    assert!(!trace.is_contiguous_without_repeats);
 }
 
 // ---------------------------------------------------------------------------
@@ -407,7 +407,7 @@ fn five_way_agreement_irreducible_tm() {
 
     // The three established perspectives.
     assert!(IrreducibilityFunctor::is_sequence_irreducible(&intervals));
-    assert!(analyze_trace(&history).is_irreducible);
+    assert!(analyze_trace(&history).is_contiguous_without_repeats);
     assert!(
         StokesIrreducibility::analyze(&intervals)
             .unwrap()
@@ -427,7 +427,7 @@ fn five_way_agreement_irreducible_ca() {
     let intervals = history.to_intervals();
 
     assert!(IrreducibilityFunctor::is_sequence_irreducible(&intervals));
-    assert!(analyze_trace(&history).is_irreducible);
+    assert!(analyze_trace(&history).is_contiguous_without_repeats);
     assert!(
         StokesIrreducibility::analyze(&intervals)
             .unwrap()
@@ -457,7 +457,7 @@ fn categorical_perspectives_do_not_separate_the_reducible_trace() {
     let history = ca.run(initial, 10);
 
     // Perspective 2 separates: the trace repeats.
-    assert!(!analyze_trace(&history).is_irreducible);
+    assert!(!analyze_trace(&history).is_contiguous_without_repeats);
     let fingerprints = history.state_fingerprints();
     let distinct: std::collections::HashSet<u64> = fingerprints.iter().copied().collect();
     assert_eq!(fingerprints.len(), 11, "ten steps plus the seed");
@@ -483,5 +483,5 @@ fn rule_110_turing_complete_produces_contiguous_intervals() {
     assert!(IrreducibilityFunctor::is_sequence_irreducible(&intervals));
 
     let trace = analyze_trace(&history);
-    assert!(trace.is_irreducible);
+    assert!(trace.is_contiguous_without_repeats);
 }

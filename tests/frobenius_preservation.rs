@@ -20,7 +20,7 @@ fn linear_graph(fingerprints: &[u64]) -> MultiwayEvolutionGraph<u64, ()> {
     graph
 }
 
-fn assert_generators_preserved<S: Clone + std::hash::Hash, T: Clone>(
+fn assert_generators_preserved<S: Clone + catgraph::CanonicalEncode, T: Clone>(
     graph: &MultiwayEvolutionGraph<S, T>,
     name: &str,
 ) {

@@ -41,7 +41,7 @@
 //!     .build();
 //!
 //! let history = tm.run("1", 10);
-//! assert!(history.is_irreducible());
+//! assert!(history.is_contiguous_without_repeats());
 //! ```
 //!
 //! ## Example: Cellular Automaton
@@ -54,7 +54,10 @@
 //! let history = ca.run(initial, 20);
 //!
 //! let analysis = history.analyze_irreducibility();
-//! println!("Rule 30 irreducible: {}", analysis.is_irreducible);
+//! println!(
+//!     "Rule 30 contiguous without repeats: {}",
+//!     analysis.is_contiguous_without_repeats
+//! );
 //! ```
 
 mod cellular_automaton;

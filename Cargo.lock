@@ -579,9 +579,10 @@ dependencies = [
 
 [[package]]
 name = "catgraph"
-version = "0.23.0"
-source = "git+https://github.com/sustia-llc/catgraph?tag=v0.23.0#c1859e6db4f2f013c7daaad64ca16ef1fdf870c4"
+version = "0.24.0"
+source = "git+https://github.com/sustia-llc/catgraph?tag=v0.24.0#940dc70466e826f99335481034442386671c07e0"
 dependencies = [
+ "blake3",
  "either",
  "itertools 0.15.0",
  "log",
@@ -593,8 +594,8 @@ dependencies = [
 
 [[package]]
 name = "catgraph-applied"
-version = "0.23.0"
-source = "git+https://github.com/sustia-llc/catgraph?tag=v0.23.0#c1859e6db4f2f013c7daaad64ca16ef1fdf870c4"
+version = "0.24.0"
+source = "git+https://github.com/sustia-llc/catgraph?tag=v0.24.0#940dc70466e826f99335481034442386671c07e0"
 dependencies = [
  "catgraph",
  "either",
@@ -612,8 +613,8 @@ dependencies = [
 
 [[package]]
 name = "catgraph-dl"
-version = "0.23.0"
-source = "git+https://github.com/sustia-llc/catgraph?tag=v0.23.0#c1859e6db4f2f013c7daaad64ca16ef1fdf870c4"
+version = "0.24.0"
+source = "git+https://github.com/sustia-llc/catgraph?tag=v0.24.0#940dc70466e826f99335481034442386671c07e0"
 dependencies = [
  "catgraph-applied",
  "thiserror",
@@ -621,19 +622,20 @@ dependencies = [
 
 [[package]]
 name = "catgraph-physics"
-version = "0.23.0"
-source = "git+https://github.com/sustia-llc/catgraph?tag=v0.23.0#c1859e6db4f2f013c7daaad64ca16ef1fdf870c4"
+version = "0.24.0"
+source = "git+https://github.com/sustia-llc/catgraph?tag=v0.24.0#940dc70466e826f99335481034442386671c07e0"
 dependencies = [
  "catgraph",
  "nalgebra",
  "petgraph",
  "rustworkx-core",
+ "thiserror",
 ]
 
 [[package]]
 name = "catgraph-surreal"
-version = "0.2.0"
-source = "git+https://github.com/sustia-llc/catgraph-surreal?tag=v0.2.0#a7407def7145b2c9b57cceaf6e0bee35e718561a"
+version = "0.4.0"
+source = "git+https://github.com/sustia-llc/catgraph-surreal?tag=v0.4.0#aad23f31e03e1f1a9f5adcddd69deac63b0a4e24"
 dependencies = [
  "blake3",
  "catgraph",
@@ -2302,7 +2304,7 @@ checksum = "791930b43c0d5973160d90a8f3894509f2b273430f5c5c73b668636d0287c5c0"
 
 [[package]]
 name = "irreducible"
-version = "0.8.0"
+version = "0.9.0"
 dependencies = [
  "catgraph",
  "catgraph-applied",

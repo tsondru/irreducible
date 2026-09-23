@@ -47,8 +47,8 @@
 
 use std::collections::HashMap;
 use std::collections::hash_map::Entry;
-use std::hash::Hash;
 
+use catgraph::CanonicalEncode;
 use catgraph::category::{Composable, ComposableMutating, HasIdentity};
 use catgraph::cospan::Cospan;
 use catgraph::errors::CatgraphError;
@@ -209,7 +209,7 @@ fn generator_preserved(
 /// assert_eq!(result.per_step[0].components_checked, 1);
 /// assert_eq!(result.per_step[1].components_checked, 2);
 /// ```
-pub fn verify_frobenius_preservation<S: Clone + Hash, T: Clone>(
+pub fn verify_frobenius_preservation<S: Clone + CanonicalEncode, T: Clone>(
     graph: &MultiwayEvolutionGraph<S, T>,
 ) -> Result<FrobeniusPreservationResult, CatgraphError> {
     let functor = IrreducibilityFunctor::new();

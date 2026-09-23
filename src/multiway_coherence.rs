@@ -15,8 +15,7 @@
 //! References: Gorard arXiv:2301.04690, Wolfram Physics Project (causal
 //! invariance as commutativity).
 
-use std::hash::Hash;
-
+use catgraph::CanonicalEncode;
 use catgraph_physics::multiway::{MultiwayEvolutionGraph, MultiwayNodeId};
 
 /// Witness that an associator check passed -- records the confluence path.
@@ -103,7 +102,7 @@ impl std::error::Error for CoherenceError {}
 /// - [`CoherenceError::MissingEvent`] if `fork` is not in the graph
 /// - [`CoherenceError::InsufficientBranches`] if `fork` has < 3 children
 /// - [`CoherenceError::NonConfluent`] if any pair of children fails to commute
-pub fn verify_associator<S: Clone + Hash, T: Clone>(
+pub fn verify_associator<S: Clone + CanonicalEncode, T: Clone>(
     graph: &MultiwayEvolutionGraph<S, T>,
     fork: MultiwayNodeId,
 ) -> Result<AssociatorWitness, CoherenceError> {
@@ -155,7 +154,7 @@ pub fn verify_associator<S: Clone + Hash, T: Clone>(
 ///
 /// - [`CoherenceError::MissingEvent`] if either event is not in the graph
 /// - [`CoherenceError::NonConfluent`] if the events don't commute
-pub fn verify_braiding<S: Clone + Hash, T: Clone>(
+pub fn verify_braiding<S: Clone + CanonicalEncode, T: Clone>(
     graph: &MultiwayEvolutionGraph<S, T>,
     event_a: MultiwayNodeId,
     event_b: MultiwayNodeId,
@@ -182,7 +181,7 @@ pub fn verify_braiding<S: Clone + Hash, T: Clone>(
 /// # Errors
 ///
 /// - [`CoherenceError::MissingEvent`] if the node is not in the graph
-pub fn verify_unitor<S: Clone + Hash, T: Clone>(
+pub fn verify_unitor<S: Clone + CanonicalEncode, T: Clone>(
     graph: &MultiwayEvolutionGraph<S, T>,
     node: MultiwayNodeId,
 ) -> Result<UnitorWitness, CoherenceError> {
@@ -201,7 +200,7 @@ pub fn verify_unitor<S: Clone + Hash, T: Clone>(
 ///
 /// Returns a list of all errors found (empty = fully coherent).
 #[must_use]
-pub fn verify_all_coherence<S: Clone + Hash, T: Clone>(
+pub fn verify_all_coherence<S: Clone + CanonicalEncode, T: Clone>(
     graph: &MultiwayEvolutionGraph<S, T>,
 ) -> Vec<CoherenceError> {
     let mut errors = Vec::new();

@@ -429,17 +429,14 @@ impl ExecutionHistory {
         }
     }
 
-    /// Check if this execution is irreducible.
+    /// Whether this execution's intervals compose end-to-end *and* no
+    /// configuration fingerprint repeats.
     ///
-    /// An execution is irreducible if:
-    /// 1. The sequence of intervals is contiguous (no gaps)
-    /// 2. No configuration repeats (no cycles/shortcuts)
-    ///
-    /// This is the core test of Gorard's functoriality criterion.
+    /// Returns the same boolean as
+    /// [`IrreducibilityAnalysis::is_contiguous_without_repeats`].
     #[must_use]
-    pub fn is_irreducible(&self) -> bool {
-        let ta = trace::analyze_trace(self);
-        ta.is_irreducible
+    pub fn is_contiguous_without_repeats(&self) -> bool {
+        trace::is_contiguous_without_repeats(self)
     }
 
     /// Perform full irreducibility analysis.
@@ -457,7 +454,7 @@ impl ExecutionHistory {
             .collect();
 
         IrreducibilityAnalysis {
-            is_irreducible: ta.is_irreducible,
+            is_contiguous_without_repeats: ta.is_contiguous_without_repeats,
             is_sequence_contiguous: ta.is_sequence_contiguous,
             total_interval: ta.total_interval,
             shortcuts,
@@ -503,8 +500,9 @@ impl ExecutionHistory {
 /// that could be "jumped over", breaking functoriality of Z'.
 #[derive(Clone, Debug)]
 pub struct IrreducibilityAnalysis {
-    /// Whether the computation is fully irreducible
-    pub is_irreducible: bool,
+    /// Whether the interval sequence is contiguous *and* no configuration
+    /// fingerprint repeats: `is_sequence_contiguous && shortcuts.is_empty()`.
+    pub is_contiguous_without_repeats: bool,
     /// Whether the interval sequence is contiguous
     pub is_sequence_contiguous: bool,
     /// The total interval [0, n] if composable
@@ -521,7 +519,11 @@ impl std::fmt::Display for IrreducibilityAnalysis {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(f, "Irreducibility Analysis:")?;
         writeln!(f, "  Steps: {}", self.step_count)?;
-        writeln!(f, "  Is irreducible: {}", self.is_irreducible)?;
+        writeln!(
+            f,
+            "  Contiguous without repeats: {}",
+            self.is_contiguous_without_repeats
+        )?;
         writeln!(f, "  Sequence contiguous: {}", self.is_sequence_contiguous)?;
         if let Some(ref interval) = self.total_interval {
             writeln!(f, "  Total interval: {interval}")?;
@@ -669,10 +671,10 @@ mod tests {
         let history = bb.run("", 20);
 
         // Busy Beaver should be irreducible (no shortcuts)
-        assert!(history.is_irreducible());
+        assert!(history.is_contiguous_without_repeats());
 
         let analysis = history.analyze_irreducibility();
-        assert!(analysis.is_irreducible);
+        assert!(analysis.is_contiguous_without_repeats);
         assert!(analysis.shortcuts.is_empty());
         assert!((analysis.complexity_ratio - 1.0).abs() < f64::EPSILON);
     }
@@ -716,7 +718,7 @@ mod tests {
         assert!(!shortcuts.is_empty());
 
         let analysis = history.analyze_irreducibility();
-        assert!(!analysis.is_irreducible);
+        assert!(!analysis.is_contiguous_without_repeats);
     }
 
     #[test]
@@ -751,7 +753,7 @@ mod tests {
 
         let display = format!("{}", analysis);
         assert!(display.contains("Steps: 6"));
-        assert!(display.contains("Is irreducible: true"));
+        assert!(display.contains("Contiguous without repeats: true"));
     }
 
     #[test]

@@ -54,7 +54,7 @@ The paper constructs category 𝒯 (objects = TM configurations, morphisms = tra
 
 | Item | Paper ref | Status | Location | Notes |
 |---|---|---|---|---|
-| Def 1: reducibility ⇔ ∃ T* with m < n | §2 Def 1 | ⚠️ | functor/mod.rs:104 (`is_sequence_irreducible`), turing.rs:445 (`ExecutionHistory::is_irreducible`) | Partial: the impl operationalises *contiguity-of-intervals* and *cycle-detection-via-fingerprint-repeats*. Cycle detection witnesses an explicit shortcut (T* = T with the cycle elided). It does **not** implement the more general "∃ T* with m < n" — i.e. a search over alternative TMs computing the same f. The paper treats Def 1 as the formal anchor; operational verifiers approximate it via shortcut-search. Document the gap explicitly, or rename the API to `is_no_repeat_shortcut` to avoid overclaim. (Action item I-1.) |
+| Def 1: reducibility ⇔ ∃ T* with m < n | §2 Def 1 | ⚠️ | functor/mod.rs:120 (`is_sequence_irreducible`), turing.rs:438 (`ExecutionHistory::is_contiguous_without_repeats`) | Partial: the impl operationalises *contiguity-of-intervals* and *cycle-detection-via-fingerprint-repeats*. Cycle detection witnesses an explicit shortcut (T* = T with the cycle elided). It does **not** implement the more general "∃ T* with m < n" — i.e. a search over alternative TMs computing the same f. The trace-level check is named `is_contiguous_without_repeats` (on `ExecutionHistory`, `CAExecutionHistory`, `PetriExecutionHistory`, their analysis structs, and the re-exported `catgraph_physics::trace` function and `TraceAnalysis` field). (Action item I-1.) |
 | 1-tape TM as 7-tuple `T = ⟨Q, Γ, b, Σ, q₀, δ, F⟩` | §2 Eq (above 1) | ✅ | machines/turing.rs:28 (`TuringMachine`) | Full data: states, initial_state, accept_states, reject_states, blank, transitions. |
 | Partial transition `δ : (Q\F)×Γ ⇸ Q×Γ×{L, R, id}` (id = "no shift") | §2 Eq 1, Eq 8 | ⚠️ | machines/transition.rs:15 (`Direction::{Left,Right,Stay}`) | Naming gap: paper writes the third value as `{L, R, id}` to emphasise that `id` is the categorical *identity-on-tape* (no head shift, supplying the identity morphism in 𝒯). The implementation calls this `Direction::Stay`, breaking the paper-correspondence. Display also emits `S` instead of `id`. Action item M-2: rename or document. The functional behaviour is correct (delta = 0). |
 | Object set `ob(𝒯) = Γ^ℵ₀ × Q × ℕ` (tape × state × head) | §2 (after Eq 1) | ✅ | machines/configuration.rs (`Configuration { tape, state, head }`) | Tape is `Vec<Symbol>` with implicit blank padding (countable Γ representation); head is `isize`; state is `u32`. |
@@ -155,11 +155,11 @@ The paper does not number theorems or propositions; the only formally numbered o
 
 | Paper item | Status | Location | Concrete witness / acceptance |
 |---|---|---|---|
-| Definition 1 (reducibility ⇔ ∃T* with m<n) | ⚠️ | turing.rs:445 | Approximation only (no-shortcut-by-cycle). See §2 row above. |
+| Definition 1 (reducibility ⇔ ∃T* with m<n) | ⚠️ | turing.rs:438 | Approximation only (no-shortcut-by-cycle). See §2 row above. |
 | Figure 1 (rule 2506 graphical) | ➖ | — | Not implemented as a fixture. The paper's *2-state, 2-color rule 2506* could be reproduced as a `TuringMachine` constant alongside `busy_beaver_2_2` (turing.rs:194); doing so would let `tests/functoriality.rs` test the exact paper figure data. **Action item M-10**. |
 | Figure 2 (rule 2506 evolution graph from `{0,1,0,0}`, 4 steps) | ➖ | — | Same as above — depends on M-10 fixture. |
 | Figure 3 (edge-tagging with step-counts) | ✅ | turing.rs `to_intervals` | The morphism-tagging structure is implemented; not validated against rule-2506 specifically. |
-| Figure 4 (vertex/edge-tagged free category, Z' with intermediate step lists) | ✅ | turing.rs + functor/mod.rs:106 (`is_sequence_irreducible`) | |
+| Figure 4 (vertex/edge-tagged free category, Z' with intermediate step lists) | ✅ | turing.rs + functor/mod.rs:120 (`is_sequence_irreducible`) | |
 | Figure 5/6/7 (rules 2506+3506 as parallel composition; multiway graph for 3 steps) | ➖ | — | Same as Figs 1–2 — would benefit from a paper-fixture rule fixture. |
 | Figure 8/9 (default foliation Σ_t and branchial graphs) | ✅ 🔗 | machines/multiway/mod.rs (re-exports `extract_branchial_foliation` + `BranchialGraph`) | Foliation tested in `tests/multiway_evolution.rs` and `tests/multiway_coherence.rs`. |
 | Figure 10 (NTM evolution graph with step counts; subadditive ∘ and ⊗) | ⚠️ | tests/multiway_coherence.rs | Subadditivity check missing. See action item I-6. |
@@ -210,7 +210,6 @@ Items intentionally not implemented in v0.6.x with rationale:
 | **v0.9.0+** | Action item M-2: rename `Direction::Stay → Direction::Id` (or `Forward`) and emit `id` (or `F`) in `Display` to match paper Eqs 1, 8 | Naming gap. |
 | **v0.9.0+** | Action item M-3: add explicit unit-law test on `Transition` per Eqs 5–7 | One test. |
 | **v0.9.0+** | Action item M-10/M-11: add paper-fixture rules (rule 2506, rule 3506, set-substitution-Fig-12) as `TuringMachine` / `RewriteRule` constants | Lets the audit's Figures-as-tests gates flip ✅. |
-| **v0.9.0+** | Action item I-1: rename `is_irreducible` → `is_no_repeat_shortcut` OR document the gap from Def 1 | Naming / scope clarity. |
 | **v0.9.0+** | Action item I-6: replace `Complexity::parallel = max` with paper-faithful subadditivity check (paper Eqs 67–69) | Largest paper-fidelity gap in §3; potentially blocking if a downstream consumer claims "this crate verifies multicomputational irreducibility per Gorard". |
 | **v0.9.0+** | Action item A-1: surface the architectural drift in `ZPrimeAdjunction` triangle identities. Either rename the trait or add a `caveat:` doc explaining the implementation is a one-sided self-roundtrip, not the paper's 𝒯 ⇄ 𝓥ect adjunction | Architectural. |
 | **v0.9.0+** | Action item A-2: clarify framing of `cup`/`cap`/`name`/`unname` re-exports — F&S compact-closed cospans vs paper's FdVect compact closure (Eqs 138–144) | Architectural. |
@@ -231,7 +230,7 @@ Promoted from §2–§5 above. Triage classes:
 
 | # | Tag | Severity | Description | Cycle |
 |---|---|---|---|---|
-| I-1 | important | rename / scope | `is_irreducible` API approximates Def 1 only via cycle detection — overclaim risk | v0.9.0+ |
+| I-1 | important | rename / scope | The trace check approximates Def 1 via cycle detection; it is named `is_contiguous_without_repeats` (§2 Def 1 row) | done |
 | I-2 | important | paper-fidelity | `Z'(id_X)` should be singleton `[s,s]` (Eq 13), not `[s,s+1]` | v0.9.0+ |
 | I-3 | important | substrate | Boundary endofunctor ∂ on `DiscreteInterval` + ∂²=∅ verifier (Eqs 22–25) | v0.9.0+ |
 | I-4 | important | paper-fidelity | HALT unit object + ε coherence map (Eq 58, 59) | v0.9.0+ |

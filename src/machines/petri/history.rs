@@ -59,14 +59,14 @@ pub struct PetriExecutionHistory {
 }
 
 impl PetriExecutionHistory {
-    /// Check whether this execution is irreducible.
+    /// Whether this firing sequence's intervals compose end-to-end *and* no
+    /// marking fingerprint repeats.
     ///
-    /// Mirrors [`crate::ExecutionHistory::is_irreducible`]: delegates to
-    /// [`catgraph_physics::trace::analyze_trace`] and returns the
-    /// `is_irreducible` verdict.
+    /// Returns the same boolean as
+    /// [`catgraph_physics::trace::TraceAnalysis::is_contiguous_without_repeats`].
     #[must_use]
-    pub fn is_irreducible(&self) -> bool {
-        trace::analyze_trace(self).is_irreducible
+    pub fn is_contiguous_without_repeats(&self) -> bool {
+        trace::is_contiguous_without_repeats(self)
     }
 }
 
