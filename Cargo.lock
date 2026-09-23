@@ -579,8 +579,8 @@ dependencies = [
 
 [[package]]
 name = "catgraph"
-version = "0.24.0"
-source = "git+https://github.com/sustia-llc/catgraph?tag=v0.24.0#940dc70466e826f99335481034442386671c07e0"
+version = "0.25.0"
+source = "git+https://github.com/sustia-llc/catgraph?tag=v0.25.0#2859d93889645a641182fc9af145dda4e8b90420"
 dependencies = [
  "blake3",
  "either",
@@ -594,8 +594,8 @@ dependencies = [
 
 [[package]]
 name = "catgraph-applied"
-version = "0.24.0"
-source = "git+https://github.com/sustia-llc/catgraph?tag=v0.24.0#940dc70466e826f99335481034442386671c07e0"
+version = "0.25.0"
+source = "git+https://github.com/sustia-llc/catgraph?tag=v0.25.0#2859d93889645a641182fc9af145dda4e8b90420"
 dependencies = [
  "catgraph",
  "either",
@@ -613,8 +613,8 @@ dependencies = [
 
 [[package]]
 name = "catgraph-dl"
-version = "0.24.0"
-source = "git+https://github.com/sustia-llc/catgraph?tag=v0.24.0#940dc70466e826f99335481034442386671c07e0"
+version = "0.25.0"
+source = "git+https://github.com/sustia-llc/catgraph?tag=v0.25.0#2859d93889645a641182fc9af145dda4e8b90420"
 dependencies = [
  "catgraph-applied",
  "thiserror",
@@ -622,8 +622,8 @@ dependencies = [
 
 [[package]]
 name = "catgraph-physics"
-version = "0.24.0"
-source = "git+https://github.com/sustia-llc/catgraph?tag=v0.24.0#940dc70466e826f99335481034442386671c07e0"
+version = "0.25.0"
+source = "git+https://github.com/sustia-llc/catgraph?tag=v0.25.0#2859d93889645a641182fc9af145dda4e8b90420"
 dependencies = [
  "catgraph",
  "nalgebra",
@@ -634,8 +634,8 @@ dependencies = [
 
 [[package]]
 name = "catgraph-surreal"
-version = "0.4.0"
-source = "git+https://github.com/sustia-llc/catgraph-surreal?tag=v0.4.0#aad23f31e03e1f1a9f5adcddd69deac63b0a4e24"
+version = "0.4.1"
+source = "git+https://github.com/sustia-llc/catgraph-surreal?tag=v0.4.1#e9d9a0b2c7b0e75bd3168ac765dbbd8df3d0dcea"
 dependencies = [
  "blake3",
  "catgraph",
@@ -2304,7 +2304,7 @@ checksum = "791930b43c0d5973160d90a8f3894509f2b273430f5c5c73b668636d0287c5c0"
 
 [[package]]
 name = "irreducible"
-version = "0.9.0"
+version = "0.10.0"
 dependencies = [
  "catgraph",
  "catgraph-applied",

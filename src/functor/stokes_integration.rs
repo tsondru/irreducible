@@ -12,28 +12,32 @@ use catgraph_physics::interval::DiscreteInterval;
 
 use super::fong_spivak::{FrobeniusVerificationResult, verify_cospan_chain_frobenius};
 
-/// Stokes-theorem perspective on computational irreducibility.
+/// Stokes conservation analysis of a non-empty interval sequence, kept in
+/// input order.
 ///
-/// Wraps a [`TemporalComplex`] (simplicial complex from interval chain)
-/// and its [`ConservationResult`] to provide a differential-geometric
-/// irreducibility check: a computation is Stokes-irreducible when the
-/// integrated complexity equals the expected total (no leakage or inflation).
+/// Holds the [`TemporalComplex`] of the sequence, its [`ConservationResult`],
+/// and the integral of its step-count 1-form: the sum of `end - start` over
+/// the input intervals.
 #[derive(Debug, Clone)]
 pub struct StokesIrreducibility {
-    /// The temporal complex for the computation.
+    /// The temporal complex of the input sequence.
     pub complex: TemporalComplex,
-    /// Conservation analysis result.
+    /// Contiguity, monotonicity and span `last.end - first.start` of the input
+    /// sequence.
     pub conservation: ConservationResult,
-    /// Integrated complexity over the full chain.
+    /// Sum of `end - start` over the input intervals.
     pub integrated_complexity: f64,
 }
 
 impl StokesIrreducibility {
-    /// Analyzes a sequence of intervals using Stokes integration.
+    /// Builds the temporal complex of `intervals` in input order, checks its
+    /// conservation, and integrates its step-count 1-form.
     ///
     /// # Errors
     ///
-    /// Returns `TemporalComplexError::EmptyIntervals` if the interval slice is empty.
+    /// Returns [`TemporalComplexError::EmptyIntervals`] if the interval slice
+    /// is empty, or [`TemporalComplexError::InsufficientPoints`] if its
+    /// endpoints, with consecutive equal points merged, number fewer than two.
     pub fn analyze(intervals: &[DiscreteInterval]) -> Result<Self, TemporalComplexError> {
         let complex = TemporalComplex::from_intervals(intervals)?;
         let conservation = complex.verify_conservation();
@@ -47,11 +51,10 @@ impl StokesIrreducibility {
         })
     }
 
-    /// Checks if the computation is irreducible from the Stokes perspective.
-    ///
-    /// A computation is Stokes-irreducible if:
-    /// 1. The trajectory is conserved (no leakage)
-    /// 2. The integrated complexity equals the expected total
+    /// Returns `true` iff the input sequence is conserved (each interval ends
+    /// where the next starts, and starts are non-decreasing) and the
+    /// integrated complexity equals the span `last.end - first.start` within
+    /// `1e-10`.
     #[inline]
     #[must_use]
     pub fn is_irreducible(&self) -> bool {
@@ -59,7 +62,9 @@ impl StokesIrreducibility {
             && (self.integrated_complexity - self.conservation.total_complexity).abs() < 1e-10
     }
 
-    /// Returns the ratio of integrated to expected complexity.
+    /// Returns integrated complexity divided by the span
+    /// `last.end - first.start`, or `1.0` when the span is within `1e-10` of
+    /// zero.
     #[inline]
     #[must_use]
     pub fn conservation_ratio(&self) -> f64 {
@@ -113,5 +118,41 @@ mod tests {
         let cospans = analysis.to_cospan_chain();
         assert_eq!(cospans.len(), 2);
         assert!(analysis.is_irreducible());
+    }
+
+    #[test]
+    fn test_stokes_reducible_on_gap() {
+        let intervals = vec![DiscreteInterval::new(0, 2), DiscreteInterval::new(5, 7)];
+        let analysis = StokesIrreducibility::analyze(&intervals).unwrap();
+        let integrated = analysis.integrated_complexity;
+        let total = analysis.conservation.total_complexity;
+        assert!(
+            (integrated - 4.0).abs() < 1e-10 && (total - 7.0).abs() < 1e-10,
+            "gap [0,2],[5,7]: integrated = {integrated}, total_complexity = {total} (expected 4 vs 7)"
+        );
+        assert!(
+            !analysis.is_irreducible(),
+            "gap [0,2],[5,7]: is_irreducible = true with integrated = {integrated}, \
+             total_complexity = {total}, is_conserved = {} (expected false)",
+            analysis.conservation.is_conserved
+        );
+    }
+
+    #[test]
+    fn test_stokes_reducible_on_overlap() {
+        let intervals = vec![DiscreteInterval::new(0, 3), DiscreteInterval::new(2, 5)];
+        let analysis = StokesIrreducibility::analyze(&intervals).unwrap();
+        let integrated = analysis.integrated_complexity;
+        let total = analysis.conservation.total_complexity;
+        assert!(
+            (integrated - 6.0).abs() < 1e-10 && (total - 5.0).abs() < 1e-10,
+            "overlap [0,3],[2,5]: integrated = {integrated}, total_complexity = {total} (expected 6 vs 5)"
+        );
+        assert!(
+            !analysis.is_irreducible(),
+            "overlap [0,3],[2,5]: is_irreducible = true with integrated = {integrated}, \
+             total_complexity = {total}, is_conserved = {} (expected false)",
+            analysis.conservation.is_conserved
+        );
     }
 }

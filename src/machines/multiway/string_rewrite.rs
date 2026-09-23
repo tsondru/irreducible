@@ -23,7 +23,6 @@
 //! let evolution = srs.run_multiway("AB", 5, 100);
 //! ```
 
-use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 
 use catgraph::CanonicalEncode;
@@ -296,12 +295,11 @@ impl SRSState {
         self.0.is_empty()
     }
 
-    /// Compute fingerprint for this state.
+    /// The [`catgraph::canonical_fingerprint`] of this state's
+    /// [`CanonicalEncode`] bytes.
     #[must_use]
     pub fn fingerprint(&self) -> u64 {
-        let mut hasher = DefaultHasher::new();
-        self.0.hash(&mut hasher);
-        hasher.finish()
+        catgraph::canonical_fingerprint(self)
     }
 }
 
@@ -447,6 +445,18 @@ mod tests {
 
         assert_eq!(s1.fingerprint(), s2.fingerprint());
         assert_ne!(s1.fingerprint(), s3.fingerprint());
+    }
+
+    #[test]
+    fn test_srs_state_fingerprint_is_canonical_fingerprint() {
+        let state = SRSState::new("ABC");
+        let expected = catgraph::canonical_fingerprint(&state);
+        assert_eq!(
+            state.fingerprint(),
+            expected,
+            "fingerprint {} vs canonical_fingerprint {expected}",
+            state.fingerprint()
+        );
     }
 
     fn canonical_bytes(state: &SRSState) -> Vec<u8> {

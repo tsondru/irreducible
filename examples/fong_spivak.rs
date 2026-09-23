@@ -105,7 +105,7 @@ fn part3_connection_summary() {
     let intervals = history.to_intervals();
 
     // Perspective 1: Functorial
-    let functorial = IrreducibilityFunctor::is_sequence_irreducible(&intervals);
+    let functorial = IrreducibilityFunctor::is_composable_chain(&intervals);
 
     // Perspective 2: Stokes
     let stokes = StokesIrreducibility::analyze(&intervals).unwrap();
@@ -116,7 +116,7 @@ fn part3_connection_summary() {
     let frobenius_valid = frobenius.all_valid && frobenius.composition_preserved;
 
     println!("Busy Beaver 2,2 --- Three-Way Agreement:");
-    println!("  Functorial irreducible:        {functorial}");
+    println!("  Functorial composable chain:   {functorial}");
     println!("  Stokes irreducible:            {stokes_irreducible}");
     println!("  Frobenius decomposition valid:  {frobenius_valid}");
     println!(

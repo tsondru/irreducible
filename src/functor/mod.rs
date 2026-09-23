@@ -115,9 +115,11 @@ impl IrreducibilityFunctor {
         }
     }
 
-    /// Check if a sequence of steps is irreducible.
+    /// Returns `true` iff every consecutive pair of `intervals` composes under
+    /// Eq 12, i.e. each interval ends where the next starts; `true` on an
+    /// empty or single-interval slice.
     #[must_use]
-    pub fn is_sequence_irreducible(intervals: &[DiscreteInterval]) -> bool {
+    pub fn is_composable_chain(intervals: &[DiscreteInterval]) -> bool {
         if intervals.is_empty() {
             return true;
         }
@@ -146,30 +148,31 @@ impl IrreducibilityFunctor {
         Some(result)
     }
 
-    /// Check multicomputational irreducibility for parallel branches.
+    /// Applies [`Self::is_composable_chain`] and [`Self::compose_sequence`] to
+    /// each branch of `branch_sequences`.
     #[must_use]
     pub fn verify_multiway_functoriality(
         branch_sequences: &[Vec<DiscreteInterval>],
     ) -> MultiwayIrreducibilityResult {
         let mut branch_results = Vec::new();
-        let mut all_irreducible = true;
+        let mut all_composable = true;
 
         for (idx, branch) in branch_sequences.iter().enumerate() {
-            let is_irreducible = Self::is_sequence_irreducible(branch);
-            if !is_irreducible {
-                all_irreducible = false;
+            let is_composable = Self::is_composable_chain(branch);
+            if !is_composable {
+                all_composable = false;
             }
 
             let composed = Self::compose_sequence(branch);
             branch_results.push(BranchResult {
                 branch_index: idx,
-                is_irreducible,
+                is_composable,
                 total_interval: composed,
             });
         }
 
         MultiwayIrreducibilityResult {
-            is_fully_irreducible: all_irreducible,
+            all_composable,
             branch_results,
         }
     }
@@ -191,11 +194,12 @@ impl IrreducibilityFunctor {
     }
 }
 
-/// Result of checking multiway irreducibility across parallel branches.
+/// Per-branch Eq 12 composability of a set of interval sequences.
 #[derive(Clone, Debug)]
 pub struct MultiwayIrreducibilityResult {
-    /// Whether all branches are irreducible
-    pub is_fully_irreducible: bool,
+    /// Whether every branch's consecutive intervals compose under Eq 12
+    /// (`true` on an empty branch set).
+    pub all_composable: bool,
     /// Results for each branch
     pub branch_results: Vec<BranchResult>,
 }
@@ -213,23 +217,24 @@ impl MultiwayIrreducibilityResult {
         result
     }
 
-    /// Count reducible branches.
+    /// Count branches whose consecutive intervals do not all compose.
     #[must_use]
     pub fn reducible_branch_count(&self) -> usize {
         self.branch_results
             .iter()
-            .filter(|b| !b.is_irreducible)
+            .filter(|b| !b.is_composable)
             .count()
     }
 }
 
-/// Irreducibility verdict for a single branch in a multiway computation.
+/// Eq 12 composability of a single branch's interval sequence.
 #[derive(Clone, Debug)]
 pub struct BranchResult {
     /// Index of this branch
     pub branch_index: usize,
-    /// Whether this branch is irreducible
-    pub is_irreducible: bool,
+    /// Whether each interval of this branch ends where the next starts
+    /// (`true` on an empty or single-interval branch).
+    pub is_composable: bool,
     /// The composed interval for this branch (if composable)
     pub total_interval: Option<DiscreteInterval>,
 }
@@ -290,23 +295,23 @@ mod tests {
     }
 
     #[test]
-    fn test_is_sequence_irreducible() {
+    fn test_is_composable_chain() {
         let intervals = vec![
             DiscreteInterval::new(0, 2),
             DiscreteInterval::new(2, 4),
             DiscreteInterval::new(4, 7),
         ];
-        assert!(IrreducibilityFunctor::is_sequence_irreducible(&intervals));
+        assert!(IrreducibilityFunctor::is_composable_chain(&intervals));
     }
 
     #[test]
-    fn test_is_sequence_reducible() {
+    fn test_is_not_composable_chain() {
         let intervals = vec![
             DiscreteInterval::new(0, 2),
             DiscreteInterval::new(3, 5),
             DiscreteInterval::new(5, 7),
         ];
-        assert!(!IrreducibilityFunctor::is_sequence_irreducible(&intervals));
+        assert!(!IrreducibilityFunctor::is_composable_chain(&intervals));
     }
 
     #[test]
@@ -347,7 +352,7 @@ mod tests {
         let branch1 = vec![DiscreteInterval::new(0, 2), DiscreteInterval::new(2, 5)];
         let branch2 = vec![DiscreteInterval::new(0, 3), DiscreteInterval::new(3, 4)];
         let result = IrreducibilityFunctor::verify_multiway_functoriality(&[branch1, branch2]);
-        assert!(result.is_fully_irreducible);
+        assert!(result.all_composable);
         assert_eq!(result.branch_results.len(), 2);
     }
 
@@ -356,7 +361,7 @@ mod tests {
         let branch1 = vec![DiscreteInterval::new(0, 2), DiscreteInterval::new(2, 5)];
         let branch2 = vec![DiscreteInterval::new(0, 3), DiscreteInterval::new(4, 6)];
         let result = IrreducibilityFunctor::verify_multiway_functoriality(&[branch1, branch2]);
-        assert!(!result.is_fully_irreducible);
+        assert!(!result.all_composable);
         assert_eq!(result.reducible_branch_count(), 1);
     }
 }

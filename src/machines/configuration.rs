@@ -53,17 +53,11 @@ impl Configuration {
         self.tape.read(self.head)
     }
 
-    /// Compute a fingerprint hash for this configuration.
-    ///
-    /// Used for cycle detection: if two configurations have the same
-    /// fingerprint, the computation will loop, indicating potential
-    /// reducibility (the loop can be "shortcut").
+    /// The [`catgraph::canonical_fingerprint`] of this configuration's
+    /// [`CanonicalEncode`] bytes (tape, state, head).
     #[must_use]
     pub fn fingerprint(&self) -> u64 {
-        use std::collections::hash_map::DefaultHasher;
-        let mut hasher = DefaultHasher::new();
-        self.hash(&mut hasher);
-        hasher.finish()
+        catgraph::canonical_fingerprint(self)
     }
 
     /// Create a normalized representation for comparison.
@@ -188,6 +182,18 @@ mod tests {
         let config1 = Configuration::initial("abc", 0, '_');
         let config2 = Configuration::initial("abc", 1, '_');
         assert_ne!(config1.fingerprint(), config2.fingerprint());
+    }
+
+    #[test]
+    fn test_configuration_fingerprint_is_canonical_fingerprint() {
+        let config = Configuration::initial("abc", 2, '_');
+        let expected = catgraph::canonical_fingerprint(&config);
+        assert_eq!(
+            config.fingerprint(),
+            expected,
+            "fingerprint {} vs canonical_fingerprint {expected}",
+            config.fingerprint()
+        );
     }
 
     #[test]

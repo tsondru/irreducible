@@ -45,8 +45,8 @@ pub struct MonoidalFunctorResult {
     /// Whether Z' preserves tensor products: Z'(f tensor g) = Z'(f) `direct_sum` Z'(g)
     pub preserves_tensor: bool,
 
-    /// Whether each individual branch is irreducible.
-    pub branches_irreducible: bool,
+    /// Whether every branch's consecutive intervals compose under Eq 12.
+    pub branches_composable: bool,
 
     /// Results for each branch.
     pub branch_results: Vec<BranchResult>,
@@ -80,7 +80,7 @@ impl MonoidalFunctorResult {
     pub fn failed(reason: &str) -> Self {
         Self {
             preserves_tensor: false,
-            branches_irreducible: false,
+            branches_composable: false,
             branch_results: Vec::new(),
             tensor_checks: Vec::new(),
             is_multicomputationally_irreducible: false,
@@ -117,7 +117,7 @@ impl std::fmt::Display for MonoidalFunctorResult {
             self.is_multicomputationally_irreducible
         )?;
         writeln!(f, "  Tensor preserved: {}", self.preserves_tensor)?;
-        writeln!(f, "  Branches irreducible: {}", self.branches_irreducible)?;
+        writeln!(f, "  Branches composable: {}", self.branches_composable)?;
         writeln!(f, "  Branch count: {}", self.branch_results.len())?;
         writeln!(f, "  Steps checked: {}", self.tensor_checks.len())?;
 
@@ -182,14 +182,14 @@ impl IrreducibilityFunctor {
     /// Verify that a multiway evolution satisfies symmetric monoidal functor properties.
     ///
     /// Checks:
-    /// 1. Each branch is individually irreducible (sequential composition)
+    /// 1. Each branch's consecutive intervals compose under Eq 12
     /// 2. Tensor product is preserved: Z'(f tensor g) = Z'(f) `direct_sum` Z'(g)
     /// 3. Coherence conditions via real multiway confluence verification
     #[must_use]
     pub fn verify_symmetric_monoidal_functor<S: Clone + CanonicalEncode, T: Clone>(
         graph: &MultiwayEvolutionGraph<S, T>,
     ) -> MonoidalFunctorResult {
-        // Step 1: Check individual branch irreducibility
+        // Step 1: Check each branch's Eq 12 composability
         let branch_intervals = crate::machines::multiway::branch_intervals(graph);
         let multiway_result = Self::verify_multiway_functoriality(&branch_intervals);
 
@@ -202,11 +202,11 @@ impl IrreducibilityFunctor {
         let all_coherent = coherence_errors.is_empty();
 
         let is_multicomputationally_irreducible =
-            multiway_result.is_fully_irreducible && preserves_tensor && all_coherent;
+            multiway_result.all_composable && preserves_tensor && all_coherent;
 
         MonoidalFunctorResult {
             preserves_tensor,
-            branches_irreducible: multiway_result.is_fully_irreducible,
+            branches_composable: multiway_result.all_composable,
             branch_results: multiway_result.branch_results,
             tensor_checks,
             is_multicomputationally_irreducible,
@@ -376,7 +376,7 @@ mod tests {
     fn test_monoidal_result_display() {
         let result = MonoidalFunctorResult {
             preserves_tensor: true,
-            branches_irreducible: true,
+            branches_composable: true,
             branch_results: vec![],
             tensor_checks: vec![],
             is_multicomputationally_irreducible: true,
@@ -416,7 +416,7 @@ mod tests {
         let root = graph.add_root(0);
         graph.add_sequential_step(root, 1, ());
         let result = IrreducibilityFunctor::verify_symmetric_monoidal_functor(&graph);
-        assert!(result.branches_irreducible);
+        assert!(result.branches_composable);
         assert!(result.preserves_tensor);
         assert!(result.is_multicomputationally_irreducible);
     }

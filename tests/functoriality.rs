@@ -22,7 +22,7 @@ fn busy_beaver_produces_contiguous_interval_sequence() {
 
     let intervals = history.to_intervals();
     assert_eq!(intervals.len(), 6);
-    assert!(IrreducibilityFunctor::is_sequence_irreducible(&intervals));
+    assert!(IrreducibilityFunctor::is_composable_chain(&intervals));
 }
 
 #[test]
@@ -32,7 +32,7 @@ fn binary_incrementer_produces_contiguous_intervals() {
 
     assert!(history.halted);
     let intervals = history.to_intervals();
-    assert!(IrreducibilityFunctor::is_sequence_irreducible(&intervals));
+    assert!(IrreducibilityFunctor::is_composable_chain(&intervals));
     // Each interval should be [i, i+1]
     for (i, interval) in intervals.iter().enumerate() {
         assert_eq!(interval.start, i);
@@ -72,7 +72,7 @@ fn rule_30_produces_contiguous_intervals() {
 
     let intervals = history.to_intervals();
     assert_eq!(intervals.len(), 20);
-    assert!(IrreducibilityFunctor::is_sequence_irreducible(&intervals));
+    assert!(IrreducibilityFunctor::is_composable_chain(&intervals));
 }
 
 #[test]
@@ -213,7 +213,7 @@ fn functor_non_contiguous_intervals_not_irreducible() {
     // and the sequence should NOT be irreducible.
     let intervals = vec![DiscreteInterval::new(0, 2), DiscreteInterval::new(5, 7)];
 
-    assert!(!IrreducibilityFunctor::is_sequence_irreducible(&intervals));
+    assert!(!IrreducibilityFunctor::is_composable_chain(&intervals));
 
     // compose_sequence should return None for non-contiguous intervals
     let composed = IrreducibilityFunctor::compose_sequence(&intervals);
@@ -267,7 +267,25 @@ fn repeat_detection_maps_to_shortcuts_and_cycles() {
 
 // ---------------------------------------------------------------------------
 // Three-way agreement tests (functor + trace + Stokes)
+//
+// Perspective 1 (functor): every consecutive interval pair composes, i.e. each
+//   interval ends where the next starts.
+// Perspective 2 (trace): the step trace is contiguous and revisits no state.
+// Perspective 3 (Stokes): the input sequence is contiguous with non-decreasing
+//   starts, and the sum of `end - start` equals `last.end - first.start`.
 // ---------------------------------------------------------------------------
+
+/// Perspectives 1 and 3 on `intervals`, each with the values it read.
+fn functor_and_stokes(intervals: &[DiscreteInterval]) -> (bool, bool, f64, f64) {
+    let functor = IrreducibilityFunctor::is_composable_chain(intervals);
+    let stokes = StokesIrreducibility::analyze(intervals).unwrap();
+    (
+        functor,
+        stokes.is_irreducible(),
+        stokes.integrated_complexity,
+        stokes.conservation.total_complexity,
+    )
+}
 
 #[test]
 fn three_way_agreement_irreducible_tm() {
@@ -275,48 +293,77 @@ fn three_way_agreement_irreducible_tm() {
     let history = bb.run("", 20);
     let intervals = history.to_intervals();
 
-    // Perspective 1: Functor contiguity
-    assert!(IrreducibilityFunctor::is_sequence_irreducible(&intervals));
-
-    // Perspective 2: Trace analysis (contiguity + no repeats + complexity ratio)
-    let trace = analyze_trace(&history);
-    assert!(trace.is_contiguous_without_repeats);
-
-    // Perspective 3: Stokes conservation law
-    let stokes = StokesIrreducibility::analyze(&intervals).unwrap();
-    assert!(stokes.is_irreducible());
+    let (functor, stokes, integrated, total) = functor_and_stokes(&intervals);
+    assert!(
+        functor,
+        "busy beaver 2,2: functor composability = false (expected true)"
+    );
+    assert!(
+        analyze_trace(&history).is_contiguous_without_repeats,
+        "busy beaver 2,2: trace revisits a state (expected none)"
+    );
+    assert!(
+        stokes && (integrated - 6.0).abs() < 1e-10 && (total - 6.0).abs() < 1e-10,
+        "busy beaver 2,2: stokes = {stokes}, integrated = {integrated}, \
+         total_complexity = {total} (expected true, 6 == 6)"
+    );
 }
 
 #[test]
-fn three_way_agreement_reducible() {
-    // Rule 0 kills all cells after one step, then cycles on all-dead state
+fn three_way_agreement_reducible_by_repetition() {
+    // Rule 0 kills every cell after one step, then repeats the all-dead state.
+    // Its intervals are [i, i+1] for i in 0..10: perspectives 1 and 3 read
+    // only the interval sequence and pass; perspective 2 reads the states and
+    // fails.
     let ca = ElementaryCA::new(0, 5);
     let initial = Generation::new(vec![true, false, true, false, true], 0);
     let history = ca.run(initial, 10);
     let intervals = history.to_intervals();
 
-    // Perspective 1: Functor — intervals are contiguous (each step [i, i+1]),
-    // but the functor only checks contiguity, so it may still say true.
-    // The real test is whether trace analysis and Stokes agree on reducibility.
-    let functor_irreducible = IrreducibilityFunctor::is_sequence_irreducible(&intervals);
+    let (functor, stokes, integrated, total) = functor_and_stokes(&intervals);
+    assert!(
+        functor,
+        "rule 0: functor composability = false (expected true)"
+    );
+    assert!(
+        stokes && (integrated - 10.0).abs() < 1e-10 && (total - 10.0).abs() < 1e-10,
+        "rule 0: stokes = {stokes}, integrated = {integrated}, \
+         total_complexity = {total} (expected true, 10 == 10)"
+    );
+    assert!(
+        !analyze_trace(&history).is_contiguous_without_repeats,
+        "rule 0: trace revisits no state (expected a repeat)"
+    );
+}
 
-    // Perspective 2: Trace analysis detects state repetition → reducible
-    let trace = analyze_trace(&history);
-    assert!(!trace.is_contiguous_without_repeats);
+#[test]
+fn three_way_agreement_reducible_by_gap() {
+    let intervals = vec![DiscreteInterval::new(0, 2), DiscreteInterval::new(5, 7)];
+    let (functor, stokes, integrated, total) = functor_and_stokes(&intervals);
+    assert!(
+        !functor,
+        "gap [0,2],[5,7]: functor composability = true (expected false, 2 != 5)"
+    );
+    assert!(
+        !stokes,
+        "gap [0,2],[5,7]: stokes = true with integrated = {integrated}, \
+         total_complexity = {total} (expected false, 4 vs 7)"
+    );
+}
 
-    // Perspective 3: Stokes — for contiguous intervals it may succeed,
-    // but if intervals are non-contiguous it returns Err (also non-irreducible).
-    let stokes_irreducible = match StokesIrreducibility::analyze(&intervals) {
-        Ok(analysis) => analysis.is_irreducible(),
-        Err(_) => false,
-    };
-
-    // The trace perspective is the most sensitive (detects cycles).
-    // If functor and Stokes only check contiguity, they may agree with each
-    // other but still correctly not imply full irreducibility.
-    // At minimum: trace says reducible, and functor + Stokes agree with each other.
-    assert_eq!(functor_irreducible, stokes_irreducible);
-    assert!(!trace.is_contiguous_without_repeats);
+#[test]
+fn three_way_agreement_reducible_by_overlap() {
+    let intervals = vec![DiscreteInterval::new(0, 3), DiscreteInterval::new(2, 5)];
+    let (functor, stokes, integrated, total) = functor_and_stokes(&intervals);
+    assert!(
+        !functor,
+        "overlap [0,3],[2,5]: functor composability = true (expected false, 3 != 2)"
+    );
+    assert!(
+        !stokes,
+        "overlap [0,3],[2,5]: stokes = true with integrated = {integrated}, \
+         total_complexity = {total} (expected false, 6 vs 5)"
+    );
 }
 
 // ---------------------------------------------------------------------------
@@ -406,7 +453,7 @@ fn five_way_agreement_irreducible_tm() {
     let intervals = history.to_intervals();
 
     // The three established perspectives.
-    assert!(IrreducibilityFunctor::is_sequence_irreducible(&intervals));
+    assert!(IrreducibilityFunctor::is_composable_chain(&intervals));
     assert!(analyze_trace(&history).is_contiguous_without_repeats);
     assert!(
         StokesIrreducibility::analyze(&intervals)
@@ -426,7 +473,7 @@ fn five_way_agreement_irreducible_ca() {
     let history = ca.run(ca.single_cell_initial(), 20);
     let intervals = history.to_intervals();
 
-    assert!(IrreducibilityFunctor::is_sequence_irreducible(&intervals));
+    assert!(IrreducibilityFunctor::is_composable_chain(&intervals));
     assert!(analyze_trace(&history).is_contiguous_without_repeats);
     assert!(
         StokesIrreducibility::analyze(&intervals)
@@ -480,7 +527,7 @@ fn rule_110_turing_complete_produces_contiguous_intervals() {
 
     // Rule 110 is Turing-complete; from a single-cell seed it produces
     // complex non-repeating structure → contiguous and irreducible.
-    assert!(IrreducibilityFunctor::is_sequence_irreducible(&intervals));
+    assert!(IrreducibilityFunctor::is_composable_chain(&intervals));
 
     let trace = analyze_trace(&history);
     assert!(trace.is_contiguous_without_repeats);

@@ -3,7 +3,7 @@ resolver = "2"
 members = []
 
 [workspace.package]
-version = "0.9.0"
+version = "0.10.0"
 edition = "2024"
 # Measured cross-feature maximum of the dependencies' declared
 # `rust-version`s (`cargo +<v> check --workspace --all-targets --locked
@@ -18,16 +18,16 @@ authors = ["tsondru", "Claude <noreply@anthropic.com>"]
 [workspace.dependencies]
 # Reboot lineage (sustia-llc, public, HTTPS). ONE tag string shared by all
 # three — see the dual-SHA note on the [patch] block below. catgraph-surreal
-# resolves catgraph from the same git URL and pins the same tag (`v0.24.0`);
+# resolves catgraph from the same git URL and pins the same tag (`v0.25.0`);
 # the two tag strings must move together, or the one URL resolves at two SHAs
 # and `Cospan<u32>` acquires two incompatible identities.
-catgraph = { git = "https://github.com/sustia-llc/catgraph", tag = "v0.24.0" }
-catgraph-applied = { git = "https://github.com/sustia-llc/catgraph", tag = "v0.24.0" }
-catgraph-physics = { git = "https://github.com/sustia-llc/catgraph", tag = "v0.24.0" }
+catgraph = { git = "https://github.com/sustia-llc/catgraph", tag = "v0.25.0" }
+catgraph-applied = { git = "https://github.com/sustia-llc/catgraph", tag = "v0.25.0" }
+catgraph-physics = { git = "https://github.com/sustia-llc/catgraph", tag = "v0.25.0" }
 # The `persist` feature stores hypergraph evolution cospan chains in SurrealDB.
 # `default-features = false` drops the store's default `rocksdb` engine, so the
 # engine is chosen by `persist-mem` / `persist-rocksdb`.
-catgraph-surreal = { git = "https://github.com/sustia-llc/catgraph-surreal", tag = "v0.4.0", default-features = false }
+catgraph-surreal = { git = "https://github.com/sustia-llc/catgraph-surreal", tag = "v0.4.1", default-features = false }
 # The `dc-geometry` substrate: Regge curvature, DEC operators, and the sparse
 # matrices the Hodge star stack is built from.
 deep_causality_topology = "0.10"

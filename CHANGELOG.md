@@ -4,6 +4,29 @@ All notable changes to this crate are documented in this file.
 
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this crate adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.0] - 2026-09-23
+
+catgraph `v0.25.0` and catgraph-surreal `v0.4.1`.
+
+### Changed — BREAKING
+
+- catgraph, catgraph-applied, catgraph-physics pinned at git tag `v0.25.0`
+  (was `v0.24.0`); catgraph-surreal at `v0.4.1` (was `v0.4.0`).
+  `TemporalComplex` / `ConservationResult` (re-exported) follow the input
+  interval sequence, so `StokesIrreducibility::is_irreducible` is false on a
+  gap, an overlap or an out-of-order interval (#48).
+- Renamed (#47): `IrreducibilityFunctor::is_sequence_irreducible` →
+  `is_composable_chain`, `BranchResult.is_irreducible` → `is_composable`,
+  `MultiwayIrreducibilityResult.is_fully_irreducible` → `all_composable`,
+  `MonoidalFunctorResult.branches_irreducible` → `branches_composable`.
+- `Tape`, `Configuration`, `SRSState` and `Generation` `fingerprint()` and the
+  Petri marking fingerprint are `catgraph::canonical_fingerprint` values (was
+  `DefaultHasher`); `Tape::fingerprint` includes the blank symbol (#46).
+
+### Added
+
+- `catgraph::CanonicalEncode` for `Generation` (cells, then step).
+
 ## [0.9.0] - 2026-09-23
 
 catgraph `v0.24.0` and catgraph-surreal `v0.4.0`.
@@ -570,7 +593,8 @@ Phase 2.5 — coherence + Stokes rewrite.
 - `multiway_stokes` example (closed vs non-closed 1-forms, gated on `dec`).
 - Symmetric monoidal coherence formalization-by-construction over multiway graphs.
 
-[Unreleased]: https://github.com/tsondru/irreducible/compare/v0.9.0...HEAD
+[Unreleased]: https://github.com/tsondru/irreducible/compare/v0.10.0...HEAD
+[0.10.0]: https://github.com/tsondru/irreducible/releases/tag/v0.10.0
 [0.9.0]: https://github.com/tsondru/irreducible/releases/tag/v0.9.0
 [0.8.0]: https://github.com/tsondru/irreducible/releases/tag/v0.8.0
 [0.7.0]: https://github.com/tsondru/irreducible/releases/tag/v0.7.0

@@ -26,11 +26,10 @@
 //! Rule 30 with a single initial cell is conjectured to be irreducible
 //! (no known shortcut exists to compute generation n without computing 1..n-1).
 
+use catgraph::CanonicalEncode;
 use catgraph_physics::interval::DiscreteInterval;
 use catgraph_physics::trace::{self, StepTrace};
-use std::collections::hash_map::DefaultHasher;
 use std::fmt;
-use std::hash::{Hash, Hasher};
 
 /// A single generation (global state) of the cellular automaton.
 ///
@@ -71,12 +70,11 @@ impl Generation {
         self.cells.iter().filter(|&&c| c).count()
     }
 
-    /// Compute a fingerprint hash for cycle detection.
+    /// The [`catgraph::canonical_fingerprint`] of the cell vector's
+    /// [`CanonicalEncode`] bytes; the step number is not included.
     #[must_use]
     pub fn fingerprint(&self) -> u64 {
-        let mut hasher = DefaultHasher::new();
-        self.cells.hash(&mut hasher);
-        hasher.finish()
+        catgraph::canonical_fingerprint(&self.cells)
     }
 
     /// Get the cells as a slice.
@@ -101,6 +99,15 @@ impl Generation {
             .iter()
             .map(|&c| if c { '1' } else { '0' })
             .collect()
+    }
+}
+
+/// The cell count as `u64`, then one byte (`0` or `1`) per cell in order,
+/// then the step number as `usize`.
+impl CanonicalEncode for Generation {
+    fn encode_canonical(&self, out: &mut Vec<u8>) {
+        self.cells.encode_canonical(out);
+        self.step.encode_canonical(out);
     }
 }
 
@@ -576,6 +583,58 @@ mod tests {
         // Same cells = same fingerprint (step not included)
         assert_eq!(generation1.fingerprint(), generation2.fingerprint());
         assert_ne!(generation1.fingerprint(), generation3.fingerprint());
+    }
+
+    #[test]
+    fn test_generation_fingerprint_is_canonical_fingerprint_of_cells() {
+        let generation = Generation::new(vec![true, false, true], 5);
+        let expected = catgraph::canonical_fingerprint(generation.cells());
+        assert_eq!(
+            generation.fingerprint(),
+            expected,
+            "fingerprint {} vs canonical_fingerprint(cells) {expected}",
+            generation.fingerprint()
+        );
+    }
+
+    fn canonical_bytes(generation: &Generation) -> Vec<u8> {
+        let mut out = Vec::new();
+        generation.encode_canonical(&mut out);
+        out
+    }
+
+    #[test]
+    fn test_generation_canonical_encode_injective_per_field() {
+        let base = Generation::new(vec![true, false], 3);
+
+        // Equal values encode equal.
+        let equal = Generation::new(vec![true, false], 3);
+        assert_eq!(base, equal);
+        assert_eq!(canonical_bytes(&base), canonical_bytes(&equal));
+
+        // Differs only in `cells`: one cell's state.
+        let other_cell = Generation::new(vec![true, true], 3);
+        assert_ne!(
+            canonical_bytes(&base),
+            canonical_bytes(&other_cell),
+            "cells [1,0] vs [1,1] encoded equal"
+        );
+
+        // Differs only in `cells`: cell count.
+        let longer = Generation::new(vec![true, false, false], 3);
+        assert_ne!(
+            canonical_bytes(&base),
+            canonical_bytes(&longer),
+            "cells of length 2 vs 3 encoded equal"
+        );
+
+        // Differs only in `step`.
+        let other_step = Generation::new(vec![true, false], 4);
+        assert_ne!(
+            canonical_bytes(&base),
+            canonical_bytes(&other_step),
+            "step 3 vs 4 encoded equal"
+        );
     }
 
     #[test]
