@@ -6,6 +6,7 @@
 //! for irreducibility analysis — a repeated fingerprint implies a shortcut.
 
 use super::{State, Symbol, Tape};
+use catgraph::CanonicalEncode;
 use std::fmt;
 use std::hash::{Hash, Hasher};
 
@@ -118,6 +119,16 @@ impl Hash for Configuration {
     }
 }
 
+/// The tape's [`CanonicalEncode`] bytes, then the state as `u32`, then the
+/// head position as `isize`.
+impl CanonicalEncode for Configuration {
+    fn encode_canonical(&self, out: &mut Vec<u8>) {
+        self.tape.encode_canonical(out);
+        self.state.encode_canonical(out);
+        self.head.encode_canonical(out);
+    }
+}
+
 impl fmt::Display for Configuration {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         // Show tape with head position marked
@@ -209,6 +220,46 @@ mod tests {
         assert_eq!(normalized.head, 0); // shifted from -5
         assert_eq!(normalized.tape.read(0), 'a');
         assert_eq!(normalized.tape.read(1), 'b');
+    }
+
+    fn canonical_bytes(config: &Configuration) -> Vec<u8> {
+        let mut out = Vec::new();
+        config.encode_canonical(&mut out);
+        out
+    }
+
+    #[test]
+    fn test_configuration_canonical_encode_injective_per_field() {
+        let base = Configuration::new(Tape::from_input("ab", '_'), 0, 1);
+
+        // Equal values encode equal.
+        let equal = Configuration::new(Tape::from_input("ab", '_'), 0, 1);
+        assert_eq!(base, equal);
+        assert_eq!(canonical_bytes(&base), canonical_bytes(&equal));
+
+        // Differs only in `tape`.
+        let other_tape = Configuration::new(Tape::from_input("aa", '_'), 0, 1);
+        assert_ne!(
+            canonical_bytes(&base),
+            canonical_bytes(&other_tape),
+            "tape \"ab\" vs \"aa\" encoded equal"
+        );
+
+        // Differs only in `state`.
+        let other_state = Configuration::new(Tape::from_input("ab", '_'), 7, 1);
+        assert_ne!(
+            canonical_bytes(&base),
+            canonical_bytes(&other_state),
+            "state 0 vs 7 encoded equal"
+        );
+
+        // Differs only in `head`.
+        let other_head = Configuration::new(Tape::from_input("ab", '_'), 0, -1);
+        assert_ne!(
+            canonical_bytes(&base),
+            canonical_bytes(&other_head),
+            "head 1 vs -1 encoded equal"
+        );
     }
 
     #[test]

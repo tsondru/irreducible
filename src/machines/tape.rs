@@ -5,6 +5,7 @@
 //! number of written cells. Reading an uninitialized position returns the blank
 //! symbol; writing the blank symbol removes the position from storage.
 
+use catgraph::CanonicalEncode;
 use std::collections::HashMap;
 use std::fmt;
 use std::hash::{Hash, Hasher};
@@ -150,6 +151,17 @@ impl Hash for Tape {
     }
 }
 
+/// The blank symbol as a `char`, then the non-blank cells in ascending
+/// position order as a `Vec<(isize, char)>`.
+impl CanonicalEncode for Tape {
+    fn encode_canonical(&self, out: &mut Vec<u8>) {
+        self.blank.encode_canonical(out);
+        let mut cells: Vec<(isize, Symbol)> = self.cells.iter().map(|(&p, &s)| (p, s)).collect();
+        cells.sort_unstable_by_key(|&(pos, _)| pos);
+        cells.encode_canonical(out);
+    }
+}
+
 impl fmt::Display for Tape {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.bounds() {
@@ -249,6 +261,61 @@ mod tests {
         let tape3 = Tape::from_input("abc", '#');
         assert_eq!(tape1, tape2);
         assert_ne!(tape1, tape3); // different blank
+    }
+
+    fn canonical_bytes(tape: &Tape) -> Vec<u8> {
+        let mut out = Vec::new();
+        tape.encode_canonical(&mut out);
+        out
+    }
+
+    #[test]
+    fn test_tape_canonical_encode_injective_per_field() {
+        let base = Tape::from_input("ab", '_');
+
+        // Equal values (built in different insertion orders) encode equal.
+        let mut reordered = Tape::new('_');
+        reordered.write(1, 'b');
+        reordered.write(0, 'a');
+        assert_eq!(base, reordered);
+        assert_eq!(canonical_bytes(&base), canonical_bytes(&reordered));
+
+        // Differs only in `blank`: same non-blank cells, different blank.
+        let mut other_blank = Tape::new('#');
+        other_blank.write(0, 'a');
+        other_blank.write(1, 'b');
+        assert_ne!(base, other_blank);
+        assert_ne!(
+            canonical_bytes(&base),
+            canonical_bytes(&other_blank),
+            "blank '_' vs '#' encoded equal"
+        );
+
+        // Differs only in `cells`: a symbol at one position.
+        let other_symbol = Tape::from_input("ac", '_');
+        assert_ne!(
+            canonical_bytes(&base),
+            canonical_bytes(&other_symbol),
+            "cells {{0:a,1:b}} vs {{0:a,1:c}} encoded equal"
+        );
+
+        // Differs only in `cells`: the same symbols at shifted positions.
+        let mut shifted = Tape::new('_');
+        shifted.write(1, 'a');
+        shifted.write(2, 'b');
+        assert_ne!(
+            canonical_bytes(&base),
+            canonical_bytes(&shifted),
+            "cells {{0:a,1:b}} vs {{1:a,2:b}} encoded equal"
+        );
+
+        // Differs only in `cells`: cell count.
+        let longer = Tape::from_input("abb", '_');
+        assert_ne!(
+            canonical_bytes(&base),
+            canonical_bytes(&longer),
+            "cells of length 2 vs 3 encoded equal"
+        );
     }
 
     #[test]

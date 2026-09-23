@@ -28,7 +28,7 @@
 //! let history = bb.run("", 20);
 //!
 //! let analysis = history.analyze_irreducibility();
-//! assert!(analysis.is_irreducible);
+//! assert!(analysis.is_contiguous_without_repeats);
 //! assert_eq!(analysis.step_count, 6);
 //! ```
 //!
@@ -42,7 +42,10 @@
 //! let history = ca.run(ca.single_cell_initial(), 20);
 //!
 //! let analysis = history.analyze_irreducibility();
-//! println!("Rule 30 irreducible: {}", analysis.is_irreducible);
+//! println!(
+//!     "Rule 30 contiguous without repeats: {}",
+//!     analysis.is_contiguous_without_repeats
+//! );
 //! ```
 
 pub mod functor;
@@ -129,7 +132,8 @@ pub use machines::petri::{
 
 // Trace analysis exports
 pub use catgraph_physics::trace::{
-    RepeatDetection, StepTrace, TraceAnalysis, analyze_trace, detect_repeats, is_irreducible,
+    RepeatDetection, StepTrace, TraceAnalysis, analyze_trace, detect_repeats,
+    is_contiguous_without_repeats,
 };
 
 // Multiway system exports

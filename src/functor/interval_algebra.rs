@@ -39,8 +39,8 @@
 //! composition.
 
 use std::collections::HashMap;
-use std::hash::Hash;
 
+use catgraph::CanonicalEncode;
 use catgraph::cospan::Cospan;
 use catgraph::cospan_algebra::CospanAlgebra;
 use catgraph::errors::CatgraphError;
@@ -177,14 +177,14 @@ impl CospanAlgebra<u32> for IntervalCospanAlgebra {
 /// assert_eq!(chain[1].middle().len(), 2);
 /// ```
 #[must_use]
-pub fn multiway_step_cospans<S: Clone + Hash, T: Clone>(
+pub fn multiway_step_cospans<S: Clone + CanonicalEncode, T: Clone>(
     graph: &MultiwayEvolutionGraph<S, T>,
 ) -> Vec<Cospan<u32>> {
     step_cospans_from_foliation(graph, &extract_branchial_foliation(graph))
 }
 
 /// [`multiway_step_cospans`] over a foliation the caller already extracted.
-pub(super) fn step_cospans_from_foliation<S: Clone + Hash, T: Clone>(
+pub(super) fn step_cospans_from_foliation<S: Clone + CanonicalEncode, T: Clone>(
     graph: &MultiwayEvolutionGraph<S, T>,
     foliation: &[BranchialGraph],
 ) -> Vec<Cospan<u32>> {

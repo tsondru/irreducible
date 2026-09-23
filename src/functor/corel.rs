@@ -29,10 +29,10 @@
 //! [`crate::machines::hypergraph::catgraph_bridge`].
 
 use std::collections::HashMap;
-use std::hash::Hash;
 
 pub use catgraph::corel::Corel;
 
+use catgraph::CanonicalEncode;
 use catgraph::category::Composable;
 use catgraph::cospan::Cospan;
 use catgraph::errors::CatgraphError;
@@ -70,7 +70,7 @@ use union_find::UnionFind;
 /// assert_eq!(corels[1].as_cospan().middle().len(), 1);
 /// assert!(corels[1].merges(0, 1));
 /// ```
-pub fn step_corels<S: Clone + Hash, T: Clone>(
+pub fn step_corels<S: Clone + CanonicalEncode, T: Clone>(
     graph: &MultiwayEvolutionGraph<S, T>,
 ) -> Result<Vec<Corel<u32>>, CatgraphError> {
     let foliation = extract_branchial_foliation(graph);
@@ -114,7 +114,7 @@ pub fn step_corels<S: Clone + Hash, T: Clone>(
 /// root_only.add_root(0);
 /// assert!(evolution_corel(&root_only).unwrap().is_none());
 /// ```
-pub fn evolution_corel<S: Clone + Hash, T: Clone>(
+pub fn evolution_corel<S: Clone + CanonicalEncode, T: Clone>(
     graph: &MultiwayEvolutionGraph<S, T>,
 ) -> Result<Option<Corel<u32>>, CatgraphError> {
     let mut chain = step_corels(graph)?.into_iter();
@@ -131,7 +131,7 @@ pub fn evolution_corel<S: Clone + Hash, T: Clone>(
 /// Quotient a step cospan's apex by the fingerprint groups of its target
 /// slice: right-boundary positions whose nodes carry equal state
 /// fingerprints get their apex vertices identified.
-fn glue_fingerprint_merges<S: Clone + Hash, T: Clone>(
+fn glue_fingerprint_merges<S: Clone + CanonicalEncode, T: Clone>(
     graph: &MultiwayEvolutionGraph<S, T>,
     target_slice: &catgraph_physics::multiway::BranchialGraph,
     cospan: &Cospan<u32>,

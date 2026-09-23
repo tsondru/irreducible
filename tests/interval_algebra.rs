@@ -6,11 +6,10 @@
 //! pre-refactor logic, kept verbatim so agreement is checked against the old
 //! semantics rather than against the new code's own output.
 
-use std::hash::Hash;
-
 use irreducible::machines::multiway::{MultiwayEvolutionGraph, StringRewriteSystem};
 use irreducible::{DiscreteInterval, IrreducibilityFunctor, ParallelIntervals};
 
+use catgraph::CanonicalEncode;
 use catgraph_physics::multiway::extract_branchial_foliation;
 
 // ---------------------------------------------------------------------------
@@ -24,7 +23,7 @@ struct ReferenceCheck {
     preserves: bool,
 }
 
-fn reference_tensor_checks<S: Clone + Hash, T: Clone>(
+fn reference_tensor_checks<S: Clone + CanonicalEncode, T: Clone>(
     graph: &MultiwayEvolutionGraph<S, T>,
 ) -> Vec<ReferenceCheck> {
     let foliation = extract_branchial_foliation(graph);
@@ -62,7 +61,10 @@ fn reference_tensor_checks<S: Clone + Hash, T: Clone>(
     checks
 }
 
-fn assert_agreement<S: Clone + Hash, T: Clone>(graph: &MultiwayEvolutionGraph<S, T>, name: &str) {
+fn assert_agreement<S: Clone + CanonicalEncode, T: Clone>(
+    graph: &MultiwayEvolutionGraph<S, T>,
+    name: &str,
+) {
     let result = IrreducibilityFunctor::verify_symmetric_monoidal_functor(graph);
     let reference = reference_tensor_checks(graph);
 

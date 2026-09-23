@@ -26,6 +26,7 @@
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 
+use catgraph::CanonicalEncode;
 use catgraph_physics::multiway::{MultiwayEvolutionGraph, run_multiway_bfs};
 
 /// A single rewrite rule: pattern → replacement.
@@ -264,6 +265,13 @@ impl Hash for SRSState {
     }
 }
 
+/// The inner `String`'s encoding: byte length as `u64`, then the UTF-8 bytes.
+impl CanonicalEncode for SRSState {
+    fn encode_canonical(&self, out: &mut Vec<u8>) {
+        self.0.encode_canonical(out);
+    }
+}
+
 impl SRSState {
     /// Create a new SRS state.
     pub fn new(s: impl Into<String>) -> Self {
@@ -439,5 +447,30 @@ mod tests {
 
         assert_eq!(s1.fingerprint(), s2.fingerprint());
         assert_ne!(s1.fingerprint(), s3.fingerprint());
+    }
+
+    fn canonical_bytes(state: &SRSState) -> Vec<u8> {
+        let mut out = Vec::new();
+        state.encode_canonical(&mut out);
+        out
+    }
+
+    #[test]
+    fn test_srs_state_canonical_encode_injective() {
+        // Equal values encode equal.
+        assert_eq!(
+            canonical_bytes(&SRSState::new("AB")),
+            canonical_bytes(&SRSState::new("AB"))
+        );
+
+        // Differs in the one field (`.0`): content, and length.
+        let pairs = [("AB", "BA"), ("A", "AA"), ("", "A")];
+        for (a, b) in pairs {
+            assert_ne!(
+                canonical_bytes(&SRSState::new(a)),
+                canonical_bytes(&SRSState::new(b)),
+                "{a:?} vs {b:?} encoded equal"
+            );
+        }
     }
 }

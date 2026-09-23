@@ -23,8 +23,7 @@
 //! [`interval_algebra`](super::interval_algebra) module docs for the
 //! issue #11 evaluation.
 
-use std::hash::Hash;
-
+use catgraph::CanonicalEncode;
 use catgraph::cospan_algebra::CospanAlgebra;
 
 use catgraph_physics::interval::{DiscreteInterval, ParallelIntervals};
@@ -187,7 +186,7 @@ impl IrreducibilityFunctor {
     /// 2. Tensor product is preserved: Z'(f tensor g) = Z'(f) `direct_sum` Z'(g)
     /// 3. Coherence conditions via real multiway confluence verification
     #[must_use]
-    pub fn verify_symmetric_monoidal_functor<S: Clone + Hash, T: Clone>(
+    pub fn verify_symmetric_monoidal_functor<S: Clone + CanonicalEncode, T: Clone>(
         graph: &MultiwayEvolutionGraph<S, T>,
     ) -> MonoidalFunctorResult {
         // Step 1: Check individual branch irreducibility
@@ -220,7 +219,7 @@ impl IrreducibilityFunctor {
     }
 
     /// Verify tensor preservation at each time step.
-    fn verify_tensor_preservation<S: Clone + Hash, T: Clone>(
+    fn verify_tensor_preservation<S: Clone + CanonicalEncode, T: Clone>(
         graph: &MultiwayEvolutionGraph<S, T>,
     ) -> Vec<TensorCheck> {
         let foliation = extract_branchial_foliation(graph);
@@ -255,7 +254,7 @@ impl IrreducibilityFunctor {
     /// Compute actual parallel intervals from the graph: the same
     /// lax-monoidal fold restricted to branches with a continuation
     /// (the survival/totality check).
-    fn compute_actual_parallel<S: Clone + Hash, T: Clone>(
+    fn compute_actual_parallel<S: Clone + CanonicalEncode, T: Clone>(
         graph: &MultiwayEvolutionGraph<S, T>,
         branchial: &BranchialGraph,
         step: usize,

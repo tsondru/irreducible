@@ -32,7 +32,7 @@ fn producer_consumer_linear() {
     assert!(history.halted);
 
     let analysis = analyze_trace(&history);
-    assert!(analysis.is_irreducible);
+    assert!(analysis.is_contiguous_without_repeats);
     assert!(analysis.is_sequence_contiguous);
 
     assert_eq!(history.final_marking.get(0), Decimal::ZERO);

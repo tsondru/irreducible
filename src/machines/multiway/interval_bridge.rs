@@ -3,8 +3,7 @@
 //! Both helpers report step boundaries as
 //! [`catgraph_physics::interval`] values.
 
-use std::hash::Hash;
-
+use catgraph::CanonicalEncode;
 use catgraph_physics::interval::{DiscreteInterval, ParallelIntervals};
 use catgraph_physics::multiway::{MultiwayEvolutionGraph, branchial_parallel_step_pairs};
 
@@ -13,7 +12,7 @@ use catgraph_physics::multiway::{MultiwayEvolutionGraph, branchial_parallel_step
 ///
 /// Leaves whose path to the root has fewer than two nodes contribute no entry.
 #[must_use]
-pub fn branch_intervals<S: Clone + Hash, T: Clone>(
+pub fn branch_intervals<S: Clone + CanonicalEncode, T: Clone>(
     graph: &MultiwayEvolutionGraph<S, T>,
 ) -> Vec<Vec<DiscreteInterval>> {
     let mut result = Vec::new();
@@ -37,7 +36,7 @@ pub fn branch_intervals<S: Clone + Hash, T: Clone>(
 /// [`catgraph_physics::multiway::branchial_parallel_step_pairs`] entry — i.e.
 /// one branch per node at step `t` that has at least one forward transition.
 #[must_use]
-pub fn branchial_to_parallel_intervals<S: Clone + Hash, T: Clone>(
+pub fn branchial_to_parallel_intervals<S: Clone + CanonicalEncode, T: Clone>(
     graph: &MultiwayEvolutionGraph<S, T>,
 ) -> Vec<ParallelIntervals> {
     branchial_parallel_step_pairs(graph)

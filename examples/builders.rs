@@ -34,7 +34,10 @@ fn deterministic_builder() {
     println!("  Input:       \"111\"");
     println!("  Steps:       {}", history.step_count());
     println!("  Halted:      {}", history.halted);
-    println!("  Irreducible: {}", history.is_irreducible());
+    println!(
+        "  Contiguous without repeats: {}",
+        history.is_contiguous_without_repeats()
+    );
 
     // Built-in busy beaver for comparison
     println!("\n  --- Busy Beaver 2-state ---");
@@ -42,7 +45,10 @@ fn deterministic_builder() {
     let bb_history = bb.run("", 20);
     let analysis = bb_history.analyze_irreducibility();
     println!("  Steps:       {}", analysis.step_count);
-    println!("  Irreducible: {}", analysis.is_irreducible);
+    println!(
+        "  Contiguous without repeats: {}",
+        analysis.is_contiguous_without_repeats
+    );
 }
 
 /// Build a non-deterministic TM with branching transitions.

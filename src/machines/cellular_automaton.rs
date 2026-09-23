@@ -379,11 +379,14 @@ impl CAExecutionHistory {
         }
     }
 
-    /// Check if this execution is irreducible.
+    /// Whether this evolution's intervals compose end-to-end *and* no
+    /// generation fingerprint repeats.
+    ///
+    /// Returns the same boolean as
+    /// [`CAIrreducibilityAnalysis::is_contiguous_without_repeats`].
     #[must_use]
-    pub fn is_irreducible(&self) -> bool {
-        let ta = trace::analyze_trace(self);
-        ta.is_irreducible
+    pub fn is_contiguous_without_repeats(&self) -> bool {
+        trace::is_contiguous_without_repeats(self)
     }
 
     /// Analyze irreducibility.
@@ -416,7 +419,7 @@ impl CAExecutionHistory {
         CAIrreducibilityAnalysis {
             rule: self.rule,
             width: self.width,
-            is_irreducible: ta.is_irreducible,
+            is_contiguous_without_repeats: ta.is_contiguous_without_repeats,
             is_sequence_contiguous: ta.is_sequence_contiguous,
             total_interval: ta.total_interval,
             cycles,
@@ -496,8 +499,9 @@ pub struct CAIrreducibilityAnalysis {
     pub rule: u8,
     /// Grid width
     pub width: usize,
-    /// Whether the evolution is irreducible
-    pub is_irreducible: bool,
+    /// Whether the interval sequence is contiguous *and* no generation
+    /// fingerprint repeats: `is_sequence_contiguous && cycles.is_empty()`.
+    pub is_contiguous_without_repeats: bool,
     /// Whether intervals are contiguous
     pub is_sequence_contiguous: bool,
     /// Total interval
@@ -519,7 +523,11 @@ impl fmt::Display for CAIrreducibilityAnalysis {
         writeln!(f, "CA Irreducibility Analysis (Rule {}):", self.rule)?;
         writeln!(f, "  Grid width: {}", self.width)?;
         writeln!(f, "  Steps: {}", self.step_count)?;
-        writeln!(f, "  Is irreducible: {}", self.is_irreducible)?;
+        writeln!(
+            f,
+            "  Contiguous without repeats: {}",
+            self.is_contiguous_without_repeats
+        )?;
         writeln!(f, "  Sequence contiguous: {}", self.is_sequence_contiguous)?;
         if let Some(ref interval) = self.total_interval {
             writeln!(f, "  Total interval: {interval}")?;
@@ -619,7 +627,7 @@ mod tests {
 
         // Rule 30 with single cell should be irreducible for short runs
         let analysis = history.analyze_irreducibility();
-        assert!(analysis.is_irreducible);
+        assert!(analysis.is_contiguous_without_repeats);
         assert!(analysis.cycles.is_empty());
     }
 
@@ -633,7 +641,7 @@ mod tests {
 
         // After first step, all cells die. Then it stays dead.
         let analysis = history.analyze_irreducibility();
-        assert!(!analysis.is_irreducible); // Should have cycles (all-zero repeats)
+        assert!(!analysis.is_contiguous_without_repeats); // Should have cycles (all-zero repeats)
         assert!(!analysis.cycles.is_empty());
     }
 
@@ -694,6 +702,6 @@ mod tests {
 
         let s = format!("{}", analysis);
         assert!(s.contains("Rule 30"));
-        assert!(s.contains("Is irreducible"));
+        assert!(s.contains("Contiguous without repeats"));
     }
 }
